@@ -104,7 +104,7 @@ class Response
     /**
      * @var string
      */
-    protected $statusText;
+    public $statusText;
 
     /**
      * @var string
@@ -498,6 +498,11 @@ class Response
     public function getStatusCode()
     {
         return $this->statusCode;
+    }
+
+    public function setStatusText($text)
+    {
+        $this->statusText = $text;
     }
 
     /**

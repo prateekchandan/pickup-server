@@ -13,13 +13,21 @@
 
 App::before(function($request)
 {
-	//
+	if(Input::has('key')){
+		if(Input::get('key')!="pickup"){
+			return Error::make(401,401);
+		}
+	}
+	else{
+			return Error::make(1,2);
+	}
 });
 
 
 App::after(function($request, $response)
 {
-	//
+	$response->header('Content-Type', 'application/json');
+	return $response;
 });
 
 /*
@@ -87,4 +95,9 @@ Route::filter('csrf', function()
 	{
 		throw new Illuminate\Session\TokenMismatchException;
 	}
+});
+
+App::missing(function($exception)
+{
+   return Error::make(404,404);
 });
