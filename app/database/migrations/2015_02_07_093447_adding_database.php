@@ -38,7 +38,8 @@ class AddingDatabase extends Migration {
 			$table->integer('id')->unsigned();
 			$table->foreign('id')->references('id')->on('users')->onDelete('cascade');
 			$table->dateTime('journey_time');
-			$table->integer('margin');
+			$table->integer('margin_before');
+			$table->integer('margin_after');
 			$table->integer('preference');
 			$table->timestamps();
 		});

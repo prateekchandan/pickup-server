@@ -12,7 +12,9 @@
 */
 
 // Adding data
-Route::any('add_user', array('as' => 'user.add', 'uses' => 'UserController@add'));
-Route::any('register_gcm', array('as' => 'user.gcm', 'uses' => 'UserController@gcm_add'));
+Route::post('add_user', array('as' => 'user.add', 'uses' => 'UserController@add'));
+Route::post('register_gcm', array('as' => 'user.gcm', 'uses' => 'UserController@gcm_add'));
 
 Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController@get'));
+
+Route::any('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));

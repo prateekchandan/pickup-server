@@ -10,6 +10,13 @@ class Error{
 		'100' => "Input field required : " ,
 		'101' => "" ,
 		'1'  => "Invalid user_id",
+		'3' => "Invalid Coordinates , path doesn't exists",
+		'4' => "Journey beyond 100km unsupported",
+		'5' => "Invalid Datetime",
+		'6' => "Journey in past not allowed",
+		'7' => "Error margin should be in limits of 1 hour",
+		'8' => "Invalid Preference",
+		'9' => "Two Journey cant be done within 3 hrs",
 		);
 
 	// Error type
