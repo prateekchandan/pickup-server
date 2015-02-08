@@ -14,7 +14,7 @@
 App::before(function($request)
 {
 	if(Input::has('key')){
-		if(Input::get('key')!="pickup"){
+		if(Input::get('key')!="9f83c32cf3c9d529e"){
 			return Error::make(401,401);
 		}
 	}
