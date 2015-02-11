@@ -151,5 +151,74 @@ class HomeController extends BaseController {
 
 	}
 	
+	function MakeGroups(){
+		
+		$pending = Journey::get();
+		$l = sizeof($pending);
+		for ($i=0; $i < $l; $i++) { 
+			$pending[$i]->group = 0;
+		}
+		$groups = array();
+		for ($i=0; $i < $l; $i++) { 
+			$mind = 99999999;
+			$mini = $i;
+			$path = $this->find_path($pending[$i]->start_lat , $pending[$i]->start_long , $pending[$i]->end_lat , $pending[$i]->end_long);
+			if($pending[$i]->group == 1)
+				continue;
+
+			for ($j=$i+1; $j < $l; $j++) { 
+				$p = array();
+				$p[0] = $this->find_path($pending[$i]->start_lat , $pending[$i]->start_long , $pending[$i]->end_lat , $pending[$i]->end_long , 
+					array(
+						array($pending[$j]->start_lat,$pending[$j]->start_long),
+						array($pending[$j]->end_lat,$pending[$j]->end_long)
+						)
+					);
+				$p[1] = $this->find_path( $pending[$j]->start_lat,$pending[$j]->start_long, $pending[$i]->end_lat , $pending[$i]->end_long , 
+					array(
+						array($pending[$i]->start_lat , $pending[$i]->start_long),
+						array($pending[$j]->end_lat,$pending[$j]->end_long)
+						)
+					);
+				$p[2] = $this->find_path($pending[$i]->start_lat , $pending[$i]->start_long , $pending[$j]->end_lat,$pending[$j]->end_long, 
+					array(
+						array($pending[$j]->start_lat,$pending[$j]->start_long),
+						array($pending[$i]->end_lat , $pending[$i]->end_long )
+							)
+					);
+				$p[3] = $this->find_path( $pending[$j]->start_lat,$pending[$j]->start_long, $pending[$j]->end_lat , $pending[$j]->end_long , 
+					array(
+						array($pending[$i]->start_lat , $pending[$i]->start_long),
+						array($pending[$i]->end_lat , $pending[$i]->end_long )
+						)
+					);
+				$d = array();
+				for ($k=0; $k < 3; $k++) { 
+					if($p[$k]==0)
+						$p[$k] = json_decode('[{"legs" : [{"distance" : {"value" : 9999999999}}]}]');
+				
+					$p[$k] = $p[$k][0];
+					$d[$k] = $p[$k]->legs[0]->distance->value;
+				}
+				$mi = 0; $md = $d[0];
+				for ($k=0; $k < 3; $k++) { 
+					if($d[$k] < $d[$mi]){
+						$mi = $k;
+						$md = $d[$k];
+					}
+				}
+
+				if($md < $mind){
+					$mind = $md;
+					$mini = $j;
+					$path = $p[$mi];
+				}
+			}
+			array_push($groups, array($i , $mini , $path));
+			$pending[$i]->group =1;
+			$pending[$mini]->group =1;
+		}
+		return $groups;
+	}
 
 }

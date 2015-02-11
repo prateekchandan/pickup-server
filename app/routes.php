@@ -17,4 +17,6 @@ Route::post('register_gcm', array('as' => 'user.gcm', 'uses' => 'UserController@
 
 Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController@get'));
 
-Route::any('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
+Route::post('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
+
+Route::get('journey' , 'HomeController@MakeGroups');

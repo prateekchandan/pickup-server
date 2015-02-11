@@ -17,7 +17,7 @@ class UserController extends BaseController {
 
 	public function add()
 	{
-		$requirements = ['fbid' , 'first_name','second_name' , 'email' , 'gender' , 'device_id'];
+		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -31,11 +31,12 @@ class UserController extends BaseController {
 
 		$user = new User;
 		$user->fbid = Input::get('fbid');
-		$user->first_name = Input::get('first_name');
-		$user->second_name = Input::get('second_name');
+		$user->first_name = Input::get('name');
+		$user->second_name = "";//Input::get('second_name');
 		$user->email = Input::get('email');
 		$user->gender = Input::get('gender');
 		$user->device_id = Input::get('device_id');
+		$user->registration_id = Input::get('gcm_id');
 
 		try {
 			$user->save();
