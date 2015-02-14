@@ -14,6 +14,23 @@ class HomeController extends BaseController {
 	|	Route::get('/', 'HomeController@showWelcome');
 	|
 	*/
+	public function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
+	 
+	  $theta = $lon1 - $lon2;
+	  $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+	  $dist = acos($dist);
+	  $dist = rad2deg($dist);
+	  $miles = $dist * 60 * 1.1515;
+	  $unit = strtoupper($unit);
+	 
+	  if ($unit == "K") {
+	    return ($miles * 1.609344);
+	  } else if ($unit == "N") {
+	      return ($miles * 0.8684);
+	    } else {
+	        return $miles;
+	      }
+	}
 
 	public function get_address($latitude = 19.12 , $longitude = 72.91)
 	{
@@ -166,7 +183,19 @@ class HomeController extends BaseController {
 			if($pending[$i]->group == 1)
 				continue;
 
-			for ($j=$i+1; $j < $l; $j++) { 
+			for ($j=$i+1; $j < $l; $j++) {
+				
+				if($pending[$i]->id == $pending[$j]->id)
+					continue;
+				if($this->distance($pending[$i]->start_lat , $pending[$i]->start_long , $pending[$j]->start_lat , $pending[$j]->start_long) > 3)
+					continue;
+				if($this->distance($pending[$i]->end_lat , $pending[$i]->end_long , $pending[$j]->end_lat , $pending[$j]->end_long) > 3)
+					continue;
+				
+				$timediff = abs(strtotime($pending[$i]->journey_time) - strtotime($pending[$j]->journey_time)) / (60*60);
+				if($timediff > 1)
+					continue;
+
 				$p = array();
 				$p[0] = $this->find_path($pending[$i]->start_lat , $pending[$i]->start_long , $pending[$i]->end_lat , $pending[$i]->end_long , 
 					array(
@@ -214,7 +243,7 @@ class HomeController extends BaseController {
 					$path = $p[$mi];
 				}
 			}
-			array_push($groups, array($i , $mini , $path));
+			array_push($groups, array($pending[$i]->id , $pending[$mini]->id , $path));
 			$pending[$i]->group =1;
 			$pending[$mini]->group =1;
 		}
