@@ -31,10 +31,10 @@ class AddingDatabase extends Migration {
 		Schema::create('pending', function(Blueprint $table)
 		{
 			$table->increments('journey_id');
-			$table->float('start_lat');
-			$table->float('start_long');
-			$table->float('end_lat');
-			$table->float('end_long');
+			$table->double('start_lat');
+			$table->double('start_long');
+			$table->double('end_lat');
+			$table->double('end_long');
 			$table->integer('id')->unsigned();
 			$table->foreign('id')->references('id')->on('users')->onDelete('cascade');
 			$table->dateTime('journey_time');
