@@ -291,7 +291,7 @@ class HomeController extends BaseController {
 		}
 		$jpair->u1 = User::find($jpair->u1);
 		$jpair->u2 = User::find($jpair->u2);
-		$jpair->path = json_decode($jpair->path);
+		$jpair->path = json_decode($jpair->path)[0];
 		return $jpair;
 	}
 
