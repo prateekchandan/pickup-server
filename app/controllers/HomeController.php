@@ -170,7 +170,10 @@ class HomeController extends BaseController {
 	
 	function MakeGroups(){
 		
-		$pending = Journey::get();
+		$t1 = date('Y-m-d G:i:s',time());
+		$t2 = date('Y-m-d G:i:s',time()+3600);
+		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->get();
+		
 		$l = sizeof($pending);
 		for ($i=0; $i < $l; $i++) { 
 			$pending[$i]->group = 0;
@@ -246,6 +249,33 @@ class HomeController extends BaseController {
 			array_push($groups, array($pending[$i]->id , $pending[$mini]->id , $path));
 			$pending[$i]->group =1;
 			$pending[$mini]->group =1;
+		}
+		foreach ($groups as $key => $group) {
+			$u1 = User::where('id','=',$group[0])->first() ;
+			$u2 = User::where('id','=',$group[1])->first() ;
+			$path = $group[2];
+			$jpair = new FinalJourney;
+			$jpair->u1 = $group[0];
+			$jpair->u2 = $group[1];
+			$jpair->path = json_encode($path);
+			$jpair->save();
+			$u1msg = array();
+			$u1msg['journey_id'] = $jpair->id;
+			$u1msg['name'] = $u2->name;
+			if($group[0]==$group[1]){
+				$u1msg['type'] = 0;
+				PushNotification::app('Pickup')
+                ->to($u1->registration_id)
+                ->send(json_encode($u1msg));
+			}
+			else{
+				$u1msg['type'] = 1;
+				$u1msg['name'] = $u1->name;
+				PushNotification::app('Pickup')
+	                ->to($u1->registration_id)
+	                ->send(json_encode($u1msg));
+            }
+            print_r($group);
 		}
 		return $groups;
 	}
