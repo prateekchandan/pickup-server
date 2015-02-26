@@ -4,7 +4,7 @@ return array(
 
     'Pickup' => array(
         'environment' =>'production',
-        'apiKey'      =>'AIzaSyC6ew1hRDnaS9rUjrZwoAYOoPy4hg2VKw8',
+        'apiKey'      =>'AIzaSyChiVpPeOyYNFGq7_aR6-zpHnv6HsnwXQo',
         'service'     =>'gcm'
     )
 
