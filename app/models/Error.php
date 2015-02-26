@@ -17,6 +17,7 @@ class Error{
 		'7' => "Error margin should be in limits of 1 hour",
 		'8' => "Invalid Preference",
 		'9' => "Two Journey cant be done within 3 hrs",
+		'10' => 'Invalid Journey Code'
 		);
 
 	// Error type

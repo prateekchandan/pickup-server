@@ -261,7 +261,7 @@ class HomeController extends BaseController {
 			$jpair->save();
 			$u1msg = array();
 			$u1msg['journey_id'] = $jpair->id;
-			$u1msg['name'] = $u2->name;
+			$u1msg['name'] = $u2->first_name;
 			if($group[0]==$group[1]){
 				$u1msg['type'] = 0;
 				$collection =  PushNotification::app('Pickup')
@@ -270,7 +270,7 @@ class HomeController extends BaseController {
 			}
 			else{
 				$u1msg['type'] = 1;
-				$u1msg['name'] = $u1->name;
+				$u1msg['name'] = $u1->first_name;
 				$collection = PushNotification::app('Pickup')
 	                ->to($u1->registration_id)
 	                ->send(json_encode($u1msg));
@@ -280,6 +280,17 @@ class HomeController extends BaseController {
 		    $response = $push->getAdapter()->getResponse();
 		    print_r($response);
 		}
+	}
+
+	public function get_journey($id=0)
+	{
+		$jpair = FinalJourney::find($id);
+		if(is_null($jpair)){
+			return Error::make(1,10);
+		}
+		$jpair->u1 = User::find($jpair->u1);
+		$jpair->u2 = User::find($jpair->u2);
+		return $jpair;
 	}
 
 }

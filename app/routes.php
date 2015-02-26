@@ -18,6 +18,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController@get'));
 	Route::post('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
 	Route::get('journey' , 'HomeController@MakeGroups');
+	Route::get('journey/{id}' , 'HomeController@get_journey');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));
