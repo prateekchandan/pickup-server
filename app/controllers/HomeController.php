@@ -264,20 +264,22 @@ class HomeController extends BaseController {
 			$u1msg['name'] = $u2->name;
 			if($group[0]==$group[1]){
 				$u1msg['type'] = 0;
-				PushNotification::app('Pickup')
+				$collection =  PushNotification::app('Pickup')
                 ->to($u1->registration_id)
                 ->send(json_encode($u1msg));
 			}
 			else{
 				$u1msg['type'] = 1;
 				$u1msg['name'] = $u1->name;
-				PushNotification::app('Pickup')
+				$collection = PushNotification::app('Pickup')
 	                ->to($u1->registration_id)
 	                ->send(json_encode($u1msg));
             }
-            print_r($group);
 		}
-		return $groups;
+		foreach ($collection->pushManager as $push) {
+		    $response = $push->getAdapter()->getResponse();
+		    print_r($response);
+		}
 	}
 
 }
