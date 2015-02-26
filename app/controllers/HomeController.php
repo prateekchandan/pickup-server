@@ -275,11 +275,12 @@ class HomeController extends BaseController {
 	                ->to($u1->registration_id)
 	                ->send(json_encode($u1msg));
             }
+            foreach ($collection->pushManager as $push) {
+		    	$response = $push->getAdapter()->getResponse();
+		    	print_r($response);
+			}
 		}
-		foreach ($collection->pushManager as $push) {
-		    $response = $push->getAdapter()->getResponse();
-		    print_r($response);
-		}
+		
 	}
 
 	public function get_journey($id=0)
