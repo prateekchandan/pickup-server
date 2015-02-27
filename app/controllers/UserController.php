@@ -40,6 +40,9 @@ class UserController extends BaseController {
 
 		try {
 			$user->save();
+			Mail::send('emails.verify', array('verification'=>self::encrypt($user->email) , 'user'=>$user), function($message){
+		        $message->to($user->email, $user->first_name)->subject('[Pickup] Please verify your email '.$user->email);
+		    });
 			return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -68,5 +71,16 @@ class UserController extends BaseController {
 			return Error::make(1,1);
 		}
 		return $user;
+	}
+
+	public function verify($code="")
+	{
+		$email = self::decrypt($code);
+		$user = User::where('email','=',$email)->first();
+		if(is_null($user))
+		{
+			return "Unkown Account";
+		}
+		return "Thanks , ".$user->first_name." <br> Your account has been successfully verified";
 	}
 }

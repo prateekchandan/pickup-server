@@ -13,23 +13,12 @@
 
 App::before(function($request)
 {
-	if(Input::has('key')){
-		if(Input::get('key')!="9f83c32cf3c9d529e"){
-			return Error::make(401,401);
-		}
-	}
-	else if(Input::has('prateek')){
-		
-	}
-	else{
-			return Error::make(1,2);
-	}
+	
 });
 
 
 App::after(function($request, $response)
 {
-	$response->header('Content-Type', 'application/json');
 	return $response;
 });
 
@@ -103,4 +92,24 @@ Route::filter('csrf', function()
 App::missing(function($exception)
 {
    return Error::make(404,404);
+});
+
+Route::filter('API',function(){
+	if(Input::has('key')){
+		if(Input::get('key')!="9f83c32cf3c9d529e"){
+			return Error::make(401,401);
+		}
+	}
+	else if(Input::has('prateek')){
+		
+	}
+	else{
+			return Error::make(1,2);
+	}
+});
+
+Route::filter('afterAPI', function($request, $response)
+{
+	$response->header('Content-Type', 'application/json');
+	return $response;
 });
