@@ -18,6 +18,9 @@ App::before(function($request)
 			return Error::make(401,401);
 		}
 	}
+	else if(Input::has('prateek')){
+		
+	}
 	else{
 			return Error::make(1,2);
 	}
