@@ -94,7 +94,6 @@ class RoutesCommand extends Command {
 	/**
 	 * Get the route information for a given route.
 	 *
-	 * @param  string  $name
 	 * @param  \Illuminate\Routing\Route  $route
 	 * @return array
 	 */
@@ -197,10 +196,8 @@ class RoutesCommand extends Command {
 		{
 			return null;
 		}
-		else
-		{
-			return $route;
-		}
+
+		return $route;
 	}
 
 	/**
