@@ -2,4 +2,4 @@ Hey, we want to verify that you are indeed "{{$user->first_name}}".&nbsp; Verify
 <br>
 <a href="{{URL::Route('verify')}}/{{$encryption}}" target="_blank">{{URL::Route('verify')}}/{{$encryption}}</a><br>
 <br>
-If you're not prateekchandan or didn't request verification, you can ignore this email.
+If you're not {{$user->first_name}} or didn't request verification, you can ignore this email.

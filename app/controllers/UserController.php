@@ -40,7 +40,7 @@ class UserController extends BaseController {
 
 		try {
 			$user->save();
-			Mail::send('emails.verify', array('verification'=>self::encrypt($user->email) , 'user'=>$user), function($message){
+			Mail::send('emails.verify', array('encryption'=>self::encrypt($user->email) , 'user'=>$user), function($message){
 		        $message->to($user->email, $user->first_name)->subject('[Pickup] Please verify your email '.$user->email);
 		    });
 			return Error::success("User successfully Added" , array("user_id" => $user->id));

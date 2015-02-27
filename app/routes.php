@@ -28,7 +28,7 @@ Route::get('yo' , function(){
 });
 Route::get('mailtest',function()
 {
-	Mail::send('emails.test', array('firstname'=>'Prateek Chandan'), function($message){
-        $message->to("mittal.shivam5@gmail.com", 'Prateek Chandan')->subject('Welcome to Pickup Mail test!');
-    });
+	View::share('user' ,User::get()[0]);
+	View::share('encryption','somecode');
+	return View::make('emails.verify');
 });
