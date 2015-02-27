@@ -27,4 +27,3 @@ Route::get('mailtest',function()
         $message->to("prateekchandan5545@gmail.com", 'Prateek Chandan')->subject('Welcome to Pickup Mail test!');
     });
 });
-''
