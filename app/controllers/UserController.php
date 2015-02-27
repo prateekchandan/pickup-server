@@ -14,7 +14,12 @@ class UserController extends BaseController {
 	|	Route::get('/', 'HomeController@showWelcome');
 	|
 	*/
-
+	public function sendmail($user){
+		Mail::send('emails.verify', array('encryption'=>self::encrypt($user->email) , 'user'=>$user), function($message) use($user)
+		{
+		    $message->to($user->email, $user->first_name)->subject('[Pickup] Please verify your email '.$user->email);
+		});
+	}
 	public function add()
 	{
 		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id'];
@@ -39,11 +44,8 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 
 		try {
-			$user->save();
-			Mail::send('emails.verify', array('encryption'=>self::encrypt($user->email) , 'user'=>$user), function($message) use($user)
-			{
-		        $message->to($user->email, $user->first_name)->subject('[Pickup] Please verify your email '.$user->email);
-		    });
+			//$user->save();
+			$this->sendmail($user);
 			return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
