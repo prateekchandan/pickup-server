@@ -24,6 +24,6 @@ Route::get('journey' , 'HomeController@MakeGroups');
 Route::get('mailtest',function()
 {
 	Mail::send('emails.test', array('firstname'=>'Prateek Chandan'), function($message){
-        $message->to("prateekchandan5545@gmail.com", 'Prateek Chandan')->subject('Welcome to Pickup Mail test!');
+        $message->to("mittal.shivam5@gmail.com", 'Prateek Chandan')->subject('Welcome to Pickup Mail test!');
     });
 });
