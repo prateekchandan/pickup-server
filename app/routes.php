@@ -20,3 +20,11 @@ Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController
 Route::post('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
 
 Route::get('journey' , 'HomeController@MakeGroups');
+
+Route::get('mailtest',function()
+{
+	Mail::send('emails.test', array('firstname'=>'Prateek Chandan'), function($message){
+        $message->to("prateekchandan5545@gmail.com", 'Prateek Chandan')->subject('Welcome to Pickup Mail test!');
+    });
+});
+''
