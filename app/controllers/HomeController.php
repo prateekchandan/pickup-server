@@ -105,7 +105,7 @@ class HomeController extends BaseController {
 	}
 
 	public function journey_add(){
-		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference'];
+		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -156,6 +156,8 @@ class HomeController extends BaseController {
 		$journey->start_long = Input::get('start_long');
 		$journey->end_lat = Input::get('end_lat');
 		$journey->end_long = Input::get('end_long');
+		$journey->start_text = Input::get('start_text');
+		$journey->end_text = Input::get('end_text');
 		$journey->id = Input::get('user_id');
 		$journey->journey_time = $timestamp;
 		$journey->margin_before = Input::get('margin_before');

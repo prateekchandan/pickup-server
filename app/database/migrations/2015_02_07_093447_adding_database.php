@@ -41,6 +41,8 @@ class AddingDatabase extends Migration {
 			$table->integer('margin_before');
 			$table->integer('margin_after');
 			$table->integer('preference');
+			$table->string('start_text',300);
+			$table->string('end_text',300);
 			$table->timestamps();
 		});
 	}
