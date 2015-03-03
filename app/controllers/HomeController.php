@@ -282,13 +282,19 @@ class HomeController extends BaseController {
 	                ->to($u1->registration_id)
 	                ->send(json_encode($u1msg));
 	            $u1msg['name'] = $u1->first_name;
-				$collection = PushNotification::app('Pickup')
+				$collection1 = PushNotification::app('Pickup')
 	                ->to($u2->registration_id)
 	                ->send(json_encode($u1msg));
             }
             foreach ($collection->pushManager as $push) {
 		    	$response = $push->getAdapter()->getResponse();
 		    	print_r($response);
+			}
+			if(isset($collection1)){
+				foreach ($collection1->pushManager as $push) {
+		    	$response = $push->getAdapter()->getResponse();
+		    	print_r($response);
+				}
 			}
 		}
 		
