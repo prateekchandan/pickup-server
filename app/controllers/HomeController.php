@@ -14,6 +14,9 @@ class HomeController extends BaseController {
 	|	Route::get('/', 'HomeController@showWelcome');
 	|
 	*/
+
+	public debug = 0;
+
 	public function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
 	  $theta = $lon1 - $lon2;
@@ -144,6 +147,7 @@ class HomeController extends BaseController {
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*3);;
 
 		$journey = Journey::where('id' , '=' , Input::get('user_id'))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
+		if($this->debug > 0)
 		if(!is_null($journey))
 			return Error::make(1,9);
 
@@ -171,7 +175,7 @@ class HomeController extends BaseController {
 	function MakeGroups(){
 		
 		$t1 = date('Y-m-d G:i:s',time());
-		$t2 = date('Y-m-d G:i:s',time()+3600);
+		$t2 = date('Y-m-d G:i:s',time()+600);
 		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->get();
 		
 		$l = sizeof($pending);
