@@ -15,7 +15,7 @@ class HomeController extends BaseController {
 	|
 	*/
 
-	public debug = 0;
+	public $debug = 0;
 
 	public function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
