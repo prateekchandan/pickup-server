@@ -257,6 +257,9 @@ class HomeController extends BaseController {
 			$jpair = new FinalJourney;
 			$jpair->u1 = $group[0];
 			$jpair->u2 = $group[1];
+			if($group[0] == $group[1]){
+				$path = $path[0];
+			}
 			$jpair->path = json_encode($path);
 			$jpair->save();
 			$u1msg = array();
@@ -270,9 +273,13 @@ class HomeController extends BaseController {
 			}
 			else{
 				$u1msg['type'] = 1;
-				$u1msg['name'] = $u1->first_name;
+				$u1msg['name'] = $u2->first_name;
 				$collection = PushNotification::app('Pickup')
 	                ->to($u1->registration_id)
+	                ->send(json_encode($u1msg));
+	            $u1msg['name'] = $u1->first_name;
+				$collection = PushNotification::app('Pickup')
+	                ->to($u2->registration_id)
 	                ->send(json_encode($u1msg));
             }
             foreach ($collection->pushManager as $push) {
@@ -291,7 +298,7 @@ class HomeController extends BaseController {
 		}
 		$jpair->u1 = User::find($jpair->u1);
 		$jpair->u2 = User::find($jpair->u2);
-		$jpair->path = json_decode($jpair->path)[0];
+		$jpair->path = json_decode($jpair->path);
 		return $jpair;
 	}
 
