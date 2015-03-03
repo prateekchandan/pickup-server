@@ -16,6 +16,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('add_user', array('as' => 'user.add', 'uses' => 'UserController@add'));
 	Route::post('register_gcm', array('as' => 'user.gcm', 'uses' => 'UserController@gcm_add'));
 	Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController@get'));
+	Route::get('user/{user_id}/all_journey', array('as' => 'user.journey', 'uses' => 'UserController@all_journey'));
 	Route::post('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
 	Route::get('journey' , 'HomeController@MakeGroups');
 	Route::get('journey/{id}' , 'HomeController@get_journey');
@@ -24,9 +25,6 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));
 Route::get('verify/',array('as'=>'verify','uses'=>'UserController@verify'));
 
-Route::get('yo' , function(){
-	echo "<h1>hello</h1>";
-});
 Route::get('mailtest',function()
 {
 	View::share('user' ,User::get()[0]);

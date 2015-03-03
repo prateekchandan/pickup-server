@@ -86,4 +86,14 @@ class UserController extends BaseController {
 		}
 		return "Thanks , ".$user->first_name." <br> Your account has been successfully verified";
 	}
+
+	public function all_journey($uid)
+	{
+		$user = User::find($uid);
+		if(is_null($user)){
+			return Error::make(1,1);
+		}
+		$journey = Journey::where('id','=',$uid)->orderBy('updated_at','desc')->get();
+		return $journey;
+	}
 }
