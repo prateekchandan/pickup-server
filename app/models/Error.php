@@ -10,6 +10,7 @@ class Error{
 		'100' => "Input field required : " ,
 		'101' => "" ,
 		'1'  => "Invalid user_id",
+		'11'  => "Invalid journey_id",
 		'3' => "Invalid Coordinates , path doesn't exists",
 		'4' => "Journey beyond 100km unsupported",
 		'5' => "Invalid Datetime",
