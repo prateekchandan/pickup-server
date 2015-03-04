@@ -15,10 +15,15 @@ class UserController extends BaseController {
 	|
 	*/
 	public function sendmail($user){
-		Mail::queue('emails.verify', array('encryption'=>self::encrypt($user->email) , 'name'=>$user->first_name), function($message) use($user)
-		{
-		    $message->to(trim($user->email), trim($user->first_name))->subject('[Pickup] Please verify your email '.trim($user->email));
-		});
+		try {
+			Mail::queue('emails.verify', array('encryption'=>self::encrypt($user->email) , 'name'=>$user->first_name), function($message) use($user)
+			{
+			    $message->to(trim($user->email), trim($user->first_name))->subject('[Pickup] Please verify your email '.trim($user->email));
+			});
+		} catch (Exception $e) {
+			print_r($e->getMessage());
+		}
+		
 	}
 	public function add()
 	{
