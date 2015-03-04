@@ -44,9 +44,9 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 
 		try {
-			//$user->save();
+			$user->save();
 			$user->id = 10;
-			$this->sendmail($user);
+			//$this->sendmail($user);
 			return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
