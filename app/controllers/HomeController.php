@@ -246,6 +246,11 @@ class HomeController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+
+	public function journey_delete($journey_id){
+		$journey = Journey::where('journey_id','=',$journey_id)->delete();
+		return Error::success("Journey successfully Deleted");
+	}
 	
 	function MakeGroups(){
 		

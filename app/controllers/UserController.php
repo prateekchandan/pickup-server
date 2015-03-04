@@ -17,7 +17,7 @@ class UserController extends BaseController {
 	public function sendmail($user){
 		Mail::queue('emails.verify', array('encryption'=>self::encrypt($user->email) , 'name'=>$user->first_name), function($message) use($user)
 		{
-		    $message->to($user->email, $user->first_name)->subject('[Pickup] Please verify your email '.$user->email);
+		    $message->to(trim($user->email), trim($user->first_name))->subject('[Pickup] Please verify your email '.trim($user->email));
 		});
 	}
 	public function add()
@@ -44,9 +44,9 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 
 		try {
-			$user->save();
+			//$user->save();
 			$user->id = 10;
-			//$this->sendmail($user);
+			$this->sendmail($user);
 			return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
