@@ -236,7 +236,10 @@ class HomeController extends BaseController {
 						$p[$k] = json_decode('[{"legs" : [{"distance" : {"value" : 9999999999}}]}]');
 				
 					$p[$k] = $p[$k][0];
-					$d[$k] = $p[$k]->legs[0]->distance->value;
+					$d[$k] = 0;
+					foreach ($p[k]->legs as $key => $leg) {
+						$d[$k] += $leg->distance->value;
+					}
 				}
 				$mi = 0; $md = $d[0];
 				for ($k=0; $k < 3; $k++) { 
