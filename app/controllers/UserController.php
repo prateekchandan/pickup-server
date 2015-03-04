@@ -47,7 +47,6 @@ class UserController extends BaseController {
 			//$user->save();
 			$user->id = 10;
 			$this->sendmail($user);
-			return;
 			return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
