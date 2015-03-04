@@ -237,7 +237,7 @@ class HomeController extends BaseController {
 				
 					$p[$k] = $p[$k][0];
 					$d[$k] = 0;
-					foreach ($p[k]->legs as $key => $leg) {
+					foreach ($p[$k]->legs as $key => $leg) {
 						$d[$k] += $leg->distance->value;
 					}
 				}
