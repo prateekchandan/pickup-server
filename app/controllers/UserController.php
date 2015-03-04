@@ -15,7 +15,7 @@ class UserController extends BaseController {
 	|
 	*/
 	public function sendmail($user){
-		Mail::send('emails.verify', array('encryption'=>self::encrypt($user->email) , 'user'=>$user), function($message) use($user)
+		Mail::queue('emails.verify', array('encryption'=>self::encrypt($user->email) , 'name'=>$user->first_name), function($message) use($user)
 		{
 		    $message->to($user->email, $user->first_name)->subject('[Pickup] Please verify your email '.$user->email);
 		});
