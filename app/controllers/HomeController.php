@@ -373,7 +373,7 @@ class HomeController extends BaseController {
 					$path = $p[$mi];
 				}
 			}
-			array_push($groups, array($pending[$i]->id , $pending[$mini]->id , $path , $pending[$i]->$journey_id, $pending[$mini]->$journey_id));
+			array_push($groups, array($pending[$i]->id , $pending[$mini]->id , $path , $pending[$i]->journey_id, $pending[$mini]->journey_id));
 			$pending[$i]->group =1;
 			$pending[$mini]->group =1;
 		}
