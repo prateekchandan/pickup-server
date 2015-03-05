@@ -386,8 +386,34 @@ class HomeController extends BaseController {
 			$jpair->u2 = $group[1];
 			$jpair->j1 = $group[3];
 			$jpair->j2 = $group[4];
+			$j1 = Journey::where('journey_id' , '=' , $group[3]);
+			$j2 = Journey::where('journey_id' , '=' , $group[4]);
 			if($group[0] == $group[1]){
 				$path = $path[0];
+				$distance = $path->legs[0]->distance->value;
+				$time = $path->legs[0]->distance->time;
+				$jpair->u1_distance = $distance;
+				$jpair->u2_distance = $distance;
+				$jpair->u1_time = $time;
+				$jpair->u2_time = $time;
+			}
+			else{
+				$d1 = $path->legs[0]->distance->value + $path->legs[1]->distance->value;
+				$t1 = $path->legs[0]->distance->time + $path->legs[1]->distance->time;
+				$d2 = $path->legs[2]->distance->value + $path->legs[1]->distance->value;
+				$t2 = $path->legs[2]->distance->time + $path->legs[1]->distance->time;
+				if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
+					$jpair->u1_distance = $d1;
+					$jpair->u2_distance = $d2;
+					$jpair->u1_time = $t1;
+					$jpair->u2_time = $t2;
+				}
+				else{
+					$jpair->u1_distance = $d2;
+					$jpair->u2_distance = $d1;
+					$jpair->u1_time = $t2;
+					$jpair->u2_time = $t1;
+				}
 			}
 			$jpair->path = json_encode($path);
 			$jpair->save();
