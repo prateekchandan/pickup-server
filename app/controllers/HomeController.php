@@ -391,7 +391,7 @@ class HomeController extends BaseController {
 			if($group[0] == $group[1]){
 				$path = $path[0];
 				$distance = $path->legs[0]->distance->value;
-				$time = $path->legs[0]->distance->duration;
+				$time = $path->legs[0]->duration->value;
 				$jpair->u1_distance = $distance;
 				$jpair->u2_distance = $distance;
 				$jpair->u1_time = $time;
@@ -399,9 +399,9 @@ class HomeController extends BaseController {
 			}
 			else{
 				$d1 = $path->legs[0]->distance->value + $path->legs[1]->distance->value;
-				$t1 = $path->legs[0]->distance->duration + $path->legs[1]->distance->time;
+				$t1 = $path->legs[0]->duration->value + $path->legs[1]->duration->value;
 				$d2 = $path->legs[2]->distance->value + $path->legs[1]->distance->value;
-				$t2 = $path->legs[2]->distance->duration + $path->legs[1]->distance->time;
+				$t2 = $path->legs[2]->duration->value + $path->legs[1]->duration->value;
 				if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
 					$jpair->u1_distance = $d1;
 					$jpair->u2_distance = $d2;
