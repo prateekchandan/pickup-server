@@ -47,6 +47,7 @@ class UserController extends BaseController {
 		$user->gender = Input::get('gender');
 		$user->device_id = Input::get('device_id');
 		$user->registration_id = Input::get('gcm_id');
+		$user->current_pos="19.1336,72.9154";
 
 		try {
 			//$user->save();
