@@ -198,7 +198,7 @@ class HomeController extends BaseController {
 
 		try {
 			$journey->save();
-			return Error::success("Journey successfully Registered");
+			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
