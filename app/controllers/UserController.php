@@ -50,9 +50,9 @@ class UserController extends BaseController {
 		$user->current_pos="19.1336,72.9154";
 
 		try {
-			//$user->save();
-			$user->id = 10;
-			$this->sendmail($user);
+			$user->save();
+			//$user->id = 10;
+			//$this->sendmail($user);
 			return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
