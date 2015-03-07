@@ -1,15 +1,15 @@
 <?php
 function cmp($a,$b){
-			$d1 = 0;
-			$d2 = 0;
-			foreach ($a->legs as $key => $legobj) {
-				$d1 += $legobj->distance->value;
-			}
-			foreach ($b->legs as $key => $legobj) {
-				$d2 += $legobj->distance->value;
-			}
-			return $d1 < $d2;
-		}
+	$d1 = 0;
+	$d2 = 0;
+	foreach ($a->legs as $key => $legobj) {
+		$d1 += $legobj->distance->value;
+	}
+	foreach ($b->legs as $key => $legobj) {
+		$d2 += $legobj->distance->value;
+	}
+	return $d1 < $d2;
+}
 class HomeController extends BaseController {
 
 	/*
@@ -26,6 +26,14 @@ class HomeController extends BaseController {
 	*/
 
 	public $debug = 0;
+
+	public function calculate_ola_cost($distance=0,$time=0){
+
+	}
+
+	public function calculate_uber_cost($distance=0,$time=0){
+
+	}
 
 	public function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
@@ -128,7 +136,14 @@ class HomeController extends BaseController {
 		if($path == 0){
 			return Error::make(0,3);
 		}
-		$distance  = $path[0]->legs[0]->distance->value;
+		$distance  = 0;
+		foreach ($path[0]->legs as $key => $value) {
+			$distance += $value->distance->value;
+		}
+		$journey_time  = 0;
+		foreach ($path[0]->legs as $key => $value) {
+			$journey_time += $value->duration->value;
+		}
 		if($distance > 100000)
 			return Error::make(1,4);
 		
@@ -177,6 +192,8 @@ class HomeController extends BaseController {
 		$journey->margin_before = Input::get('margin_before');
 		$journey->margin_after = Input::get('margin_after');
 		$journey->preference = Input::get('preference');
+		$journey->distance = $distance;
+		$journey->time = $journey_time;
 
 
 		try {
@@ -203,7 +220,14 @@ class HomeController extends BaseController {
 		if($path == 0){
 			return Error::make(0,3);
 		}
-		$distance  = $path[0]->legs[0]->distance->value;
+		$distance  = 0;
+		foreach ($path[0]->legs as $key => $value) {
+			$distance += $value->distance->value;
+		}
+		$journey_time  = 0;
+		foreach ($path[0]->legs as $key => $value) {
+			$journey_time += $value->duration->value;
+		}
 		if($distance > 100000)
 			return Error::make(1,4);
 		
@@ -253,6 +277,8 @@ class HomeController extends BaseController {
 				'margin_before' => Input::get('margin_before'),
 				'margin_after' => Input::get('margin_after'),
 				'preference' => Input::get('preference'),
+				'distance' => $distance,
+				'time' => $journey_time,
 			));
 
 			return Error::success("Journey successfully Edited");

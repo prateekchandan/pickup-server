@@ -43,6 +43,9 @@ class AddingDatabase extends Migration {
 			$table->integer('preference');
 			$table->string('start_text',300);
 			$table->string('end_text',300);
+			$table->double('distance');
+			$table->double('time');
+			$table->double('cost');
 			$table->timestamps();
 		});
 	}
