@@ -104,10 +104,10 @@ class HomeController extends BaseController {
 		function cmp($a,$b){
 			$d1 = 0;
 			$d2 = 0;
-			foreach ($a as $key => $legobj) {
+			foreach ($a->legs as $key => $legobj) {
 				$d1 += $legobj->distance->value;
 			}
-			foreach ($b as $key => $legobj) {
+			foreach ($b->legs as $key => $legobj) {
 				$d2 += $legobj->distance->value;
 			}
 			return $d1 < $d2;
