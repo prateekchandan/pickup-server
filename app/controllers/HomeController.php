@@ -88,17 +88,7 @@ class HomeController extends BaseController {
 		return array('country'=>$country , 'city' => $city , 'state' => $state , 'locality'=>$locality);
 	}
 
-	public function cmp($a,$b){
-		$d1 = 0;
-		$d2 = 0;
-		foreach ($a as $key => $legobj) {
-			$d1 += $legobj->distance->value;
-		}
-		foreach ($b as $key => $legobj) {
-			$d2 += $legobj->distance->value;
-		}
-		return $d1 < $d2;
-	}
+
 	public function find_path($lat1 = 0 , $log1 = 0 , $lat2 = 0 , $log2 = 0 , $waypoints= array()){
 		$address = "https://maps.googleapis.com/maps/api/directions/json?origin=$lat1,$log1&destination=$lat2,$log2&waypoints=";
 		foreach ($waypoints as $key => $value) {
@@ -111,8 +101,18 @@ class HomeController extends BaseController {
 			return 0;
 		}
 		$path  = $address->routes;
-
-		usort($path,'$this->cmp');
+		function cmp($a,$b){
+			$d1 = 0;
+			$d2 = 0;
+			foreach ($a as $key => $legobj) {
+				$d1 += $legobj->distance->value;
+			}
+			foreach ($b as $key => $legobj) {
+				$d2 += $legobj->distance->value;
+			}
+			return $d1 < $d2;
+		}
+		usort($path,'cmp');
 
 		if(sizeof($path)==0)
 			return 0;
