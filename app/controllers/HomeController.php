@@ -1,5 +1,15 @@
 <?php
-
+function cmp($a,$b){
+			$d1 = 0;
+			$d2 = 0;
+			foreach ($a->legs as $key => $legobj) {
+				$d1 += $legobj->distance->value;
+			}
+			foreach ($b->legs as $key => $legobj) {
+				$d2 += $legobj->distance->value;
+			}
+			return $d1 < $d2;
+		}
 class HomeController extends BaseController {
 
 	/*
@@ -101,17 +111,6 @@ class HomeController extends BaseController {
 			return 0;
 		}
 		$path  = $address->routes;
-		function cmp($a,$b){
-			$d1 = 0;
-			$d2 = 0;
-			foreach ($a->legs as $key => $legobj) {
-				$d1 += $legobj->distance->value;
-			}
-			foreach ($b->legs as $key => $legobj) {
-				$d2 += $legobj->distance->value;
-			}
-			return $d1 < $d2;
-		}
 		usort($path,'cmp');
 
 		if(sizeof($path)==0)
