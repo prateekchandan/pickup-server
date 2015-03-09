@@ -16,11 +16,17 @@ class CreatedJourney extends Migration {
 		{
 			$table->increments('id');
 			$table->integer('u1')->unsigned()->nullable();
-			$table->foreign('u1')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->foreign('u1')->references('users')->on('pending')->onDelete('cascade');
 			$table->integer('u2')->unsigned()->nullable();
-			$table->foreign('u2')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->foreign('u2')->references('users')->on('pending')->onDelete('cascade');
 			$table->integer('u3')->unsigned()->nullable();
-			$table->foreign('u3')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->foreign('u3')->references('users')->on('pending')->onDelete('cascade');
+			$table->integer('j1')->unsigned()->nullable();
+			$table->foreign('j1')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->integer('j2')->unsigned()->nullable();
+			$table->foreign('j2')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->integer('j3')->unsigned()->nullable();
+			$table->foreign('j3')->references('journey_id')->on('pending')->onDelete('cascade');
 			$table->double('u1_distance');
 			$table->double('u1_time');
 			$table->double('u2_distance');

@@ -373,7 +373,7 @@ class HomeController extends BaseController {
 					$path = $p[$mi];
 				}
 			}
-			array_push($groups, array($pending[$i]->id , $pending[$mini]->id , $path));
+			array_push($groups, array($pending[$i]->id , $pending[$mini]->id , $path , $pending[$i]->$journey_id, $pending[$mini]->$journey_id));
 			$pending[$i]->group =1;
 			$pending[$mini]->group =1;
 		}
@@ -384,6 +384,8 @@ class HomeController extends BaseController {
 			$jpair = new FinalJourney;
 			$jpair->u1 = $group[0];
 			$jpair->u2 = $group[1];
+			$jpair->j1 = $group[3];
+			$jpair->j2 = $group[4];
 			if($group[0] == $group[1]){
 				$path = $path[0];
 			}
