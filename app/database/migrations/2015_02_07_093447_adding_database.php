@@ -24,6 +24,7 @@ class AddingDatabase extends Migration {
 			$table->string('fbid',50);
 			$table->string('device_id',100)->unique();
 			$table->string('registration_id',1000)->nullable();
+			$table->string('current_pos',200)->default("19.1336,72.9154");
 			$table->timestamps();
 			$table->rememberToken();
 		});
@@ -45,7 +46,6 @@ class AddingDatabase extends Migration {
 			$table->string('end_text',300);
 			$table->double('distance');
 			$table->double('time');
-			$table->double('cost');
 			$table->timestamps();
 		});
 	}

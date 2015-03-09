@@ -435,4 +435,36 @@ class HomeController extends BaseController {
 		return $jpair;
 	}
 
+	public function modify_location($id=0)
+	{
+		$jpair = FinalJourney::find($id);
+		if(is_null($jpair)){
+			return Error::make(1,10);
+		}
+		$requirements = ['user_id' , 'position'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+
+		$user = User::find(Input::get('user_id'));
+		if(is_null($user))
+			return Error::make(1,1);
+
+		User::where('id','=',Input::get('user_id'))->update(array(
+			'current_pos' => Input::get('position'),
+		));
+		$users = array();
+		$users[0] = User::find($jpair->u1);
+		$users[1] = User::find($jpair->u2);
+		$users[2] = User::find($jpair->u3);
+
+		$ret = array();
+		foreach ($users as $key => $user) {
+			if(!is_null($user)){
+				$ret[$user->id] = $user->current_pos;
+			}
+		}
+		return $ret;
+	}
+
 }

@@ -22,6 +22,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::any('delete_journey/{id}', array('as' => 'journey.delete', 'uses' => 'HomeController@journey_delete'));
 	Route::get('journey' , 'HomeController@MakeGroups');
 	Route::get('journey/{id}' , 'HomeController@get_journey');
+	Route::post('modify_location/{id}','HomeController@modify_location');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));

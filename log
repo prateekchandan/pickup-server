@@ -1,1 +1,14 @@
 Laravel development server started on http://0.0.0.0:8002
+[Thu Mar  5 21:04:52 2015] PHP Parse error:  syntax error, unexpected '}' in /home/prateek/Desktop/pickup/laravel/app/routes.php on line 26
+[Thu Mar  5 21:04:53 2015] 127.0.0.1:58074 [200]: /favicon.ico
+[Thu Mar  5 21:04:53 2015] 127.0.0.1:58076 [200]: /favicon.ico
+[Thu Mar  5 21:04:53 2015] 127.0.0.1:58077 [200]: /favicon.ico
+[Thu Mar  5 21:05:02 2015] 127.0.0.1:58085 [200]: /favicon.ico
+[Thu Mar  5 21:05:02 2015] 127.0.0.1:58086 [200]: /favicon.ico
+[Thu Mar  5 21:05:02 2015] 127.0.0.1:58087 [200]: /favicon.ico
+[Thu Mar  5 21:05:12 2015] 127.0.0.1:58089 [200]: /favicon.ico
+[Thu Mar  5 21:05:12 2015] 127.0.0.1:58090 [200]: /favicon.ico
+[Thu Mar  5 21:05:12 2015] 127.0.0.1:58091 [200]: /favicon.ico
+[Thu Mar  5 21:05:46 2015] 127.0.0.1:58101 [200]: /favicon.ico
+[Thu Mar  5 21:05:46 2015] 127.0.0.1:58102 [200]: /favicon.ico
+[Thu Mar  5 21:05:46 2015] 127.0.0.1:58103 [200]: /favicon.ico
