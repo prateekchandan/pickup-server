@@ -391,8 +391,8 @@ class HomeController extends BaseController {
 			$jpair->u2 = $group[1];
 			$jpair->j1 = $group[3];
 			$jpair->j2 = $group[4];
-			$j1 = Journey::where('journey_id' , '=' , $group[3]);
-			$j2 = Journey::where('journey_id' , '=' , $group[4]);
+			$j1 = Journey::where('journey_id' , '=' , $group[3])->first();
+			$j2 = Journey::where('journey_id' , '=' , $group[4])->first();
 			if($group[0] == $group[1]){
 				$path = $path[0];
 				$distance = $path->legs[0]->distance->value;
@@ -407,28 +407,25 @@ class HomeController extends BaseController {
 				$jpair->u2_distance = $path->legs[1]->distance->value;;
 				$jpair->u1_time = $path->legs[1]->duration->value;
 				$jpair->u2_time = $path->legs[1]->duration->value;
-				try {
-						if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
-						$jpair->u1_distance += $path->legs[0]->distance->value;
-						$jpair->u1_time += $path->legs[0]->duration->value;
-					}
-					else{
-						$jpair->u2_distance += $path->legs[0]->distance->value;
-						$jpair->u2_time += $path->legs[0]->duration->value;
-					}
 
-					if($path->legs[2]->end_address->lat == $j1->end_lat && $path->legs[2]->end_address->lng == $j1->end_long){
-						$jpair->u1_distance += $path->legs[2]->distance->value;
-						$jpair->u1_time += $path->legs[2]->duration->value;
-					}
-					else{
-						$jpair->u2_distance += $path->legs[2]->distance->value;
-						$jpair->u2_time += $path->legs[2]->duration->value;
-					}
-				} catch (Exception $e) {
-					echo $e->getMessage();
+
+				if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
+					$jpair->u1_distance += $path->legs[0]->distance->value;
+					$jpair->u1_time += $path->legs[0]->duration->value;
 				}
-				
+				else{
+					$jpair->u2_distance += $path->legs[0]->distance->value;
+					$jpair->u2_time += $path->legs[0]->duration->value;
+				}
+
+				if($path->legs[2]->end_address->lat == $j1->end_lat && $path->legs[2]->end_address->lng == $j1->end_long){
+					$jpair->u1_distance += $path->legs[2]->distance->value;
+					$jpair->u1_time += $path->legs[2]->duration->value;
+				}
+				else{
+					$jpair->u2_distance += $path->legs[2]->distance->value;
+					$jpair->u2_time += $path->legs[2]->duration->value;
+				}
 			}
 			$jpair->path = json_encode($path);
 			$jpair->save();
