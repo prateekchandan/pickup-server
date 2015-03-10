@@ -476,20 +476,33 @@ class HomeController extends BaseController {
 		if(is_null($jpair)){
 			return Error::make(1,10);
 		}
+		if($jpair->u1==$jpair->u2){
+			$jpair->u2_distance = 0;
+			$jpair->u2_time = 0;
+		}
+
 		$returnObj = array();
 		$returnObj['path'] = json_decode($jpair->path);
+		$path = json_decode($jpair->path);
 		$returnObj['users'] = array();
 		$u = array();
 		$u[0] = User::find($jpair->u1);
 		$u[1] = User::find($jpair->u2);
 		$u[2] = User::find($jpair->u3);
 
+		$tot_distance = 0;
+		foreach ($path->legs as $key => $leg) {
+			$tot_distance += $leg->distance->value;
+		}
+		$tot_cost = CostCalc::calc($tot_distance);
 		if(!is_null($u[0])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j1)->first();
 			$u[0]->old_distance = $old_journey->distance;
 			$u[0]->old_time = $old_journey->time;
 			$u[0]->new_distance = $jpair->u1_distance;
 			$u[0]->new_time = $jpair->u1_time;
+			$u[0]->old_cost = CostCalc::calc($old_journey->distance);
+			$u[0]->new_cost = $jpair->u1_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
 		}
 		if(!is_null($u[1])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j2)->first();
@@ -497,6 +510,8 @@ class HomeController extends BaseController {
 			$u[1]->old_time = $old_journey->time;
 			$u[1]->new_distance = $jpair->u2_distance;
 			$u[1]->new_time = $jpair->u2_time;
+			$u[1]->old_cost = CostCalc::calc($old_journey->distance);
+			$u[1]->new_cost = $jpair->u2_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
 		}
 		if(!is_null($u[2])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j3)->first();
@@ -504,6 +519,8 @@ class HomeController extends BaseController {
 			$u[2]->old_time = $old_journey->time;
 			$u[2]->new_distance = $jpair->u3_distance;
 			$u[2]->new_time = $jpair->u3_time;
+			$u[2]->old_cost = CostCalc::calc($old_journey->distance);
+			$u[2]->new_cost = $jpair->u3_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
 		}
 
 		foreach ($u as $key => $user) {
