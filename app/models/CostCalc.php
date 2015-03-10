@@ -2,7 +2,7 @@
 class CostCalc{
 	public static function calc($distance,$time=0,$type=0){
 		if($type==0){
-			return 150 + max(array(0,$distance-4000)) * 10;
+			return 150 + max(array(0,$distance-4000)) * 0.01;
 		}
 	}
 };
