@@ -407,8 +407,11 @@ class HomeController extends BaseController {
 				$jpair->u2_distance = $path->legs[1]->distance->value;;
 				$jpair->u1_time = $path->legs[1]->duration->value;
 				$jpair->u2_time = $path->legs[1]->duration->value;
+				var_dump($j1);
+				var_dump($j2);
+				var_dump($path);
 
-
+				/*
 				if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
 					$jpair->u1_distance += $path->legs[0]->distance->value;
 					$jpair->u1_time += $path->legs[0]->duration->value;
@@ -425,7 +428,7 @@ class HomeController extends BaseController {
 				else{
 					$jpair->u2_distance += $path->legs[2]->distance->value;
 					$jpair->u2_time += $path->legs[2]->duration->value;
-				}
+				}*/
 			}
 			$jpair->path = json_encode($path);
 			$jpair->save();
