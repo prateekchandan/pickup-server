@@ -426,7 +426,7 @@ class HomeController extends BaseController {
 						$jpair->u2_time += $path->legs[2]->duration->value;
 					}
 				} catch (Exception $e) {
-					echo e->getMessage();
+					echo $e->getMessage();
 				}
 				
 			}
