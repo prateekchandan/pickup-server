@@ -407,24 +407,28 @@ class HomeController extends BaseController {
 				$jpair->u2_distance = $path->legs[1]->distance->value;;
 				$jpair->u1_time = $path->legs[1]->duration->value;
 				$jpair->u2_time = $path->legs[1]->duration->value;
+				try {
+						if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
+						$jpair->u1_distance += $path->legs[0]->distance->value;
+						$jpair->u1_time += $path->legs[0]->duration->value;
+					}
+					else{
+						$jpair->u2_distance += $path->legs[0]->distance->value;
+						$jpair->u2_time += $path->legs[0]->duration->value;
+					}
 
-				if($path->legs[0]->start_address->lat == $j1->start_lat && $path->legs[0]->start_address->lng == $j1->start_long){
-					$jpair->u1_distance += $path->legs[0]->distance->value;
-					$jpair->u1_time += $path->legs[0]->duration->value;
+					if($path->legs[2]->end_address->lat == $j1->end_lat && $path->legs[2]->end_address->lng == $j1->end_long){
+						$jpair->u1_distance += $path->legs[2]->distance->value;
+						$jpair->u1_time += $path->legs[2]->duration->value;
+					}
+					else{
+						$jpair->u2_distance += $path->legs[2]->distance->value;
+						$jpair->u2_time += $path->legs[2]->duration->value;
+					}
+				} catch (Exception $e) {
+					echo e->getMessage();
 				}
-				else{
-					$jpair->u2_distance += $path->legs[0]->distance->value;
-					$jpair->u2_time += $path->legs[0]->duration->value;
-				}
-
-				if($path->legs[2]->end_address->lat == $j1->end_lat && $path->legs[2]->end_address->lng == $j1->end_long){
-					$jpair->u1_distance += $path->legs[2]->distance->value;
-					$jpair->u1_time += $path->legs[2]->duration->value;
-				}
-				else{
-					$jpair->u2_distance += $path->legs[2]->distance->value;
-					$jpair->u2_time += $path->legs[2]->duration->value;
-				}
+				
 			}
 			$jpair->path = json_encode($path);
 			$jpair->save();
@@ -475,6 +479,7 @@ class HomeController extends BaseController {
 		$u[0] = User::find($jpair->u1);
 		$u[1] = User::find($jpair->u2);
 		$u[2] = User::find($jpair->u3);
+
 		if(!is_null($u[0])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j1)->first();
 			$u[0]->old_distance = $old_journey->distance;
