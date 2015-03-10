@@ -472,21 +472,21 @@ class HomeController extends BaseController {
 		if(!is_null($u[0])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j1)->first();
 			$u[0]->old_distance = $old_journey->distance;
-			$u[0]->time = $old_journey->time;
+			$u[0]->old_time = $old_journey->time;
 			$u[0]->new_distance = $jpair->u1_distance;
 			$u[0]->new_time = $jpair->u1_time;
 		}
 		if(!is_null($u[1])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j2)->first();
 			$u[1]->old_distance = $old_journey->distance;
-			$u[1]->time = $old_journey->time;
+			$u[1]->old_time = $old_journey->time;
 			$u[1]->new_distance = $jpair->u1_distance;
 			$u[1]->new_time = $jpair->u1_time;
 		}
 		if(!is_null($u[2])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j3)->first();
 			$u[2]->old_distance = $old_journey->distance;
-			$u[2]->time = $old_journey->time;
+			$u[2]->old_time = $old_journey->time;
 			$u[2]->new_distance = $jpair->u1_distance;
 			$u[2]->new_time = $jpair->u1_time;
 		}
