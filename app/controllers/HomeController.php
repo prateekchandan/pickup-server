@@ -479,6 +479,7 @@ class HomeController extends BaseController {
 		if($jpair->u1==$jpair->u2){
 			$jpair->u2_distance = 0;
 			$jpair->u2_time = 0;
+			$jpair->u2=0;
 		}
 
 		$returnObj = array();
