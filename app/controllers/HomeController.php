@@ -129,7 +129,7 @@ class HomeController extends BaseController {
 	public function journey_add(){
 		
 		if(Input::has('journey_id')){
-			return journey_edit(Input::get('journey_id'));
+			return $this->journey_edit(Input::get('journey_id'));
 		}
 
 		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
