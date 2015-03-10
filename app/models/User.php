@@ -4,7 +4,7 @@
 class User extends Eloquent{
 
 	protected $table = 'users';
-	protected $hidden = array('registration_id','created_at','updated_at','remember_token');
+	protected $hidden = array('registration_id','created_at','updated_at','remember_token','second_name');
 
 	/**
 	 * The attributes excluded from the model's JSON form.
