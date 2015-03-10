@@ -525,7 +525,7 @@ class HomeController extends BaseController {
 
 		foreach ($u as $key => $user) {
 			if(!is_null($user))
-				$returnObj['users'][$user->id] = $user;
+				array_push($returnObj['users'], $user);
 		}
 		
 
