@@ -524,7 +524,7 @@ class HomeController extends BaseController {
 
 		foreach ($u as $key => $user) {
 			if(!is_null($user)){
-				if($user->id != $userData){
+				if($user->id != $userData)
 					array_push($returnObj['users'], $user);
 
 				if($user->id == $userData){
