@@ -27,13 +27,7 @@ class HomeController extends BaseController {
 
 	public $debug = 0;
 
-	public function calculate_ola_cost($distance=0,$time=0){
-
-	}
-
-	public function calculate_uber_cost($distance=0,$time=0){
-
-	}
+	
 
 	public function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
@@ -470,7 +464,7 @@ class HomeController extends BaseController {
 		
 	}
 
-	public function get_journey($id=0)
+	public function get_journey($id=0,$userData=0)
 	{
 		$jpair = FinalJourney::find($id);
 		if(is_null($jpair)){
@@ -490,6 +484,10 @@ class HomeController extends BaseController {
 		$u[0] = User::find($jpair->u1);
 		$u[1] = User::find($jpair->u2);
 		$u[2] = User::find($jpair->u3);
+		$u1 = array();
+		$u1[0] = array();
+		$u1[0] = array();
+		$u1[0] = array();
 
 		$tot_distance = 0;
 		foreach ($path->legs as $key => $leg) {
@@ -498,35 +496,39 @@ class HomeController extends BaseController {
 		$tot_cost = CostCalc::calc($tot_distance);
 		if(!is_null($u[0])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j1)->first();
-			$u[0]->old_distance = $old_journey->distance;
-			$u[0]->old_time = $old_journey->time;
-			$u[0]->new_distance = $jpair->u1_distance;
-			$u[0]->new_time = $jpair->u1_time;
-			$u[0]->old_cost = CostCalc::calc($old_journey->distance);
-			$u[0]->new_cost = $jpair->u1_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
+			$u1[0]['old_distance'] = $old_journey->distance;
+			$u1[0]['old_time'] = $old_journey->time;
+			$u1[0]['new_distance'] = $jpair->u1_distance;
+			$u1[0]['new_time'] = $jpair->u1_time;
+			$u1[0]['old_cost'] = CostCalc::calc($old_journey->distance);
+			$u1[0]['new_cost'] = $jpair->u1_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
 		}
 		if(!is_null($u[1])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j2)->first();
-			$u[1]->old_distance = $old_journey->distance;
-			$u[1]->old_time = $old_journey->time;
-			$u[1]->new_distance = $jpair->u2_distance;
-			$u[1]->new_time = $jpair->u2_time;
-			$u[1]->old_cost = CostCalc::calc($old_journey->distance);
-			$u[1]->new_cost = $jpair->u2_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
+			$u1[1]['old_distance'] = $old_journey->distance;
+			$u1[1]['old_time'] = $old_journey->time;
+			$u1[1]['new_distance'] = $jpair->u2_distance;
+			$u1[1]['new_time'] = $jpair->u2_time;
+			$u1[1]['old_cost'] = CostCalc::calc($old_journey->distance);
+			$u1[1]['new_cost'] = $jpair->u2_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
 		}
 		if(!is_null($u[2])){
 			$old_journey = Journey::where('journey_id' , '=' , $jpair->j3)->first();
-			$u[2]->old_distance = $old_journey->distance;
-			$u[2]->old_time = $old_journey->time;
-			$u[2]->new_distance = $jpair->u3_distance;
-			$u[2]->new_time = $jpair->u3_time;
-			$u[2]->old_cost = CostCalc::calc($old_journey->distance);
-			$u[2]->new_cost = $jpair->u3_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
+			$u1[2]['old_distance'] = $old_journey->distance;
+			$u1[2]['old_time'] = $old_journey->time;
+			$u1[2]['new_distance'] = $jpair->u3_distance;
+			$u1[2]['new_time'] = $jpair->u3_time;
+			$u1[2]['old_cost'] = CostCalc::calc($old_journey->distance);
+			$u1[2]['new_cost'] = $jpair->u3_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
 		}
 
 		foreach ($u as $key => $user) {
-			if(!is_null($user))
+			if(!is_null($user)){
 				array_push($returnObj['users'], $user);
+				if($user->id == $userData){
+					$returnObj = array_merge($returnObj , $u1[$key]);
+				}
+			}
 		}
 		
 
