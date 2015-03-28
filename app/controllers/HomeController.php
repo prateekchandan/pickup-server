@@ -387,6 +387,8 @@ class HomeController extends BaseController {
 			$jpair->j2 = $group[4];
 			$j1 = Journey::where('journey_id' , '=' , $group[3])->first();
 			$j2 = Journey::where('journey_id' , '=' , $group[4])->first();
+			$events = array();
+			
 			if($group[0] == $group[1]){
 				$path = $path[0];
 				$distance = $path->legs[0]->distance->value;
@@ -395,6 +397,10 @@ class HomeController extends BaseController {
 				$jpair->u2_distance = $distance;
 				$jpair->u1_time = $time;
 				$jpair->u2_time = $time;
+				$events['accept'] = array($group[0]=>0 );
+				$events['reject'] = array($group[0]=>0 );
+				$events['start_ride'] = array($group[0]=>0 );
+				$events['end_ride'] = array($group[0]=>0 );
 			}
 			else{
 				$jpair->u1_distance = $path->legs[1]->distance->value;;
@@ -427,7 +433,12 @@ class HomeController extends BaseController {
 					$jpair->u2_distance += $path->legs[2]->distance->value;
 					$jpair->u2_time += $path->legs[2]->duration->value;
 				}
+				$events['accept'] = array($group[0]=>0 , $group[1]=>0 );
+				$events['reject'] = array($group[0]=>0 , $group[1]=>0 );
+				$events['start_ride'] = array($group[0]=>0 , $group[1]=>0 );
+				$events['end_ride'] = array($group[0]=>0 , $group[1]=>0 );
 			}
+			$jpair->event_status = json_encode($events);
 			$jpair->path = json_encode($path);
 			$jpair->save();
 			$u1msg = array();
@@ -569,4 +580,48 @@ class HomeController extends BaseController {
 		return $ret;
 	}
 
+	public function event_change($journey_id = 0){
+		$jpair = FinalJourney::find($journey_id);
+		if(is_null($jpair)){
+			return Error::make(1,10);
+		}
+		$requirements = ['user_id' , 'event'];
+		$check  = self::check_requirements($requirements);
+
+		$eventMessage = Input::get('event');
+		if($eventMessage != "accept" && $eventMessage != "reject" && $eventMessage != "end_ride" && $eventMessage != "start_ride")
+			return Error::make(1,12);
+
+		$user = User::find(Input::get('user_id'));
+		if(is_null($user))
+			return Error::make(1,1);
+
+		$users = array();
+		$users[0] = User::find($jpair->u1);
+		$users[1] = User::find($jpair->u2);
+		$users[2] = User::find($jpair->u3);
+
+		foreach ($users as $Cuser) {
+			if(!is_null($Cuser)){
+				if($Cuser->id == $user->id){
+					$events = json_decode($jpair->event_status,true);
+					$events[$eventMessage][$user->id] = 1;
+					FinalJourney::where('id','=',$journey_id)->update(array(
+						'event_status' => json_encode($events),
+					));
+					$ret =  Error::success('Updated status Successfully');
+				}
+				else{
+					$uMsg = array();
+					$uMsg['type'] = 10;
+					$uMsg['user'] = $user->id;
+					$uMsg['event'] = $eventMessage;
+					PushNotification::app('Pickup')
+	                ->to($Cuser->registration_id)
+	                ->send(json_encode($uMsg));
+				}
+			}
+		}
+		return $ret;
+	}
 }

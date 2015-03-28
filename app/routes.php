@@ -23,6 +23,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('journey' , 'HomeController@MakeGroups');
 	Route::get('journey/{id}/{user?}' , 'HomeController@get_journey');
 	Route::post('modify_location/{id}','HomeController@modify_location');
+	Route::any('change_event/{id}' , 'HomeController@event_change');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));

@@ -27,6 +27,7 @@ class CreatedJourney extends Migration {
 			$table->foreign('j2')->references('journey_id')->on('pending')->onDelete('cascade');
 			$table->integer('j3')->unsigned()->nullable();
 			$table->foreign('j3')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->text("event_status");
 			$table->double('u1_distance');
 			$table->double('u1_time');
 			$table->double('u2_distance');
