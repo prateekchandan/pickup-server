@@ -24,6 +24,7 @@ class AddingDatabase extends Migration {
 			$table->string('fbid',50);
 			$table->string('device_id',100)->unique();
 			$table->string('registration_id',1000)->nullable();
+			$table->string('mac_addr',200)->nullable();
 			$table->string('current_pos',200)->default("19.1336,72.9154");
 			$table->timestamps();
 			$table->rememberToken();
