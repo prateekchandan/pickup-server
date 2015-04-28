@@ -1,8 +1,9 @@
 <?php 
-$threshold=0.1;
+
 include 'Polyline.php';
 amount_matching(file_get_contents("https://maps.googleapis.com/maps/api/directions/json?origin=IIT+Bombay&destination=Kanjurmarg"),file_get_contents("https://maps.googleapis.com/maps/api/directions/json?origin=IIT+Bombay&destination=Kanjurmarg"));
 function amount_matching($strpath1,$strpath2) {
+	
 	$path1=json_decode($strpath1);
 	$path2=json_decode($strpath2);
 	$latbounds=array();
@@ -26,28 +27,18 @@ function amount_matching($strpath1,$strpath2) {
 		$lngbounds['left']=floatval($path1->routes[0]->bounds->southwest->lng);
 	else
 		$lngbounds['left']=floatval($path2->routes[0]->bounds->southwest->lng);
-	$points=array();
-	array_push($points,array('lat' => $path1->routes[0]->legs[0]->start_location->lat , 'lng' => $path1->routes[0]->legs[0]->start_location->lng));
-	//$points = Polyline::Decode($path1->routes[0]->legs[0]->steps[0]->polyline->points);
-	for ($i=0;$i<sizeof($path1->routes[0]->legs);$i++)
+	
+	$points1=extractPoints($path1);
+	$points2=extractPoints($path2);	
+	$gridsizeLat=50.0;
+	$gridsizeLng=50.0;
+	
+	$gridpoints1=matchWithGrid($points1,$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
+	$gridpoints2=matchWithGrid($points2,$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
+	for ($i=0;$i<sizeof($gridpoints1);$i++)
 	{
-		for ($j=0;$j<sizeof($path1->routes[0]->legs[$i]->steps);$j++)
-		{
-			$points_in_this_step=Polyline::Decode($path1->routes[0]->legs[$i]->steps[$j]->polyline->points);
-			for ($k=2;$k<sizeof($points_in_this_step);$k+=2)
-			{
-				array_push($points,array('lat' => $points_in_this_step[$k] , 'lng' => $points_in_this_step[$k+1]));
-			}
-		}
+		echo "(" . $gridpoints1[$i]['latbox'] . "," . $gridpoints1[$i]['lngbox'] . ")\n";
 	}
-	for ($i=0;$i<sizeof($points)-1;$i++) {	
-		$dist=distance($points[$i]['lat'],$points[$i]['lng'],$points[$i+1]['lat'],$points[$i+1]['lng']) . "\n";
-		if ($dist>$threshold)
-		{
-			$numPoints=round($dist/$threshold);
-			$points_to_be_added = addPoints($points[$i],$points[$i+1],$numPoints);
-		}	
-}
 }
 function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
@@ -75,4 +66,48 @@ function addPoints($start,$end,$n)
 		array_push($added_points,array('lat' => (($start['lat']*($n-$i) + $end['lat']*($i+1)) / ($n+1)) , 'lng' => (($start['lng']*($n-$i) + $end['lng']*($i+1)) / ($n+1))));
 	}
 	return $added_points;
+}
+
+function extractPoints($path1)
+{
+	$threshold=0.1;
+	$points=array();
+	array_push($points,array('lat' => $path1->routes[0]->legs[0]->start_location->lat , 'lng' => $path1->routes[0]->legs[0]->start_location->lng));
+	//$points = Polyline::Decode($path1->routes[0]->legs[0]->steps[0]->polyline->points);
+	for ($i=0;$i<sizeof($path1->routes[0]->legs);$i++)
+	{
+		for ($j=0;$j<sizeof($path1->routes[0]->legs[$i]->steps);$j++)
+		{
+			$points_in_this_step=Polyline::Decode($path1->routes[0]->legs[$i]->steps[$j]->polyline->points);
+			for ($k=2;$k<sizeof($points_in_this_step);$k+=2)
+			{
+				array_push($points,array('lat' => $points_in_this_step[$k] , 'lng' => $points_in_this_step[$k+1]));
+			}
+		}
+	}
+	
+	for ($i=0;$i<sizeof($points)-1;$i++) {	
+		$dist=distance($points[$i]['lat'],$points[$i]['lng'],$points[$i+1]['lat'],$points[$i+1]['lng']);
+		if ($dist>$threshold)
+		{
+			$numPoints=round($dist/$threshold);
+			$points_to_be_added = addPoints($points[$i],$points[$i+1],$numPoints);
+			array_splice($points, $i+1, 0, $points_to_be_added);
+		}	
+	}
+	
+	return $points;
+}
+function matchWithGrid($points,$top,$left,$lat_interval=0.001,$lng_interval=0.001)
+{
+	
+	$gridpoints=array();
+	for ($i=0;$i<sizeof($points);$i++)
+	{
+		$temp1 =  round(($top - $points[$i]['lat'])*100000 );
+		$temp2 = $temp1 % round($lat_interval*100000);
+		echo $temp2 . "\n";
+		//array_push($gridpoints,array('latbox'=> (($top-$points[$i]['lat'])%$lat_interval) , 'lngbox' => (($points[$i]['lng']-$left)%$lng_interval) ));
+	}
+	return $gridpoints;
 }
