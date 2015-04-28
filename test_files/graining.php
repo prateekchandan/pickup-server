@@ -35,16 +35,15 @@ function amount_matching($strpath1,$strpath2) {
 	
 	$gridpoints1=matchWithGrid($points1,$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
 	$gridpoints2=matchWithGrid($points2,$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
-	for ($i=0;$i<sizeof($gridpoints1);$i++)
-	{
-		echo "(" . $gridpoints1[$i]['latbox'] . "," . $gridpoints1[$i]['lngbox'] . ")\n";
-	}
 	$pathgridpoints1=array();
 	$pathgridpoints2=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
 		$pathgridpoints1[md5($gridpoints1[$i]['latbox'] . $gridpoints1[$i]['lngbox'])]=1;
 	for ($i=0;$i<sizeof($gridpoints2);$i++)
 		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
+	$matches = countMatches($pathgridpoints1,$pathgridpoints2);
+	echo $matches . "\n" ;
+	echo sizeof($pathgridpoints1);
 }
 function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
@@ -113,4 +112,14 @@ function matchWithGrid($points,$top,$left,$lat_interval=0.001,$lng_interval=0.00
 		array_push($gridpoints,array('latbox'=> round(($top-$points[$i]['lat'])/$lat_interval) , 'lngbox' => round(($points[$i]['lng']-$left)/$lng_interval) ));
 	}
 	return $gridpoints;
+}
+
+function countMatches($path1,$path2)
+{
+	$count=0;
+	foreach($path1 as $x => $x_value) {
+    if (array_key_exists($x, $path2))
+		$count++;
+	}
+	return $count;
 }
