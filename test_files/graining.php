@@ -41,9 +41,12 @@ function amount_matching($strpath1,$strpath2) {
 		$pathgridpoints1[md5($gridpoints1[$i]['latbox'] . $gridpoints1[$i]['lngbox'])]=1;
 	for ($i=0;$i<sizeof($gridpoints2);$i++)
 		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
-	$matches = countMatches($pathgridpoints1,$pathgridpoints2);
-	echo $matches . "\n" ;
-	echo sizeof($pathgridpoints1);
+	$matches = countMatches($pathgridpoints1,$pathgridpoints2)
+	$result = array();
+	$result['matches'] = $matches;
+	$result['extrapath1'] = sizeof(gridpoints1) - $matches;
+	$result['extrapath2'] = sizeof(gridpoints2) - $matches;
+	return $result;
 }
 function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
