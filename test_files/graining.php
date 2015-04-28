@@ -39,6 +39,12 @@ function amount_matching($strpath1,$strpath2) {
 	{
 		echo "(" . $gridpoints1[$i]['latbox'] . "," . $gridpoints1[$i]['lngbox'] . ")\n";
 	}
+	$pathgridpoints1=array();
+	$pathgridpoints2=array();
+	for ($i=0;$i<sizeof($gridpoints1);$i++)
+		$pathgridpoints1[md5($gridpoints1[$i]['latbox'] . $gridpoints1[$i]['lngbox'])]=1;
+	for ($i=0;$i<sizeof($gridpoints2);$i++)
+		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
 }
 function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 	 
@@ -104,10 +110,7 @@ function matchWithGrid($points,$top,$left,$lat_interval=0.001,$lng_interval=0.00
 	$gridpoints=array();
 	for ($i=0;$i<sizeof($points);$i++)
 	{
-		$temp1 =  round(($top - $points[$i]['lat'])*100000 );
-		$temp2 = $temp1 % round($lat_interval*100000);
-		echo $temp2 . "\n";
-		//array_push($gridpoints,array('latbox'=> (($top-$points[$i]['lat'])%$lat_interval) , 'lngbox' => (($points[$i]['lng']-$left)%$lng_interval) ));
+		array_push($gridpoints,array('latbox'=> round(($top-$points[$i]['lat'])/$lat_interval) , 'lngbox' => round(($points[$i]['lng']-$left)/$lng_interval) ));
 	}
 	return $gridpoints;
 }
