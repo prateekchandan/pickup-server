@@ -109,8 +109,27 @@ function countMatches($path1,$path2)
 }
 
 
-function findBestMatches()
+function findBestMatches($paths)
 {
+	$latbounds=findBounds($paths)['lat'];
+	$lngbounds=findBounds($paths)['lng'];
+	$points_set=array();
+	$gridpoints_set=array();
+	$gridsizeLat=50.0;
+	$gridsizeLng=50.0;
+	$pathgridpoints_set=array();
+	for ($i=0;$i<sizeof($paths);$i++)
+	{
+		$points_set[$i]=extractPoints($paths[$i]);
+		$gridpoints_set[$i]=matchWithGrid($points_set[$i],$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
+		for ($j=0;$j<sizeof($gridpoints_set[$i]);$j++)
+			$pathgridpoints_set[$i][md5($gridpoints_set[$j]['latbox'] . $gridpoints1[$j]['lngbox'])]=1;
+	}
+	$pathgridpoints1=array();
+	$pathgridpoints2=array();
+	
+	for ($i=0;$i<sizeof($gridpoints2);$i++)
+		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
 
 }
 
