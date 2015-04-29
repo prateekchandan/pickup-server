@@ -6,28 +6,9 @@ function amount_matching($strpath1,$strpath2) {
 	
 	$path1=json_decode($strpath1);
 	$path2=json_decode($strpath2);
-	$latbounds=array();
-	if (floatval($path1->routes[0]->bounds->northeast->lat)>=floatval($path2->routes[0]->bounds->northeast->lat))
-		$latbounds['top']=floatval($path1->routes[0]->bounds->northeast->lat);
-	else
-		$latbounds['top']=floatval($path2->routes[0]->bounds->northeast->lat);
-
-	if (floatval($path1->routes[0]->bounds->southwest->lat)<=floatval($path2->routes[0]->bounds->southwest->lat))
-		$latbounds['bottom']=floatval($path1->routes[0]->bounds->southwest->lat);
-	else
-		$latbounds['bottom']=floatval($path2->routes[0]->bounds->southwest->lat);
-
-	$lngbounds=array();
-	if (floatval($path1->routes[0]->bounds->northeast->lng)>=floatval($path2->routes[0]->bounds->northeast->lng))
-		$lngbounds['right']=floatval($path1->routes[0]->bounds->northeast->lng);
-	else
-		$lngbounds['right']=floatval($path2->routes[0]->bounds->northeast->lng);
-
-	if (floatval($path1->routes[0]->bounds->southwest->lng)<=floatval($path2->routes[0]->bounds->southwest->lng))
-		$lngbounds['left']=floatval($path1->routes[0]->bounds->southwest->lng);
-	else
-		$lngbounds['left']=floatval($path2->routes[0]->bounds->southwest->lng);
-	
+	$paths=array($path1,$path2);
+	$latbounds=findBounds($paths)['lat'];
+	$lngbounds=findBounds($paths)['lng'];
 	$points1=extractPoints($path1);
 	$points2=extractPoints($path2);	
 	$gridsizeLat=50.0;
@@ -41,11 +22,11 @@ function amount_matching($strpath1,$strpath2) {
 		$pathgridpoints1[md5($gridpoints1[$i]['latbox'] . $gridpoints1[$i]['lngbox'])]=1;
 	for ($i=0;$i<sizeof($gridpoints2);$i++)
 		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
-	$matches = countMatches($pathgridpoints1,$pathgridpoints2)
+	$matches = countMatches($pathgridpoints1,$pathgridpoints2);
 	$result = array();
 	$result['matches'] = $matches;
-	$result['extrapath1'] = sizeof(gridpoints1) - $matches;
-	$result['extrapath2'] = sizeof(gridpoints2) - $matches;
+	$result['extrapath1'] = sizeof($gridpoints1) - $matches;
+	$result['extrapath2'] = sizeof($gridpoints2) - $matches;
 	return $result;
 }
 function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
@@ -125,4 +106,34 @@ function countMatches($path1,$path2)
 		$count++;
 	}
 	return $count;
+}
+
+
+function findBestMatches()
+{
+
+}
+
+function findBounds($paths)
+{
+	$latbounds=array();
+	$latbounds['top']=-100.0;
+	$latbounds['bottom']=100.0;
+	$lngbounds['left']=200.0;
+	$lngbounds['right']=-200.0;
+	for ($i=0;$i<sizeof($paths);$i++)
+	{
+		if(floatval($paths[$i]->routes[0]->bounds->northeast->lat) >= $latbounds['top'])
+			$latbounds['top']=floatval($paths[$i]->routes[0]->bounds->northeast->lat);
+		if(floatval($paths[$i]->routes[0]->bounds->southwest->lat)<= $latbounds['bottom'])
+			$latbounds['bottom']=floatval($paths[$i]->routes[0]->bounds->southwest->lat);
+		if(floatval($paths[$i]->routes[0]->bounds->northeast->lng) >= $lngbounds['right'])
+			$lngbounds['right']=floatval($paths[$i]->routes[0]->bounds->northeast->lng);
+		if(floatval($paths[$i]->routes[0]->bounds->southwest->lng) <= $lngbounds['left'])
+			$lngbounds['left']=floatval($paths[$i]->routes[0]->bounds->southwest->lng);
+	}
+	$bounds=array('lat'=>$latbounds , 'lng'=>$lngbounds);
+	echo "lat bounds are " . $latbounds['top'] . " to " . $latbounds['bottom'] . "\n";
+	echo "lng bounds are " . $lngbounds['left'] . " to " . $lngbounds['right'] . "\n";
+	return $bounds;
 }
