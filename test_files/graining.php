@@ -111,13 +111,14 @@ function countMatches($path1,$path2)
 
 function findBestMatches($paths)
 {
+	//Finding extremes using all paths
 	$latbounds=findBounds($paths)['lat'];
 	$lngbounds=findBounds($paths)['lng'];
-	$points_set=array();
-	$gridpoints_set=array();
+	$points_set=array(); //Array consisting of of all points in all paths
+	$gridpoints_set=array(); //Array consisting of gridpoints used in all paths
 	$gridsizeLat=50.0;
 	$gridsizeLng=50.0;
-	$pathgridpoints_set=array();
+	$pathgridpoints_set=array(); //Array with hashed keys for all paths
 	for ($i=0;$i<sizeof($paths);$i++)
 	{
 		$points_set[$i]=extractPoints($paths[$i]);
@@ -125,12 +126,19 @@ function findBestMatches($paths)
 		for ($j=0;$j<sizeof($gridpoints_set[$i]);$j++)
 			$pathgridpoints_set[$i][md5($gridpoints_set[$j]['latbox'] . $gridpoints1[$j]['lngbox'])]=1;
 	}
-	$pathgridpoints1=array();
-	$pathgridpoints2=array();
-	
-	for ($i=0;$i<sizeof($gridpoints2);$i++)
-		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
-
+	$matches_set=array();
+	for ($i=0;$i<sizeof($paths)-1;$i++)
+	{
+		for ($j=$i+1;$j<sizeof($paths);$j++)
+		{
+			$result = array();
+			$result['matches'] = countMatches($pathgridpoints_set[$i],$pathgridpoints_set[$j]);
+			$result['extrapath1'] = sizeof($gridpoints1) - $matches;
+			$result['extrapath2'] = sizeof($gridpoints2) - $matches;
+			$weightedmatch = 
+			$matches_set[$i . " " . $j] = $weightedmatch;
+		}
+	}
 }
 
 function findBounds($paths)
