@@ -127,6 +127,18 @@ function findBestMatches($paths)
 			$pathgridpoints_set[$i][md5($gridpoints_set[$j]['latbox'] . $gridpoints1[$j]['lngbox'])]=1;
 	}
 	$matches_set=array();
+	$person_matched=array();
+	//$matches_set_key=array();
+	for ($i=0;$i<sizeof($paths);$i++)
+	{
+		$matches_set[$i]=array();
+		$person_matched[$i]=array();
+		for ($j=0;$j<sizeof($paths);$j++)
+		{
+			$matches_set[$i][$j]=0;
+			$person_matched[$i][$j]=0;
+		}
+	}
 	for ($i=0;$i<sizeof($paths)-1;$i++)
 	{
 		for ($j=$i+1;$j<sizeof($paths);$j++)
@@ -135,10 +147,53 @@ function findBestMatches($paths)
 			$result['matches'] = countMatches($pathgridpoints_set[$i],$pathgridpoints_set[$j]);
 			$result['extrapath1'] = sizeof($gridpoints1) - $matches;
 			$result['extrapath2'] = sizeof($gridpoints2) - $matches;
-			$weightedmatch = 
-			$matches_set[$i . " " . $j] = $weightedmatch;
+			$weightedmatch = 5*$result['matches'] - 2.5*$result['extrapath1'] - 2.5*$result['extrapath2'];
+			//$matches_set[$i . " " . $j] = $weightedmatch;
+			//array_push($matches_set,$weightedmatch);
+			//array_push($matches_set_key,$i . " " . $j);
+			$matches_set[$i][$j]=$weightedmatch;
 		}
 	}
+	for ($i=0;$i<sizeof($paths)-1;$i++)
+	{
+		for ($j=$i+1;$j<sizeof($paths);$j++)
+			$matches_set[$j][$i]=$matches_set[$i][$j];
+	}
+	$best_weight=0.0;
+	$best_index=0;
+	$user_to_be_matched=0;
+	for ($i=0;$i<sizeof($paths);$i++)
+	{
+		if ($matches_set[$user_to_be_matched][$i]>$best_weight && $person_matched[$user_to_be_matched][$i]==0)
+		{
+			$best_weight=$matches_set[$user_to_be_matched][$i];
+			$best_index=$i;
+		}
+	}
+	for ($i=0;$i<sizeof($paths);$i++)
+	{
+		$person_matched[$user_to_be_matched][$i]=1;
+		$person_matched[$i][$user_to_be_matched]=1;
+		$person_matched[$best_index][$i]=1;
+		$person_matched[$i][$best_index]=1;
+	}
+	/*for ($i=0;$i<sizeof($matches_set)-1;$i++)
+	{
+		for ($j=$i+1;$j<sizeof($matches_set);$j++)
+		{
+			if ($matches_set[$i]<$matches_set[$j])
+			{
+				$temp = $matches_set[$i];
+				$matches_set[$i] = $matches_set[$j];
+				$matches_set[$j] = $temp;
+
+				$temp2 = $matches_set_key[$i];
+				$matches_set_key[$i] = $matches_set_key[$j];
+				$matches_set_key[$j] = $temp;
+			}
+		}
+	}*/
+
 }
 
 function findBounds($paths)
