@@ -109,7 +109,7 @@ function countMatches($path1,$path2)
 }
 
 
-function findBestMatches($paths)
+function findBestMatches($paths,$matches_needed)
 {
 	//Finding extremes using all paths
 	$latbounds=findBounds($paths)['lat'];
@@ -128,6 +128,7 @@ function findBestMatches($paths)
 	}
 	$matches_set=array();
 	$person_matched=array();
+
 	//$matches_set_key=array();
 	for ($i=0;$i<sizeof($paths);$i++)
 	{
@@ -162,6 +163,12 @@ function findBestMatches($paths)
 	$best_weight=0.0;
 	$best_index=0;
 	$user_to_be_matched=0;
+	$matches=array();
+	for ($i=0;$i<sizeof($paths);$i++)
+		$matches++;
+	while ($user_to_be_matched!=sizeof($paths) && $total_matches!=$matches_needed)
+	{
+		while ($person_matched[$user_to_be_matched][0]!=0) $user_to_be_matched++;
 	for ($i=0;$i<sizeof($paths);$i++)
 	{
 		if ($matches_set[$user_to_be_matched][$i]>$best_weight && $person_matched[$user_to_be_matched][$i]==0)
@@ -177,6 +184,13 @@ function findBestMatches($paths)
 		$person_matched[$best_index][$i]=1;
 		$person_matched[$i][$best_index]=1;
 	}
+	$matches[$user_to_be_matched]=$best_index;
+	$matches[$best_index]=$user_to_be_matched;
+	$total_matches++;
+	$user_to_be_matched++;
+
+	}
+	return $matches;
 	/*for ($i=0;$i<sizeof($matches_set)-1;$i++)
 	{
 		for ($j=$i+1;$j<sizeof($matches_set);$j++)
