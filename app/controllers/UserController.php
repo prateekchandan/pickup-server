@@ -27,7 +27,9 @@ class UserController extends BaseController {
 	}
 	public function add()
 	{
-		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr'];
+		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr' ,
+		'home_location' , 'home_text' , 'office_location' , 'office_text' , 'leaving_office' , 
+		'leaving_home'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -49,7 +51,17 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 		$user->mac_addr = Input::get('mac_addr');
 		$user->current_pos="19.1336,72.9154";
-
+		$user->home_location=Input::get('home_location');
+		$user->home_text=Input::get('home_text');
+		$user->office_location=Input::get('office_location');
+		$user->office_text=Input::get('office_text');
+		$user->leaving_office=Input::get('leaving_office');
+		$user->leaving_home=Input::get('leaving_home');
+		$user->home_to_office=self::getPath($user->home_location,$user->office_location);
+		$user->office_to_home=self::getPath($user->office_location,$user->home_location);
+		$json=json_decode($user->home_to_office);
+		$user->path_distance=$json->routes[0]->legs[0]->distance->value;
+		$user->path_time=$json->routes[0]->legs[0]->duration->value;
 		try {
 			$user->save();
 			//$user->id = 10;
@@ -60,6 +72,11 @@ class UserController extends BaseController {
 		}
 	}
 
+	public function getPath($start,$end)
+	{
+		$path=file_get_contents("https://maps.googleapis.com/maps/api/directions/json?origin=$start&destination=$end");
+		return $path;
+	}
 	public function gcm_add(){
 		$requirements = ['reg_id' , 'user_id'];
 		$check  = self::check_requirements($requirements);
