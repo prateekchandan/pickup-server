@@ -193,7 +193,7 @@ class HomeController extends BaseController {
 		$journey->preference = Input::get('preference');
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
-
+		$journey->match_status = "{\"journies_i_like\": [] , \"journies_liking_mine\": [] , \"matched_journies\": [] }";
 
 		try {
 			$journey->save();
@@ -203,7 +203,44 @@ class HomeController extends BaseController {
 		}
 	}
 
+	public function add_mates($journey_id)
+	{
+		$requirements = ['journey_ids'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$interesting_journeys=json_decode(Input::get('journey_ids'))->ids;
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		$match_status=json_decode($journey->match_status);
+		for ($i=0;$i<sizeof($interesting_journeys);$i++)
+		{
+			$current_journey = Journey::where('journey_id','=',strval($interesting_journeys[$i]))->first();
+			//$u1msg['type'] = 0;
+			//$collection =  PushNotification::app('Pickup')
+            //->to($current_journey->id)
+            //->send(json_encode($u1msg));
+            $current_match_status=json_decode($current_journey->match_status);
+            array_push($current_match_status->journies_liking_mine,intval($journey_id));
+            try {
+			Journey::where('journey_id','=',$interesting_journeys[$i])->update(array(
+				'match_status' => json_encode($current_match_status),
+			));
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+		}
+		
+		$match_status->journies_i_like=$interesting_journeys;
+		try {
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'match_status' => json_encode($match_status),
+			));
 
+			return Error::success("Mate successfully added");
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+	}
 	public function journey_edit($journey_id){
 
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
