@@ -14,14 +14,16 @@ function amount_matching($strpath1,$strpath2) {
 	$gridsizeLat=50.0;
 	$gridsizeLng=50.0;
 	
-	$gridpoints1=matchWithGrid($points1,$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
-	$gridpoints2=matchWithGrid($points2,$latbounds['top'],$lngbounds['left'],($latbounds['top']-$latbounds['bottom'])/$gridsizeLat,($lngbounds['right']-$lngbounds['left'])/$gridsizeLng);
+	$gridpoints1=matchWithGrid($points1);
+	$gridpoints2=matchWithGrid($points2);
+	for ($i=0;$i<sizeof($gridpoints1);$i++)
+		echo $gridpoints1[$i]['lat'] . "," . $gridpoints1[$i]['lng'] . "\n";
 	$pathgridpoints1=array();
 	$pathgridpoints2=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
-		$pathgridpoints1[md5($gridpoints1[$i]['latbox'] . $gridpoints1[$i]['lngbox'])]=1;
+		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=1;
 	for ($i=0;$i<sizeof($gridpoints2);$i++)
-		$pathgridpoints2[md5($gridpoints2[$i]['latbox'] . $gridpoints2[$i]['lngbox'])]=1;
+		$pathgridpoints2[md5($gridpoints2[$i]['lat'] . $gridpoints2[$i]['lng'])]=1;
 	$matches = countMatches($pathgridpoints1,$pathgridpoints2);
 	$result = array();
 	$result['matches'] = $matches;
@@ -87,13 +89,20 @@ function extractPoints($path1)
 	
 	return $points;
 }
-function matchWithGrid($points,$top,$left,$lat_interval=0.001,$lng_interval=0.001)
-{
-	
+function matchWithGrid($points)
+{	
 	$gridpoints=array();
 	for ($i=0;$i<sizeof($points);$i++)
 	{
-		array_push($gridpoints,array('latbox'=> round(($top-$points[$i]['lat'])/$lat_interval) , 'lngbox' => round(($points[$i]['lng']-$left)/$lng_interval) ));
+		$newlat=round($points[$i]['lat']*10000);
+		if ($newlat%2==1)
+			$newlat=$newlat-1;
+		$newlng=round($points[$i]['lng']*10000);
+		if ($newlng%2==1)
+			$newlng=$newlng-1;
+		$newlat=$newlat/10000;
+		$newlng=$newlng/10000;
+		array_push($gridpoints,array('lat'=> $newlat , 'lng'=> $newlng));
 	}
 	return $gridpoints;
 }
