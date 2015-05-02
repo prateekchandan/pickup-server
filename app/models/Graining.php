@@ -1,34 +1,30 @@
 <?php
 
 class Graining{
-	
-/*public function amount_matching($strpath1,$strpath2) {
+/*	
+public static function amount_matching($strpath1,$strpath2) {
 	$path1=json_decode($strpath1);
 	$path2=json_decode($strpath2);
 	$paths=array($path1,$path2);
-	$latbounds=findBounds($paths)['lat'];
-	$lngbounds=findBounds($paths)['lng'];
-	$points1=extractPoints($path1);
-	$points2=extractPoints($path2);	
-	$gridsizeLat=50.0;
-	$gridsizeLng=50.0;
-	
-	$gridpoints1=matchWithGrid($points1);
-	$gridpoints2=matchWithGrid($points2);
+	$points1=self::extractPoints($path1);
+	$points2=self::extractPoints($path2);	
+	$gridpoints1=self::matchWithGrid($points1);
+	$gridpoints2=self::matchWithGrid($points2);
 	$pathgridpoints1=array();
 	$pathgridpoints2=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
 		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=1;
 	for ($i=0;$i<sizeof($gridpoints2);$i++)
 		$pathgridpoints2[md5($gridpoints2[$i]['lat'] . $gridpoints2[$i]['lng'])]=1;
-	$matches = countMatches($pathgridpoints1,$pathgridpoints2);
+	$matches = self::countMatches($pathgridpoints1,$pathgridpoints2);
 	$result = array();
 	$result['matches'] = $matches;
 	$result['extrapath1'] = sizeof($gridpoints1) - $matches;
 	$result['extrapath2'] = sizeof($gridpoints2) - $matches;
-	return $result;
-}*/
-
+	$matching_amout = 5*$result['matches'] - 2.5*$result['extrapath1'] - 2.5*$result['extrapath2'];
+	return $matching_amout;
+}
+*/
 public static function get_hashed_grid_points($strpath1)
 {
 	$path1=json_decode($strpath1);
@@ -115,7 +111,7 @@ public static function matchWithGrid($points)
 	return $gridpoints;
 }
 
-/*
+
 public static function countMatches($path1,$path2)
 {
 	$count=0;
@@ -124,7 +120,7 @@ public static function countMatches($path1,$path2)
 		$count++;
 	}
 	return $count;
-}*/
+}
 
 /*
 public function findBestMatches($paths,$matches_needed)

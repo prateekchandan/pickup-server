@@ -196,7 +196,7 @@ class HomeController extends BaseController {
 		$journey->end_lat = Input::get('end_lat');
 		$journey->end_long = Input::get('end_long');
 		$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
-		$journey->path = json_encode(Graining::get_hashed_grid_points($json_path));
+		$journey->path = json_encode(Graining::get_hashed_grid_points(json_encode($json_path)));
 		$journey->start_text = Input::get('start_text');
 		$journey->end_text = Input::get('end_text');
 		$journey->id = Input::get('user_id');
@@ -259,14 +259,113 @@ class HomeController extends BaseController {
 		}
 	}
 
-	public function find_mates($journey_id)
+	public function find_mates($journey_id=0)
 	{
-		$t1 = date('Y-m-d G:i:s',time());
-		$t2 = date('Y-m-d G:i:s',time()+600);
-		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->get();
-		
-	}
+		$requirements = ['margin_after'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
 
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey)){
+			return Error::make(1,10);
+		}
+		
+		// TODO : Fetch all list from the journey table with valid time time intersection
+		
+		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time));
+		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
+		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->get();
+		// get the userid's
+		//echo $pending;
+		$users=array();
+		for ($i=0;$i<sizeof($pending);$i++)
+		{
+			array_push($users,$pending[$i]->id);
+		}
+		//print_r($users);
+		// TODO : Fetch all office and home jounreys from user table with valid intersection and user id is not in journey
+		$t1 = date('G:i:s',strtotime($journey->journey_time));
+		$t2 = date('G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
+		//$other_users_office = User::whereNotIn('id',$users)->where('leaving_home','<',$t2)->where(date('G:i:s',strtotime('leaving_home')+floatval(Input::get('margin_after'))*60),'>',$t1)->get();
+		//$other_users_home = User::whereNotIn('id',$users)->where('leaving_office','<',$t2)->where(date('G:i:s',strtotime('leaving_office')+floatval(Input::get('margin_after'))*60),'>',$t1)->get();
+		/*
+		$other_users_home = DB::select(DB::raw("select * from users where user_id not in (1,2) && leaving_home < \"12:00:00\" && leaving_home+\"0:00:30\" > \"12:00:00\";"),
+			array(
+				'users' => $users,
+				't2' => $t2,
+				'margin' => strval(floatval(Input::get('margin_after'))*60),
+				't1' => $t1,
+				));
+		/*
+		$other_users_office = DB::select(DB::raw("select * from users where user_id not in :users && leaving_office < :t2 && leaving_office+:margin > :t1;"),
+			array(
+				'users' => $users,
+				't2' => $t2,
+				'margin' => floatval(Input::get('margin_after'))*60,
+				't1' => $t1,
+				));
+		// now you have list of journeys , with blocks already made 
+		$pending = array_merge($pending,$other_users_home,$other_users_office);
+		print_r($other_users_office);
+		echo "\n";
+		print_r($other_users_home);
+		echo "\n";
+		print_r($pending);
+		/*
+		$topn_weights = array();
+		$corresponding_ids = array();
+		$n=5;
+		for ($i=0;$i<$n;$i++)
+		{
+			$topn_weights[$i]=0;
+			$corresponding_ids=0;
+		}
+		for ($i=0;$i<sizeof($pending);$i++)
+		{
+			$matches = Graining::countMatches(json_decode($journey->$path),json_decode($pending[$i]->$path));
+			$weighted = 5*$matches - 2.5*sizeof(json_decode($journey->$path)) - 2.5*sizeof(json_decode($pending[$i]->$path));
+			if ($weighted>=$topn_weights[$n-1])
+			{
+				$topn_weights[$n-1]=$weighted;
+				$corresponding_ids[$n-1]=$pending[$i]->$journey_id;
+			}
+			for ($i=$n-2;$i>=0;$i--)
+			{
+				if ($topn_weights[$i+1]>$topn_weights[$i])
+				{
+					$temp=$topn_weights[$i];
+					$topn_weights[$i]=$topn_weights[$i+1];
+					$topn_weights[$i+1]=$temp;
+					$temp2-$corresponding_ids[$i];
+					$corresponding_ids[$i]=$corresponding_ids[$i+1];
+					$corresponding_ids[$i+1]=$temp2;
+				}
+			}
+		}
+		//Superimposing journies liking me
+		$people_liking_me = $journey->match_status->journies_liking_mine;
+		for ($i=0;$i<sizeof($people_liking_me);$i++)
+		{
+			$isAlreadyPresent=0;
+			for ($j=0;$j<$n;$j++)
+			{
+				if ($people_liking_me[$i]==$corresponding_ids[$j])
+				{
+					$isAlreadyPresent=1;
+					array_splice($corresponding_ids,$j,1);
+					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
+				}
+				if ($isAlreadyPresent==0)
+				{
+					array_splice($corresponding_ids,$n-1,1);
+					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
+				}
+			}
+		}
+		return $final_data;
+		*/
+	}
 	public function journey_edit($journey_id){
 
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
