@@ -391,6 +391,7 @@ class HomeController extends BaseController {
 				}
 				}
 			}
+			$final_data = "{\"start\":{} , \"end\":{} , \"waypoints\"}";
 		}
 
 
