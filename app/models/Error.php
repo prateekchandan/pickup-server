@@ -19,7 +19,8 @@ class Error{
 		'8' => "Invalid Preference",
 		'9' => "Two Journey cant be done within 3 hrs",
 		'10' => 'Invalid Journey Code',
-		'12' => 'Invalid message code'
+		'12' => 'Invalid message code',
+		'13' => 'Journey already matched',
 		);
 
 	// Error type

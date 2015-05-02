@@ -240,10 +240,10 @@ class HomeController extends BaseController {
             //->send(json_encode($u1msg));
             for ($j=0;$j<sizeof($match_status->journeys_liking_mine);$j++)
             {
-            	if ($interesting_journeys[$i]==$journeys_liking_mine[$j])
+            	if ($interesting_journeys[$i]==$match_status->journeys_liking_mine[$j])
             	{
             		$matchFound=1;
-            		$firstMatch=$journey->$journey_id;
+            		$firstMatch=intval($journey_id);
             		$secondMatch=$interesting_journeys[$i];
             	}
             }
@@ -263,18 +263,21 @@ class HomeController extends BaseController {
 		}
 		
 		}
-		
+	
 		$match_status->journeys_i_like=$interesting_journeys;
+		$people_needed=intval($journey->people_needed);
 		if ($matchFound==1)
 		{
 			//SEND PUSH NOTIFICATION
+			$people_needed=$people_needed-1;
 			array_push($match_status->matched_journeys,$secondMatch);
 			$current_journey = Journey::where('journey_id','=',strval($secondMatch))->first();
             $current_match_status=json_decode($current_journey->match_status);
             array_push($current_match_status->matched_journeys,intval($firstMatch));
             try {
-			Journey::where('journey_id','=',$interesting_journeys[$i])->update(array(
+			Journey::where('journey_id','=',strval($secondMatch))->update(array(
 				'match_status' => json_encode($current_match_status),
+				'people_needed' => intval($current_journey->people_needed)-1,
 			));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -283,6 +286,7 @@ class HomeController extends BaseController {
 		try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'match_status' => json_encode($match_status),
+				'people_needed' => $people_needed,
 			));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -303,11 +307,15 @@ class HomeController extends BaseController {
 			return Error::make(1,10);
 		}
 		
+		if ($journey->people_needed<2)
+		{
+			return Error::make(1,13);
+		}
 		// TODO : Fetch all list from the journey table with valid time time intersection
 		
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time));
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
-		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->get();
+		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->where('journey_id','!=',$journey_id)->get();
 		// get the userid's
 		//echo $pending;
 		$users=array();
@@ -388,7 +396,10 @@ class HomeController extends BaseController {
 					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
 				}
 		}
-		return $corresponding_ids;
+		$final_data=array();
+		for ($i=0;$i<sizeof($corresponding_ids);$i++)
+			$final_data[$i]=intval($corresponding_ids[$i]);
+		return $final_data;
 		
 	}
 	public function journey_edit($journey_id){
