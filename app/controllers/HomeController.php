@@ -308,11 +308,11 @@ class HomeController extends BaseController {
 		$group = new Group;
 		$group->journey_id1 = $journey_id1;
 		$group->journey_id2 = $journey_id2;
-		$group->journey_id3 = $journey_id3;
+		$group->journey_id3 = 0;
 		$group->user_id1 = $journey1->id;
 		$group->user_id2 = $journey2->id;
-		$group->user_id3 = $journey3->id;
-		self::getwaypoints($journey_id1,$journey_id2,$journey_id3);
+		$group->user_id3 = 0;
+		$best_path = self::getwaypoints($journey1,$journey2,NULL);
 
 		try {
 			$group->save();
@@ -322,6 +322,80 @@ class HomeController extends BaseController {
 		}
 
 	}
+	
+	public function getwaypoints($journey1,$journey2,$journey3)
+	{
+		$journeys=array();
+		if (is_null($journey3))
+		{
+			array_push($journeys,$journey1,$journey2);
+			$shortest=0.0;
+			$shortest_index1=0;
+			$shortest_index2=0;
+			$first_index_set=array(0,1);
+			$second_index_set=array(1,0);
+			for ($i=0;$i<2;$i++)
+			{
+				for ($j=0;$j<2;$j++)
+				{
+				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long)
+								 'second'=>array($journeys[$first_index_set[$j]]->end_lat,$journeys[$first_index_set[$j]]->end_long)	
+								 );
+				$test=find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
+								$journeys[$second_index_set[$j]]->end_lat,$journeys[$second_index_set[$j]]->end_long,$waypoints,1)->routes[0]->legs;
+				$distance=0;
+				for ($k=0;$k<sizeof($test);$k++)
+				{
+					$distance=$distance+$tests[$k]->distance->value;
+				}
+				if ($distance<$shortest)
+				{
+					$shortest=$distance;
+					$shortest_index1=$i;
+					$shortest_index2=$j;
+				}
+				}
+			}
+		}
+		else
+		{
+			array_push($journeys,$journey_id1,$journey_id2,$journey_id3);
+			$shortest=0.0;
+			$shortest_index1=0;
+			$shortest_index2=0;
+			$first_index_set=array(0,0,1,1,2,2);
+			$second_index_set=array(1,2,0,2,0,1);
+			$third_index_set=array(2,1,2,0,1,0);
+			
+			for ($i=0;$i<6;$i++)
+			{
+				for ($j=0;$j<6;$j++)
+				{
+				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long)
+								 'second'=>array($journeys[$third_index_set[$i]]->end_lat,$journeys[$third_index_set[$i]]->end_long)	
+								 'third'=>array($journeys[$first_index_set[$j]]->start_lat,$journeys[$first_index_set[$j]]->start_long)
+								 'fourth'=>array($journeys[$second_index_set[$j]]->end_lat,$journeys[$second_index_set[$j]]->end_long)	
+								 );
+				$test=find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
+								$journeys[$third_index_set[$j]]->end_lat,$journeys[$third_index_set[$j]]->end_long,$waypoints,1)->routes[0]->legs;
+				$distance=0;
+				for ($k=0;$k<sizeof($test);$k++)
+				{
+					$distance=$distance+$tests[$k]->distance->value;
+				}
+				if ($distance<$shortest)
+				{
+					$shortest=$distance;
+					$shortest_index1=$i;
+					$shortest_index2=$j;
+				}
+				}
+			}
+		}
+
+
+	}
+
 	public function find_mates($journey_id=0)
 	{
 		$requirements = ['margin_after'];
