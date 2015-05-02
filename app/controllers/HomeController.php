@@ -101,7 +101,7 @@ class HomeController extends BaseController {
 	}
 
 
-	public function find_path($lat1 = 0 , $log1 = 0 , $lat2 = 0 , $log2 = 0 , $waypoints= array()){
+	public function find_path($lat1 = 0 , $log1 = 0 , $lat2 = 0 , $log2 = 0 , $waypoints= array(), $flag=0){
 		$address = "https://maps.googleapis.com/maps/api/directions/json?origin=$lat1,$log1&destination=$lat2,$log2&waypoints=";
 		foreach ($waypoints as $key => $value) {
 			$address .= $value[0].','.$value[1].'|';
@@ -112,9 +112,13 @@ class HomeController extends BaseController {
 		} catch (Exception $e) {
 			return 0;
 		}
+
 		$path  = $address->routes;
 		usort($path,'cmp');
-
+		if ($flag==1)
+		{
+			return $address;
+		}
 		if(sizeof($path)==0)
 			return 0;
 		return $path;
@@ -171,19 +175,28 @@ class HomeController extends BaseController {
 		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || Input::get('preference') < 1 )
 			return Error::make(1,8);
 		
-		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*3);;
-		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*3);;
+		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
+		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
 		$journey = Journey::where('id' , '=' , Input::get('user_id'))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
-		if($this->debug > 0)
-		if(!is_null($journey))
-			return Error::make(1,9);
-
-		$journey = new Journey;
+		$flag=1;
+		if(!is_null($journey)){
+			if (self::distance(floatval(Input::get('start_lat')),floatval(Input::get('start_long')),$journey->start_lat,$journey->start_long)>1)
+			{
+				if (self::distance(floatval(Input::get('end_lat')),floatval(Input::get('end_long')),$journey->end_lat,$journey->end_long)>1)
+				$flag=0;
+			}		
+		}
+		else{
+			$journey = new Journey;
+		}
+		
 		$journey->start_lat = Input::get('start_lat');
 		$journey->start_long = Input::get('start_long');
 		$journey->end_lat = Input::get('end_lat');
 		$journey->end_long = Input::get('end_long');
+		$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
+		$journey->path = json_encode(Graining::get_hashed_grid_points($json_path));
 		$journey->start_text = Input::get('start_text');
 		$journey->end_text = Input::get('end_text');
 		$journey->id = Input::get('user_id');
@@ -193,7 +206,8 @@ class HomeController extends BaseController {
 		$journey->preference = Input::get('preference');
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
-		$journey->match_status = "{\"journies_i_like\": [] , \"journies_liking_mine\": [] , \"matched_journies\": [] }";
+		if ($flag==1)
+			$journey->match_status = "{\"journies_i_like\": [] , \"journies_liking_mine\": [] , \"matched_journies\": [] }";
 
 		try {
 			$journey->save();
@@ -211,6 +225,9 @@ class HomeController extends BaseController {
 			return Error::make(0,100,$check);
 		$interesting_journeys=json_decode(Input::get('journey_ids'))->ids;
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey)){
+			return Error::make(1,10);
+		}
 		$match_status=json_decode($journey->match_status);
 		for ($i=0;$i<sizeof($interesting_journeys);$i++)
 		{
@@ -241,6 +258,15 @@ class HomeController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+
+	public function find_mates($journey_id)
+	{
+		$t1 = date('Y-m-d G:i:s',time());
+		$t2 = date('Y-m-d G:i:s',time()+600);
+		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->get();
+		
+	}
+
 	public function journey_edit($journey_id){
 
 		$journey = Journey::where('journey_id','=',$journey_id)->first();

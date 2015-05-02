@@ -35,4 +35,25 @@ class BaseController extends Controller {
 		
 	}
 
+
+	public function FindMates($journey_id=0)
+	{
+		$requirements = ['margin_after'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey)){
+			return Error::make(1,10);
+		}
+
+		// TODO : Fetch all list from the journey table with valid time time intersection
+		// get the userid's
+
+		// TODO : Fetch all office and home jounreys from user table with valid intersection and user id is not in journey
+
+		// now you have list of journeys , with blocks already made 
+	}
+
 }

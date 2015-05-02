@@ -59,6 +59,7 @@ class AddingDatabase extends Migration {
 			$table->string('end_text',300);
 			$table->double('distance');
 			$table->double('time');
+			$table->longtext('path');
 			$table->longtext('match_status');
 			$table->integer('people_needed')->default(2);
 			$table->timestamps();
