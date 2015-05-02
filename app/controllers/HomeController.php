@@ -279,72 +279,68 @@ class HomeController extends BaseController {
 		// get the userid's
 		//echo $pending;
 		$users=array();
+		$strusers="(";
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
 			array_push($users,$pending[$i]->id);
+			if ($i==sizeof($pending)-1)
+				$strusers=$strusers.strval($users[$i]);
+			else
+				$strusers=$strusers+strval($users[$i])+",";
 		}
-		//print_r($users);
+		$strusers=$strusers.")";
 		// TODO : Fetch all office and home jounreys from user table with valid intersection and user id is not in journey
 		$t1 = date('G:i:s',strtotime($journey->journey_time));
 		$t2 = date('G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
 		//$other_users_office = User::whereNotIn('id',$users)->where('leaving_home','<',$t2)->where(date('G:i:s',strtotime('leaving_home')+floatval(Input::get('margin_after'))*60),'>',$t1)->get();
 		//$other_users_home = User::whereNotIn('id',$users)->where('leaving_office','<',$t2)->where(date('G:i:s',strtotime('leaving_office')+floatval(Input::get('margin_after'))*60),'>',$t1)->get();
-		/*
-		$other_users_home = DB::select(DB::raw("select * from users where user_id not in (1,2) && leaving_home < \"12:00:00\" && leaving_home+\"0:00:30\" > \"12:00:00\";"),
-			array(
-				'users' => $users,
-				't2' => $t2,
-				'margin' => strval(floatval(Input::get('margin_after'))*60),
-				't1' => $t1,
-				));
-		/*
-		$other_users_office = DB::select(DB::raw("select * from users where user_id not in :users && leaving_office < :t2 && leaving_office+:margin > :t1;"),
-			array(
-				'users' => $users,
-				't2' => $t2,
-				'margin' => floatval(Input::get('margin_after'))*60,
-				't1' => $t1,
-				));
+		$margin = date('G:i:s',strtotime("2015-12-12 00:00:00")+floatval(Input::get('margin_after'))*60);
+
+		$other_users_home = DB::select(DB::raw("select * from users where id not in $strusers && leaving_home < '$t2' && leaving_home+'$margin' > '$t1'"));
+		
+		$other_users_office = DB::select(DB::raw("select * from users where id not in $strusers && leaving_office < '$t2' && leaving_office+'$margin' > '$t1'"));
 		// now you have list of journeys , with blocks already made 
-		$pending = array_merge($pending,$other_users_home,$other_users_office);
-		print_r($other_users_office);
-		echo "\n";
-		print_r($other_users_home);
-		echo "\n";
-		print_r($pending);
-		/*
+		$homeofficeusers = array_merge($other_users_home,$other_users_office);		
 		$topn_weights = array();
 		$corresponding_ids = array();
 		$n=5;
 		for ($i=0;$i<$n;$i++)
 		{
 			$topn_weights[$i]=0;
-			$corresponding_ids=0;
+			$corresponding_ids[$i]=0;
 		}
+
+		//Matching Pending Journies
+		
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
-			$matches = Graining::countMatches(json_decode($journey->$path),json_decode($pending[$i]->$path));
-			$weighted = 5*$matches - 2.5*sizeof(json_decode($journey->$path)) - 2.5*sizeof(json_decode($pending[$i]->$path));
+			
+			//$matches=0;
+			//$weighted=0;
+			$matches = Graining::countMatches(json_decode($journey->path),json_decode($pending[$i]->path));
+			$weighted = 5*$matches - 2.5*sizeof(json_decode($journey->path)) - 2.5*sizeof(json_decode($pending[$i]->path));
 			if ($weighted>=$topn_weights[$n-1])
 			{
 				$topn_weights[$n-1]=$weighted;
-				$corresponding_ids[$n-1]=$pending[$i]->$journey_id;
+				$corresponding_ids[$n-1]=$pending[$i]->journey_id;
 			}
-			for ($i=$n-2;$i>=0;$i--)
+			for ($j=$n-2;$j>=0;$j--)
 			{
-				if ($topn_weights[$i+1]>$topn_weights[$i])
+				if ($topn_weights[$j+1]>$topn_weights[$j])
 				{
-					$temp=$topn_weights[$i];
-					$topn_weights[$i]=$topn_weights[$i+1];
-					$topn_weights[$i+1]=$temp;
-					$temp2-$corresponding_ids[$i];
-					$corresponding_ids[$i]=$corresponding_ids[$i+1];
-					$corresponding_ids[$i+1]=$temp2;
+					$temp=$topn_weights[$j];
+					$topn_weights[$j]=$topn_weights[$j+1];
+					$topn_weights[$j+1]=$temp;
+					$temp2=$corresponding_ids[$j];
+					$corresponding_ids[$j]=$corresponding_ids[$j+1];
+					$corresponding_ids[$j+1]=$temp2;
 				}
 			}
 		}
+		print_r($corresponding_ids);
+		
 		//Superimposing journies liking me
-		$people_liking_me = $journey->match_status->journies_liking_mine;
+		$people_liking_me = json_decode($journey->match_status)->journies_liking_mine;
 		for ($i=0;$i<sizeof($people_liking_me);$i++)
 		{
 			$isAlreadyPresent=0;
@@ -363,8 +359,8 @@ class HomeController extends BaseController {
 				}
 			}
 		}
-		return $final_data;
-		*/
+		return $corresponding_ids[0];
+		
 	}
 	public function journey_edit($journey_id){
 
