@@ -207,7 +207,7 @@ class HomeController extends BaseController {
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
 		if ($flag==1)
-			$journey->match_status = "{\"journies_i_like\": [] , \"journies_liking_mine\": [] , \"matched_journies\": [] }";
+			$journey->match_status = "{\"journeys_i_like\": [] , \"journeys_liking_mine\": [] , \"matched_journeys\": [] }";
 
 		try {
 			$journey->save();
@@ -228,16 +228,50 @@ class HomeController extends BaseController {
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
+		$matchFound=0;
+		$firstMatch=0;
+		$secondMatch=0;
 		$match_status=json_decode($journey->match_status);
 		for ($i=0;$i<sizeof($interesting_journeys);$i++)
 		{
-			$current_journey = Journey::where('journey_id','=',strval($interesting_journeys[$i]))->first();
 			//$u1msg['type'] = 0;
 			//$collection =  PushNotification::app('Pickup')
             //->to($current_journey->id)
             //->send(json_encode($u1msg));
+            for ($j=0;$j<sizeof($match_status->journeys_liking_mine);$j++)
+            {
+            	if ($interesting_journeys[$i]==$journeys_liking_mine[$j])
+            	{
+            		$matchFound=1;
+            		$firstMatch=$journey->$journey_id;
+            		$secondMatch=$interesting_journeys[$i];
+            	}
+            }
+            $current_journey = Journey::where('journey_id','=',strval($interesting_journeys[$i]))->first();
+            if ($current_journey->people_needed==1)
+            {
+            	//SEND PUSH NOTIFICATION TO BOTH
+            }
             $current_match_status=json_decode($current_journey->match_status);
-            array_push($current_match_status->journies_liking_mine,intval($journey_id));
+            array_push($current_match_status->journeys_liking_mine,intval($journey_id));
+            try {
+			Journey::where('journey_id','=',$interesting_journeys[$i])->update(array(
+				'match_status' => json_encode($current_match_status),
+			));
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+		
+		}
+		
+		$match_status->journeys_i_like=$interesting_journeys;
+		if ($matchFound==1)
+		{
+			//SEND PUSH NOTIFICATION
+			array_push($match_status->matched_journeys,$secondMatch);
+			$current_journey = Journey::where('journey_id','=',strval($secondMatch))->first();
+            $current_match_status=json_decode($current_journey->match_status);
+            array_push($current_match_status->matched_journeys,intval($firstMatch));
             try {
 			Journey::where('journey_id','=',$interesting_journeys[$i])->update(array(
 				'match_status' => json_encode($current_match_status),
@@ -246,17 +280,15 @@ class HomeController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 		}
-		
-		$match_status->journies_i_like=$interesting_journeys;
 		try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'match_status' => json_encode($match_status),
 			));
-
-			return Error::success("Mate successfully added");
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
+
+		return Error::success("Mate successfully added");
 	}
 
 	public function find_mates($journey_id=0)
@@ -275,7 +307,7 @@ class HomeController extends BaseController {
 		
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time));
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
-		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->get();
+		$pending = Journey::where('journey_time' , '>' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->get();
 		// get the userid's
 		//echo $pending;
 		$users=array();
@@ -336,9 +368,8 @@ class HomeController extends BaseController {
 				}
 			}
 		}
-		//Superimposing journies liking me
-		$people_liking_me = json_decode($journey->match_status)->journies_liking_mine;
-		$corresponding_ids = array(3,4,9,2,6);
+		//Superimposing journeys liking me
+		$people_liking_me = json_decode($journey->match_status)->journeys_liking_mine;
 		for ($i=0;$i<sizeof($people_liking_me);$i++)
 		{
 			$isAlreadyPresent=0;
