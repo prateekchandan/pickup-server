@@ -274,6 +274,7 @@ class HomeController extends BaseController {
 			$current_journey = Journey::where('journey_id','=',strval($secondMatch))->first();
             $current_match_status=json_decode($current_journey->match_status);
             array_push($current_match_status->matched_journeys,intval($firstMatch));
+            self::add_group($firstMatch,$secondMatch);
             try {
 			Journey::where('journey_id','=',strval($secondMatch))->update(array(
 				'match_status' => json_encode($current_match_status),
@@ -294,7 +295,33 @@ class HomeController extends BaseController {
 
 		return Error::success("Mate successfully added");
 	}
+	public function add_groups($journey_id1=0,$journey_id2=0)
+	{
+		$journey1 = Journey::where('journey_id','=',$journey_id1)->first();
+		if(is_null($journey1)){
+			return Error::make(1,10);
+		}
+		$journey2 = Journey::where('journey_id','=',$journey_id2)->first();
+		if(is_null($journey2)){
+			return Error::make(1,10);
+		}
+		$group = new Group;
+		$group->journey_id1 = $journey_id1;
+		$group->journey_id2 = $journey_id2;
+		$group->journey_id3 = $journey_id3;
+		$group->user_id1 = $journey1->id;
+		$group->user_id2 = $journey2->id;
+		$group->user_id3 = $journey3->id;
+		self::getwaypoints($journey_id1,$journey_id2,$journey_id3);
 
+		try {
+			$group->save();
+			return Error::success("Group successfully Registered",array('group_id'=>$group->id));
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+
+	}
 	public function find_mates($journey_id=0)
 	{
 		$requirements = ['margin_after'];
@@ -401,6 +428,21 @@ class HomeController extends BaseController {
 			$final_data[$i]=intval($corresponding_ids[$i]);
 		return $final_data;
 		
+	}
+
+	public function match_third($journey_id)
+	{
+		$requirements = ['id_to_include'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey)){
+			return Error::make(1,10);
+		}
+
+
 	}
 	public function journey_edit($journey_id){
 

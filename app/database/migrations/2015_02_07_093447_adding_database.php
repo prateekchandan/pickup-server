@@ -12,6 +12,7 @@ class AddingDatabase extends Migration {
 	 */
 	public function up()
 	{
+		Schema::dropIfExists('groups');
 		Schema::dropIfExists('created_journeys');
 		Schema::dropIfExists('pending');
 		Schema::dropIfExists('users');
@@ -65,6 +66,17 @@ class AddingDatabase extends Migration {
 			$table->timestamps();
 		});
 
+		Schema::create('groups', function(Blueprint $table)
+		{
+			$table->increments('group_id');
+			$table->integer('journey_id1')->unsigned();
+			$table->integer('journey_id2')->unsigned();
+			$table->integer('journey_id3')->unsigned();
+			$table->integer('user_id1')->unsigned();
+			$table->integer('user_id2')->unsigned();
+			$table->integer('user_id3')->unsigned();
+			
+		});
 		Schema::create('created_journeys', function(Blueprint $table)
 		{
 			$table->increments('id');
