@@ -279,6 +279,7 @@ class HomeController extends BaseController {
 		// get the userid's
 		//echo $pending;
 		$users=array();
+		//array_push($users, 0);
 		$strusers="(";
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
@@ -292,15 +293,14 @@ class HomeController extends BaseController {
 		// TODO : Fetch all office and home jounreys from user table with valid intersection and user id is not in journey
 		$t1 = date('G:i:s',strtotime($journey->journey_time));
 		$t2 = date('G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
-		//$other_users_office = User::whereNotIn('id',$users)->where('leaving_home','<',$t2)->where(date('G:i:s',strtotime('leaving_home')+floatval(Input::get('margin_after'))*60),'>',$t1)->get();
-		//$other_users_home = User::whereNotIn('id',$users)->where('leaving_office','<',$t2)->where(date('G:i:s',strtotime('leaving_office')+floatval(Input::get('margin_after'))*60),'>',$t1)->get();
 		$margin = date('G:i:s',strtotime("2015-12-12 00:00:00")+floatval(Input::get('margin_after'))*60);
-
+		/*
 		$other_users_home = DB::select(DB::raw("select * from users where id not in $strusers && leaving_home < '$t2' && leaving_home+'$margin' > '$t1'"));
 		
 		$other_users_office = DB::select(DB::raw("select * from users where id not in $strusers && leaving_office < '$t2' && leaving_office+'$margin' > '$t1'"));
+		*/
 		// now you have list of journeys , with blocks already made 
-		$homeofficeusers = array_merge($other_users_home,$other_users_office);		
+		//$homeofficeusers = array_merge($other_users_home,$other_users_office);		
 		$topn_weights = array();
 		$corresponding_ids = array();
 		$n=5;
@@ -310,8 +310,7 @@ class HomeController extends BaseController {
 			$corresponding_ids[$i]=0;
 		}
 
-		//Matching Pending Journies
-		
+		//Matching Pending Journeys
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
 			
@@ -337,10 +336,9 @@ class HomeController extends BaseController {
 				}
 			}
 		}
-		print_r($corresponding_ids);
-		
 		//Superimposing journies liking me
 		$people_liking_me = json_decode($journey->match_status)->journies_liking_mine;
+		$corresponding_ids = array(3,4,9,2,6);
 		for ($i=0;$i<sizeof($people_liking_me);$i++)
 		{
 			$isAlreadyPresent=0;
@@ -352,14 +350,14 @@ class HomeController extends BaseController {
 					array_splice($corresponding_ids,$j,1);
 					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
 				}
-				if ($isAlreadyPresent==0)
+			}
+			if ($isAlreadyPresent==0)
 				{
 					array_splice($corresponding_ids,$n-1,1);
 					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
 				}
-			}
 		}
-		return $corresponding_ids[0];
+		return $corresponding_ids;
 		
 	}
 	public function journey_edit($journey_id){
