@@ -23,6 +23,9 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	//Route::post('edit_journey/{id}', array('as' => 'journey.edit', 'uses' => 'HomeController@journey_edit'));
 	Route::any('delete_journey/{id}', array('as' => 'journey.delete', 'uses' => 'HomeController@journey_delete'));
 	Route::get('journey' , 'HomeController@MakeGroups');
+	Route::get('get_pending/{id}/' , 'HomeController@get_pending');
+	
+	Route::post('match_third/{id}/' , 'HomeController@match_third');
 	Route::get('journey/{id}/{user?}' , 'HomeController@get_journey');
 	Route::post('modify_location/{id}','HomeController@modify_location');
 	Route::any('change_event/{id}' , 'HomeController@event_change');

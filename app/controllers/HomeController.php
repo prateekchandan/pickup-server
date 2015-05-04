@@ -338,7 +338,7 @@ class HomeController extends BaseController {
 			{
 				for ($j=0;$j<2;$j++)
 				{
-				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long)
+				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long) ,
 								 'second'=>array($journeys[$first_index_set[$j]]->end_lat,$journeys[$first_index_set[$j]]->end_long)	
 								 );
 				$test=find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
@@ -371,9 +371,9 @@ class HomeController extends BaseController {
 			{
 				for ($j=0;$j<6;$j++)
 				{
-				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long)
-								 'second'=>array($journeys[$third_index_set[$i]]->end_lat,$journeys[$third_index_set[$i]]->end_long)	
-								 'third'=>array($journeys[$first_index_set[$j]]->start_lat,$journeys[$first_index_set[$j]]->start_long)
+				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long) ,
+								 'second'=>array($journeys[$third_index_set[$i]]->end_lat,$journeys[$third_index_set[$i]]->end_long) ,	
+								 'third'=>array($journeys[$first_index_set[$j]]->start_lat,$journeys[$first_index_set[$j]]->start_long) ,
 								 'fourth'=>array($journeys[$second_index_set[$j]]->end_lat,$journeys[$second_index_set[$j]]->end_long)	
 								 );
 				$test=find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
@@ -500,8 +500,22 @@ class HomeController extends BaseController {
 		}
 		$final_data=array();
 		for ($i=0;$i<sizeof($corresponding_ids);$i++)
-			$final_data[$i]=intval($corresponding_ids[$i]);
-		return $final_data;
+		{
+			$temp_id=intval($corresponding_ids[$i]);
+			if ($temp_id==0)
+			{
+				$final_data[$i]=NULL;
+				continue;
+			}
+			$temp_journey = Journey::where('journey_id','=',$temp_id)->first();
+		if(is_null($temp_journey)){
+			return Error::make(1,10);
+		}
+		$temp_journey->path=NULL;
+		$final_data[$i]=$temp_journey;
+		}
+		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
+		return $jsonobject;
 		
 	}
 
@@ -518,6 +532,14 @@ class HomeController extends BaseController {
 		}
 
 
+	}
+	public function get_pending($journey_id)
+	{
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey))
+			return Error::make(1,11);
+		$journey->path=NULL;
+		return $journey;
 	}
 	public function journey_edit($journey_id){
 

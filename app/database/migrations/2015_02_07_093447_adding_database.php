@@ -75,7 +75,14 @@ class AddingDatabase extends Migration {
 			$table->integer('user_id1')->unsigned();
 			$table->integer('user_id2')->unsigned();
 			$table->integer('user_id3')->unsigned();
-			
+			$table->longtext('path_waypoints');
+			$table->longtext('event_status');
+			$table->foreign('journey_id1')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->foreign('journey_id2')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->foreign('journey_id3')->references('journey_id')->on('pending')->onDelete('cascade');
+			$table->foreign('user_id1')->references('id')->on('users')->onDelete('cascade');
+			$table->foreign('user_id2')->references('id')->on('users')->onDelete('cascade');
+			$table->foreign('user_id3')->references('id')->on('users')->onDelete('cascade');
 		});
 		Schema::create('created_journeys', function(Blueprint $table)
 		{
