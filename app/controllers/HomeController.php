@@ -426,8 +426,8 @@ class HomeController extends BaseController {
 				for ($j=0;$j<6;$j++)
 				{
 				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long) ,
-								 'second'=>array($journeys[$third_index_set[$i]]->end_lat,$journeys[$third_index_set[$i]]->end_long) ,	
-								 'third'=>array($journeys[$first_index_set[$j]]->start_lat,$journeys[$first_index_set[$j]]->start_long) ,
+								 'second'=>array($journeys[$third_index_set[$i]]->start_lat,$journeys[$third_index_set[$i]]->start_long) ,	
+								 'third'=>array($journeys[$first_index_set[$j]]->end_lat,$journeys[$first_index_set[$j]]->end_long) ,
 								 'fourth'=>array($journeys[$second_index_set[$j]]->end_lat,$journeys[$second_index_set[$j]]->end_long)	
 								 );
 				$test=self::find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
@@ -446,13 +446,13 @@ class HomeController extends BaseController {
 				}
 			}
 			$final_waypoints=array(array($journeys[$second_index_set[$shortest_index1]]->start_lat,$journeys[$second_index_set[$shortest_index1]]->start_long) ,
-								 array($journeys[$third_index_set[$shortest_index1]]->end_lat,$journeys[$third_index_set[$shortest_index1]]->end_long) ,	
-								 array($journeys[$first_index_set[$shortest_index2]]->start_lat,$journeys[$first_index_set[$shortest_index2]]->start_long) ,
+								 array($journeys[$third_index_set[$shortest_index1]]->start_lat,$journeys[$third_index_set[$shortest_index1]]->start_long) ,	
+								 array($journeys[$first_index_set[$shortest_index2]]->end_lat,$journeys[$first_index_set[$shortest_index2]]->end_long) ,
 								 array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long),	
 								 );
 			$final_path=array(	'start'=>array($journeys[$first_index_set[$shortest_index1]]->start_lat,$journeys[$first_index_set[$shortest_index1]]->start_long),
 								'waypoints'=>$final_waypoints,
-								'end'=> array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long) ,	
+								'end'=> array($journeys[$third_index_set[$shortest_index2]]->end_lat,$journeys[$third_index_set[$shortest_index2]]->end_long) ,	
 								 );
 			return $final_path;
 		}
@@ -607,6 +607,7 @@ class HomeController extends BaseController {
             	Group::where('group_id','=',$group_id)->update(array(
 				'accept_third' => json_encode($accept_third),
 			));
+            	return Error::success("User turned down the request");
             }
             catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -702,9 +703,11 @@ class HomeController extends BaseController {
             catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 			}
+			return Error::success("Group of 3 successfully created");
 
 	}
-
+	else
+		return Error::success("User accepted the request");
 	}
 	public function get_pending($journey_id)
 	{
