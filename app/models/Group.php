@@ -1,7 +1,7 @@
 <?php
 
 
-class FinalJourney extends Eloquent{
+class Group extends Eloquent{
 
 	protected $table = 'groups';
 	protected $hidden = array('group_id','created_at','updated_at');

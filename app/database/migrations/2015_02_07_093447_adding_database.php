@@ -71,20 +71,20 @@ class AddingDatabase extends Migration {
 			$table->increments('group_id');
 			$table->integer('journey_id1')->unsigned();
 			$table->integer('journey_id2')->unsigned();
-			$table->integer('journey_id3')->unsigned();
+			$table->integer('journey_id3')->unsigned()->nullable();
 			$table->integer('user_id1')->unsigned();
 			$table->integer('user_id2')->unsigned();
-			$table->integer('user_id3')->unsigned();
+			$table->integer('user_id3')->unsigned()->nullable();
 			$table->longtext('path_waypoints');
-			$table->longtext('event_status');
+			$table->longtext('event_status')->nullable();
 			$table->longtext('accept_third');
 			$table->foreign('journey_id1')->references('journey_id')->on('pending')->onDelete('cascade');
 			$table->foreign('journey_id2')->references('journey_id')->on('pending')->onDelete('cascade');
-			$table->foreign('journey_id3')->references('journey_id')->on('pending')->onDelete('cascade');
 			$table->foreign('user_id1')->references('id')->on('users')->onDelete('cascade');
 			$table->foreign('user_id2')->references('id')->on('users')->onDelete('cascade');
-			$table->foreign('user_id3')->references('id')->on('users')->onDelete('cascade');
+			$table->timestamps();
 		});
+/*
 		Schema::create('chat',function (Blueprint $table)
 		{
 			$table->increments('message_id');
@@ -93,7 +93,7 @@ class AddingDatabase extends Migration {
 			$table->longtext('chat_massage');
 			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
 			$table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-		});
+		});*/
 		
 		Schema::create('created_journeys', function(Blueprint $table)
 		{
