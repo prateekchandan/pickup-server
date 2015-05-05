@@ -356,10 +356,18 @@ class HomeController extends BaseController {
 				}
 				}
 			}
+			$final_waypoints = array(array($journeys[$second_index_set[$shortest_index1]]->start_lat,$journeys[$second_index_set[$shortest_index1]]->start_long) ,
+								 array($journeys[$first_index_set[$shortest_index2]]->end_lat,$journeys[$first_index_set[$shortest_index2]]->end_long)	
+								 );
+			$final_path=array(	'start'=>array($journeys[$first_index_set[$shortest_index1]]->start_lat,$journeys[$first_index_set[$shortest_index1]]->start_long),
+								'waypoints'=>$final_waypoints,
+								'end'=> array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long) ,	
+								 );
+			return $final_path;
 		}
 		else
 		{
-			array_push($journeys,$journey_id1,$journey_id2,$journey_id3);
+			array_push($journeys,$journey1,$journey2,$journey3);
 			$shortest=0.0;
 			$shortest_index1=0;
 			$shortest_index2=0;
@@ -391,7 +399,16 @@ class HomeController extends BaseController {
 				}
 				}
 			}
-			$final_data = "{\"start\":{} , \"end\":{} , \"waypoints\"}";
+			$final_waypoints=array(array($journeys[$second_index_set[$shortest_index1]]->start_lat,$journeys[$second_index_set[$shortest_index1]]->start_long) ,
+								 array($journeys[$third_index_set[$shortest_index1]]->end_lat,$journeys[$third_index_set[$shortest_index1]]->end_long) ,	
+								 array($journeys[$first_index_set[$shortest_index2]]->start_lat,$journeys[$first_index_set[$shortest_index2]]->start_long) ,
+								 array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long)	
+								 );
+			$final_path=array(	'start'=>array($journeys[$first_index_set[$shortest_index1]]->start_lat,$journeys[$first_index_set[$shortest_index1]]->start_long),
+								'waypoints'=>$final_waypoints,
+								'end'=> array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long) ,	
+								 );
+			return $final_path;
 		}
 
 
