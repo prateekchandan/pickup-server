@@ -21,6 +21,9 @@ class Error{
 		'10' => 'Invalid Journey Code',
 		'12' => 'Invalid message code',
 		'13' => 'Journey already matched',
+		'14' => 'No active third user requests',
+		'15' => 'Invalid third person response',
+		'16' => 'user not in group!',
 		);
 
 	// Error type
