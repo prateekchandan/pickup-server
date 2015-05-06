@@ -31,11 +31,11 @@ public static function get_hashed_grid_points($strpath1)
 	$points1=self::extractPoints($path1);
 	//echo sizeof($points1) . "\n";
 	$gridpoints1=self::matchWithGrid($points1);
-	//echo sizeof($gridpoints1) . "\n";
+	echo sizeof($gridpoints1) . "\n";
 	$pathgridpoints1=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
 		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=1;
-	//echo sizeof($pathgridpoints1) . "\n";
+	echo sizeof($pathgridpoints1) . "\n";
 	return $pathgridpoints1;
 }
 public static function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
@@ -100,16 +100,18 @@ public static function matchWithGrid($points)
 	$gridpoints=array();
 	for ($i=0;$i<sizeof($points);$i++)
 	{
-		$newlat=round($points[$i]['lat']*10000);
+		$newlat=floor($points[$i]['lat']*10000);
 		if ($newlat%2==1)
 			$newlat=$newlat-1;
-		$newlng=round($points[$i]['lng']*10000);
+		$newlng=floor($points[$i]['lng']*10000);
 		if ($newlng%2==1)
 			$newlng=$newlng-1;
 		$newlat=$newlat/10000;
 		$newlng=$newlng/10000;
 		array_push($gridpoints,array('lat'=> $newlat , 'lng'=> $newlng));
+		//echo $points[$i]['lat'] . " changed to " . $gridpoints[$i]['lat'] . " and " . $points[$i]['lng'] . " changed to " . $gridpoints[$i]['lng'] . "\n";
 	}
+	//echo sizeof($gridpoints) . "\n";
 	return $gridpoints;
 }
 
