@@ -29,10 +29,13 @@ public static function get_hashed_grid_points($strpath1)
 {
 	$path1=json_decode($strpath1);
 	$points1=self::extractPoints($path1);
+	//echo sizeof($points1) . "\n";
 	$gridpoints1=self::matchWithGrid($points1);
+	//echo sizeof($gridpoints1) . "\n";
 	$pathgridpoints1=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
 		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=1;
+	//echo sizeof($pathgridpoints1) . "\n";
 	return $pathgridpoints1;
 }
 public static function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
@@ -60,6 +63,7 @@ public static function addPoints($start,$end,$n)
 	{
 		array_push($added_points,array('lat' => (($start['lat']*($n-$i) + $end['lat']*($i+1)) / ($n+1)) , 'lng' => (($start['lng']*($n-$i) + $end['lng']*($i+1)) / ($n+1))));
 	}
+
 	return $added_points;
 }
 
@@ -80,7 +84,6 @@ public static function extractPoints($path1)
 			}
 		}
 	}
-	
 	for ($i=0;$i<sizeof($points)-1;$i++) {	
 		$dist=self::distance($points[$i]['lat'],$points[$i]['lng'],$points[$i+1]['lat'],$points[$i+1]['lng']);
 		if ($dist>$threshold)
@@ -90,7 +93,6 @@ public static function extractPoints($path1)
 			array_splice($points, $i+1, 0, $points_to_be_added);
 		}	
 	}
-	
 	return $points;
 }
 public static function matchWithGrid($points)
@@ -115,6 +117,7 @@ public static function matchWithGrid($points)
 public static function countMatches($path1,$path2)
 {
 	$count=0;
+	$count2=0;
 	foreach($path1 as $x => $x_value) {
     if (array_key_exists($x, $path2))
 		$count++;
