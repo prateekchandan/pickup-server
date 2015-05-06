@@ -31,11 +31,11 @@ public static function get_hashed_grid_points($strpath1)
 	$points1=self::extractPoints($path1);
 	//echo sizeof($points1) . "\n";
 	$gridpoints1=self::matchWithGrid($points1);
-	echo sizeof($gridpoints1) . "\n";
+	//echo sizeof($gridpoints1) . "\n";
 	$pathgridpoints1=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
 		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=1;
-	echo sizeof($pathgridpoints1) . "\n";
+	//echo sizeof($pathgridpoints1) . "\n";
 	return $pathgridpoints1;
 }
 public static function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
