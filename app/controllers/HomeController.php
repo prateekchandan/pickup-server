@@ -511,7 +511,7 @@ class HomeController extends BaseController {
 		$n=5;
 		for ($i=0;$i<$n;$i++)
 		{
-			$topn_weights[$i]=0;
+			$topn_weights[$i]=-1000;
 			$corresponding_ids[$i]=0;
 		}
 
