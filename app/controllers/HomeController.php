@@ -178,14 +178,14 @@ class HomeController extends BaseController {
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
-		$journey = Journey::where('id' , '=' , Input::get('user_id'))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
+		$journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
 		$flag=1;
 		if(!is_null($journey)){
-			if (self::distance(floatval(Input::get('start_lat')),floatval(Input::get('start_long')),$journey->start_lat,$journey->start_long)>1)
-			{
-				if (self::distance(floatval(Input::get('end_lat')),floatval(Input::get('end_long')),$journey->end_lat,$journey->end_long)>1)
+			//if (self::distance(floatval(Input::get('start_lat')),floatval(Input::get('start_long')),$journey->start_lat,$journey->start_long)>1)
+			//{
+				//if (self::distance(floatval(Input::get('end_lat')),floatval(Input::get('end_long')),$journey->end_lat,$journey->end_long)>1)
 				$flag=0;
-			}		
+			//}		
 		}
 		else{
 			$journey = new Journey;
@@ -211,6 +211,8 @@ class HomeController extends BaseController {
 
 		try {
 			$journey->save();
+			if ($flag==0)
+				return Error::success("Journey successfully Registered",array('journey_id'=>intval($journey->journey_id)));
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -511,7 +513,7 @@ class HomeController extends BaseController {
 		$n=5;
 		for ($i=0;$i<$n;$i++)
 		{
-			$topn_weights[$i]=-1000;
+			$topn_weights[$i]=0;
 			$corresponding_ids[$i]=0;
 		}
 
