@@ -522,7 +522,19 @@ class HomeController extends BaseController {
 			//$matches=0;
 			//$weighted=0;
 			$matches = Graining::countMatches(json_decode($journey->path),json_decode($pending[$i]->path));
-			$weighted = 5*$matches - 2.5*sizeof(json_decode($journey->path)) - 2.5*sizeof(json_decode($pending[$i]->path));
+			$count1 = 0;
+			foreach (json_decode($journey->path) as $key=>$value) {
+        	$count1++;
+    		}
+    		$count2 = 0;
+			foreach (json_decode($pending[$i]->path) as $key=>$value) {
+        	$count2++;
+    		}
+			$weighted = 5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches);
+			//print_r(json_decode($journey->path));
+			
+			
+			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . "\n";
 			if ($weighted>=$topn_weights[$n-1])
 			{
 				$topn_weights[$n-1]=$weighted;
@@ -576,6 +588,13 @@ class HomeController extends BaseController {
 		}
 		$temp_journey->path=NULL;
 		$final_data[$i]=$temp_journey;
+		$user_data = User::find($temp_journey->id);
+		if(is_null($user_data)){
+			return Error::make(1,1);
+		}
+		$user_data->home_to_office=NULL;
+		$user_data->office_to_home=NULL;
+		$final_data[$i]->user_data=$user_data;
 		}
 		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
 		return $jsonobject;
