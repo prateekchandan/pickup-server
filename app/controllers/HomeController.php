@@ -817,7 +817,7 @@ class HomeController extends BaseController {
 				'time' => $journey_time,
 			));
 
-			return Error::success("Journey Edited successfully",array('journey_id'=>$journey_id));
+			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id)));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
