@@ -750,16 +750,16 @@ class HomeController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 
-		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'));
-		if($path == 0){
+		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'), array(), 1);
+		if(is_null($path)){
 			return Error::make(0,3);
 		}
 		$distance  = 0;
-		foreach ($path[0]->legs as $key => $value) {
+		foreach ($path->routes[0]->legs as $key => $value) {
 			$distance += $value->distance->value;
 		}
 		$journey_time  = 0;
-		foreach ($path[0]->legs as $key => $value) {
+		foreach ($path->routes[0]->legs as $key => $value) {
 			$journey_time += $value->duration->value;
 		}
 		if($distance > 100000)
@@ -797,8 +797,8 @@ class HomeController extends BaseController {
 		if($this->debug > 0)
 		if(!is_null($journey))
 			return Error::make(1,9);
-		$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
-				
+		//$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
+		//echo $timestamp;	
 		try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'start_lat' => Input::get('start_lat'),
@@ -808,7 +808,7 @@ class HomeController extends BaseController {
 				'start_text' => Input::get('start_text'),
 				'end_text' => Input::get('end_text'),
 				'id' => Input::get('user_id'),
-				'path' => json_encode(Graining::get_hashed_grid_points(json_encode($json_path))),
+				'path' => json_encode(Graining::get_hashed_grid_points(json_encode($path))),
 				'journey_time' => $timestamp,
 				'margin_before' => Input::get('margin_before'),
 				'margin_after' => Input::get('margin_after'),
