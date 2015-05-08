@@ -129,7 +129,7 @@ class HomeController extends BaseController {
 		if(Input::has('journey_id')){
 			return $this->journey_edit(Input::get('journey_id'));
 		}
-
+		
 		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
@@ -178,18 +178,13 @@ class HomeController extends BaseController {
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
-		$journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
-		$flag=1;
-		if(!is_null($journey)){
-			//if (self::distance(floatval(Input::get('start_lat')),floatval(Input::get('start_long')),$journey->start_lat,$journey->start_long)>1)
-			//{
-				//if (self::distance(floatval(Input::get('end_lat')),floatval(Input::get('end_long')),$journey->end_lat,$journey->end_long)>1)
-				$flag=0;
-			//}		
+		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
+		if(!is_null($check_existing_journey)){
+			return $this->journey_edit($check_existing_journey->journey_id);	
 		}
-		else{
-			$journey = new Journey;
-		}
+		
+		$journey = new Journey;
+		
 		
 		$journey->start_lat = Input::get('start_lat');
 		$journey->start_long = Input::get('start_long');
@@ -206,13 +201,10 @@ class HomeController extends BaseController {
 		$journey->preference = Input::get('preference');
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
-		if ($flag==1)
-			$journey->match_status = "{\"journeys_i_like\": [] , \"journeys_liking_mine\": [] , \"matched_journeys\": [] }";
+		$journey->match_status = "{\"journeys_i_like\": [] , \"journeys_liking_mine\": [] , \"matched_journeys\": [] }";
 
 		try {
 			$journey->save();
-			if ($flag==0)
-				return Error::success("Journey successfully Registered",array('journey_id'=>intval($journey->journey_id)));
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -480,9 +472,9 @@ class HomeController extends BaseController {
 		}
 		// TODO : Fetch all list from the journey table with valid time time intersection
 		
-		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time));
+		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-600);
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
-		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->where('journey_id','!=',$journey_id)->get();
+		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->where('id','!=',intval($journey->id))->get();
 		// get the userid's
 		//echo $pending;
 		$users=array();
