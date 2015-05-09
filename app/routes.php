@@ -23,7 +23,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('add_mates/{id}', array('as' => 'journey.add_mates', 'uses' => 'HomeController@add_mates'));
 	//Route::post('edit_journey/{id}', array('as' => 'journey.edit', 'uses' => 'HomeController@journey_edit'));
 	Route::any('delete_journey/{id}', array('as' => 'journey.delete', 'uses' => 'HomeController@journey_delete'));
-	Route::get('journey' , 'HomeController@MakeGroups');
+	//Route::get('journey' , 'HomeController@MakeGroups');
 	Route::get('get_pending/{id}/' , 'HomeController@get_pending');
 	
 	Route::post('match_third/{id}/' , 'HomeController@match_third');
