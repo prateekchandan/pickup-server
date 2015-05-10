@@ -525,7 +525,7 @@ class HomeController extends BaseController {
 			foreach (json_decode($pending[$i]->path) as $key=>$value) {
         	$count2++;
     		}
-			$weighted = 5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches);
+			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
 			if ($weighted>=$topn_weights[$n-1])
 			{
@@ -557,12 +557,16 @@ class HomeController extends BaseController {
 					$isAlreadyPresent=1;
 					array_splice($corresponding_ids,$j,1);
 					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
+					array_splice($topn_weights,$j,1);
+					array_splice($topn_weights,0,0,1);
 				}
 			}
 			if ($isAlreadyPresent==0)
 				{
 					array_splice($corresponding_ids,$n-1,1);
 					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
+					array_splice($topn_weights,$n-1,1);
+					array_splice($topn_weights,0,0,1);
 				}
 		}
 		$final_data=array();
@@ -587,6 +591,7 @@ class HomeController extends BaseController {
 		$user_data->home_to_office=NULL;
 		$user_data->office_to_home=NULL;
 		$final_data[$i]->user_data=$user_data;
+		$final_data[$i]->match_amount=$topn_weights[$i]*100;
 		}
 		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
 		return $jsonobject;
