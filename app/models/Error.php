@@ -25,6 +25,7 @@ class Error{
 		'15' => 'Invalid third person response',
 		'16' => 'user not in group!',
 		'17' => 'invalid group code!',
+		'18' => 'driver not in journey!',
 		);
 
 	// Error type

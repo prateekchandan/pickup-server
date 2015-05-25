@@ -12,6 +12,7 @@ class AddingDatabase extends Migration {
 	 */
 	public function up()
 	{
+		Schema::dropIfExists('drivers');
 		Schema::dropIfExists('groups');
 		Schema::dropIfExists('created_journeys');
 		Schema::dropIfExists('pending');
@@ -120,8 +121,18 @@ class AddingDatabase extends Migration {
 			$table->longtext('path');
 			$table->timestamps();
 		});
-	}
-
+	
+	Schema::create('drivers', function(Blueprint $table)
+		{
+			$table->increments('driver_id');
+			$table->string('driver_name', 200);
+			$table->string('current_pos',200)->default("19.1336,72.9154");
+			$table->integer('group_id')->unsigned()->nullable();
+			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
+			$table->timestamps();
+			$table->rememberToken();
+		});
+}
 	/**
 	 * Reverse the migrations.
 	 *

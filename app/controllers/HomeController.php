@@ -508,7 +508,6 @@ class HomeController extends BaseController {
 			$topn_weights[$i]=0;
 			$corresponding_ids[$i]=0;
 		}
-
 		//Matching Pending Journeys
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
