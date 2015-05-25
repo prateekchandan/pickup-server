@@ -44,7 +44,7 @@ class DriverController extends BaseController {
 		}
 		try {
 			Driver::where('driver_id','=',$driver_id)->update(array(
-			'group_id' => Input::get('group_id'),
+			'group_id' => intval(Input::get('group_id')),
 		));
 			return Error::success("Group successfully added" , array("driver_id" => $driver_id));
 		} 
