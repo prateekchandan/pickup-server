@@ -344,12 +344,30 @@ class HomeController extends BaseController {
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		$suitable_matchs=self::find_mates($journey_id);
-		$group_found=0;
+		$suitable_matches=self::find_mates($journey_id)["mates"];
+		if (!is_null($suitable_matches[0]))
+		{
+
+			$group = Group::where('group_id','=',$suitable_matches[0]->group_id)->first();
+			$people_so_far=json_decode($group->journeyids);
+			array_push($people_so_far,$journey_id);
+			/************PATH WAYPOINTS TO BE FIXED************
+			***************************************************
+			**************************************************/
+			try {
+			Group::where('group_id','=',$group->group_id)->update(array(
+				'journeyids' => json_encode($people_so_far),
+				'path_waypoints' => json_encode(self::getwaypoints($journey,NULL,NULL)),
+			));
+			return intval($suitable_matches[0]->group_id);
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+		}
+		
 		//Conditions for suitable group
 		//0 is false, 1 is true
-		if ($group_found==0)
-		{
+		else {
 		$group = new Group;
 		$group->journeyids = json_encode(array($journey_id,));
 		
@@ -467,13 +485,16 @@ class HomeController extends BaseController {
 
 	}
 
-	public function find_mates($journey_id=0)
+	public function find_mates($journey_id=0,$margin_after=30)
 	{
+		
+		/*
 		$requirements = ['margin_after'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
-
+		$margin_after=Input::get('margin_after');
+		*/
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
@@ -486,12 +507,14 @@ class HomeController extends BaseController {
 		// TODO : Fetch all list from the journey table with valid time time intersection
 		
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-600);
-		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
+		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
 		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->where('id','!=',intval($journey->id))->get();
 		// get the userid's
-		//echo $pending;
+		/*
+		*****************HOME AND OFFICE STARTS**************************************
+		*****************************************************************************
+		*****************************************************************************
 		$users=array();
-		//array_push($users, 0);
 		$strusers="(";
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
@@ -499,22 +522,27 @@ class HomeController extends BaseController {
 			if ($i==sizeof($pending)-1)
 				$strusers=$strusers.strval($users[$i]);
 			else
-				$strusers=$strusers+strval($users[$i])+",";
+				$strusers=$strusers.strval($users[$i]).",";
 		}
 		$strusers=$strusers.")";
 		// TODO : Fetch all office and home jounreys from user table with valid intersection and user id is not in journey
 		$t1 = date('G:i:s',strtotime($journey->journey_time));
-		$t2 = date('G:i:s',strtotime($journey->journey_time)+floatval(Input::get('margin_after'))*60);
-		$margin = date('G:i:s',strtotime("2015-12-12 00:00:00")+floatval(Input::get('margin_after'))*60);
+		$t2 = date('G:i:s',strtotime($journey->journey_time)+$margin_after*60);
+		$margin = date('G:i:s',strtotime("2015-12-12 00:00:00")+$margin_after*60);
 		/*
 		$other_users_home = DB::select(DB::raw("select * from users where id not in $strusers && leaving_home < '$t2' && leaving_home+'$margin' > '$t1'"));
 		
 		$other_users_office = DB::select(DB::raw("select * from users where id not in $strusers && leaving_office < '$t2' && leaving_office+'$margin' > '$t1'"));
+		*****************************************************************************
+		*****************************************************************************
+		*****************HOME AND OFFICE ENDS****************************************
 		*/
 		// now you have list of journeys , with blocks already made 
 		//$homeofficeusers = array_merge($other_users_home,$other_users_office);		
 		$topn_weights = array();
 		$corresponding_ids = array();
+		$distance_threshold=2;
+		$max_people=5;
 		$n=5;
 		for ($i=0;$i<$n;$i++)
 		{
@@ -539,6 +567,13 @@ class HomeController extends BaseController {
     		}
 			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
+			$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
+			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journeyids);
+
+			if (sizeof($people_so_far)>=$max_people)
+				continue;
+			if ($distance>$distance_threshold)
+				continue;
 			if ($weighted>=$topn_weights[$n-1])
 			{
 				$topn_weights[$n-1]=$weighted;
@@ -558,29 +593,7 @@ class HomeController extends BaseController {
 			}
 		}
 		//Superimposing journeys liking me
-		$people_liking_me = json_decode($journey->match_status)->journeys_liking_mine;
-		for ($i=0;$i<sizeof($people_liking_me);$i++)
-		{
-			$isAlreadyPresent=0;
-			for ($j=0;$j<$n;$j++)
-			{
-				if ($people_liking_me[$i]==$corresponding_ids[$j])
-				{
-					$isAlreadyPresent=1;
-					array_splice($corresponding_ids,$j,1);
-					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
-					array_splice($topn_weights,$j,1);
-					array_splice($topn_weights,0,0,1);
-				}
-			}
-			if ($isAlreadyPresent==0)
-				{
-					array_splice($corresponding_ids,$n-1,1);
-					array_splice($corresponding_ids,0,0,$people_liking_me[$i]);
-					array_splice($topn_weights,$n-1,1);
-					array_splice($topn_weights,0,0,1);
-				}
-		}
+		
 		$final_data=array();
 		for ($i=0;$i<sizeof($corresponding_ids);$i++)
 		{
