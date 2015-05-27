@@ -70,19 +70,10 @@ class AddingDatabase extends Migration {
 		Schema::create('groups', function(Blueprint $table)
 		{
 			$table->increments('group_id');
-			$table->integer('journey_id1')->unsigned();
-			$table->integer('journey_id2')->unsigned();
-			$table->integer('journey_id3')->unsigned()->nullable();
-			$table->integer('user_id1')->unsigned();
-			$table->integer('user_id2')->unsigned();
-			$table->integer('user_id3')->unsigned()->nullable();
+			$table->longtext('journeyids');
 			$table->longtext('path_waypoints');
 			$table->longtext('event_status')->nullable();
-			$table->longtext('accept_third');
-			$table->foreign('journey_id1')->references('journey_id')->on('pending')->onDelete('cascade');
-			$table->foreign('journey_id2')->references('journey_id')->on('pending')->onDelete('cascade');
-			$table->foreign('user_id1')->references('id')->on('users')->onDelete('cascade');
-			$table->foreign('user_id2')->references('id')->on('users')->onDelete('cascade');
+			//$table->longtext('accept_third');
 			$table->timestamps();
 		});
 /*

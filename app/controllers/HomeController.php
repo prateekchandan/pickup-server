@@ -205,7 +205,11 @@ class HomeController extends BaseController {
 
 		try {
 			$journey->save();
-			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id));
+			$group_id=self::add_to_group($journey->id);
+			Journey::where('journey_id','=',$journey->id)->update(array(
+				'group_id' => $group_id,
+			));
+			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
@@ -330,24 +334,22 @@ class HomeController extends BaseController {
 		}
 		return $user;
 	}
-	public function add_groups($journey_id1=0,$journey_id2=0)
+	
+	public function add_to_group($journey_id)
 	{
-		$journey1 = Journey::where('journey_id','=',$journey_id1)->first();
-		if(is_null($journey1)){
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		$journey2 = Journey::where('journey_id','=',$journey_id2)->first();
-		if(is_null($journey2)){
-			return Error::make(1,10);
-		}
+		$suitable_matchs=self::find_mates($journey_id);
+		$group_found=0;
+		//Conditions for suitable group
+		//0 is false, 1 is true
+		if ($group_found==0)
+		{
 		$group = new Group;
-		$group->journey_id1 = $journey_id1;
-		$group->journey_id2 = $journey_id2;
-		$group->journey_id3 = 0;
-		$group->user_id1 = $journey1->id;
-		$group->user_id2 = $journey2->id;
-		$group->user_id3 = 0;
-		$accept_third = array('journey_id'=>0, 'user1'=>-1, 'user2'=>-1);
+		$group->journey_ids = json_encode(array($journey_id,));
+		
 		// 0 is NO
 		// 1 is YES
 		// -1 is no status
@@ -360,12 +362,20 @@ class HomeController extends BaseController {
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
-
+		}
 	}
 	
 	public function getwaypoints($journey1,$journey2,$journey3)
 	{
 		$journeys=array();
+		if (is_null($journey2))
+		{
+			$final_path=array(	'start'=>array($journey1->start_lat,$journey1->start_long),
+								'waypoints'=>NULL,
+								'end'=> array($journey1->end_lat,$journey1->end_long) ,	
+								 );
+			return $final_path;
+		}
 		if (is_null($journey3))
 		{
 			array_push($journeys,$journey1,$journey2);
