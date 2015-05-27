@@ -21,6 +21,7 @@ class AddingDatabase extends Migration {
 		Schema::create('users', function(Blueprint $table)
 		{
 			$table->increments('id');
+
 			$table->string('email',50)->unique();
 			$table->string('first_name', 200);
 			$table->string('second_name', 200);
@@ -47,6 +48,7 @@ class AddingDatabase extends Migration {
 		Schema::create('pending', function(Blueprint $table)
 		{
 			$table->increments('journey_id');
+			$table->integer('group_id')->nullable();
 			$table->double('start_lat');
 			$table->double('start_long');
 			$table->double('end_lat');

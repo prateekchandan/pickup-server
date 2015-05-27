@@ -205,10 +205,13 @@ class HomeController extends BaseController {
 
 		try {
 			$journey->save();
+			$group_id=0;
+			
 			$group_id=self::add_to_group($journey->id);
 			Journey::where('journey_id','=',$journey->id)->update(array(
 				'group_id' => $group_id,
 			));
+
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -348,13 +351,13 @@ class HomeController extends BaseController {
 		if ($group_found==0)
 		{
 		$group = new Group;
-		$group->journey_ids = json_encode(array($journey_id,));
+		$group->journeyids = json_encode(array($journey_id,));
 		
 		// 0 is NO
 		// 1 is YES
 		// -1 is no status
-		$group->accept_third = json_encode($accept_third);
-		$group->path_waypoints = json_encode(self::getwaypoints($journey1,$journey2,NULL));
+		
+		$group->path_waypoints = json_encode(self::getwaypoints($journey,NULL,NULL));
 		$group->event_status = "nothing";
 		try {
 			$group->save();
@@ -370,9 +373,9 @@ class HomeController extends BaseController {
 		$journeys=array();
 		if (is_null($journey2))
 		{
-			$final_path=array(	'start'=>array($journey1->start_lat,$journey1->start_long),
+			$final_path=array(	'start'=>array(floatval($journey1->start_lat),floatval($journey1->start_long)),
 								'waypoints'=>NULL,
-								'end'=> array($journey1->end_lat,$journey1->end_long) ,	
+								'end'=> array(floatval($journey1->end_lat),floatval($journey1->end_long)) ,	
 								 );
 			return $final_path;
 		}
