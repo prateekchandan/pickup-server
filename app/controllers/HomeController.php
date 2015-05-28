@@ -201,9 +201,8 @@ class HomeController extends BaseController {
 		$journey->preference = Input::get('preference');
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
-		$journey->match_status = "{\"journeys_i_like\": [] , \"journeys_liking_mine\": [] , \"matched_journeys\": [] }";
-
-		try {
+		
+		//try {
 			$journey->save();
 			$group_id=0;
 			
@@ -213,122 +212,11 @@ class HomeController extends BaseController {
 			));
 
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
-		} catch (Exception $e) {
+		/*} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
-		}
+		}*/
 	}
 
-	public function add_mates($journey_id)
-	{
-		$requirements = ['journey_ids'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-			return Error::make(0,100,$check);
-		$interesting_journeys=json_decode(Input::get('journey_ids'))->ids;
-		$journey = Journey::where('journey_id','=',$journey_id)->first();
-		if(is_null($journey)){
-			return Error::make(1,10);
-		}
-		$matchFound=0;
-		$firstMatch=0;
-		$secondMatch=0;
-		$match_status=json_decode($journey->match_status);
-		for ($i=0;$i<sizeof($interesting_journeys);$i++)
-		{
-			//$u1msg['type'] = 0;
-			//$collection =  PushNotification::app('Pickup')
-            //->to($current_journey->id)
-            //->send(json_encode($u1msg));
-            for ($j=0;$j<sizeof($match_status->journeys_liking_mine);$j++)
-            {
-            	if ($interesting_journeys[$i]==$match_status->journeys_liking_mine[$j])
-            	{
-            		$matchFound=1;
-            		$firstMatch=intval($journey_id);
-            		$secondMatch=$interesting_journeys[$i];
-            	}
-            }
-            $current_journey = Journey::where('journey_id','=',strval($interesting_journeys[$i]))->first();
-            if ($current_journey->people_needed==1)
-            {
-            	$group = Group::where('journey_id2','=',$current_journey->journey_id)->orWhere('journey_id2','=',$current_journey->journey_id)->first();
-            	//echo $group->group_id;
-            	
-            	$accept_third=json_decode($group->accept_third);
-            	if ($accept_third->journey_id==0)
-            	{
-            	$accept_third->journey_id=intval($journey_id);
-            	$accept_third->user1=-1;
-            	$accept_third->user2=-1;
-            	try {
-            	Group::where('group_id','=',$group->group_id)->update(array(
-				'accept_third' => json_encode($accept_third),
-			));
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-			}
-            	//SEND PUSH NOTIFICATION TO BOTH
-            continue;
-            }
-            $current_match_status=json_decode($current_journey->match_status);
-            array_push($current_match_status->journeys_liking_mine,intval($journey_id));
-            try {
-			Journey::where('journey_id','=',$interesting_journeys[$i])->update(array(
-				'match_status' => json_encode($current_match_status),
-			));
-
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
-		
-		}
-	
-		$match_status->journeys_i_like=$interesting_journeys;
-		$people_needed=intval($journey->people_needed);
-		if ($matchFound==1)
-		{
-			//SEND PUSH NOTIFICATION
-			$people_needed=$people_needed-1;
-			array_push($match_status->matched_journeys,$secondMatch);
-			$match_status->journeys_liking_mine=array();
-			$match_status->journeys_i_like=array();
-			$current_journey = Journey::where('journey_id','=',strval($secondMatch))->first();
-            $current_match_status=json_decode($current_journey->match_status);
-            array_push($current_match_status->matched_journeys,intval($firstMatch));
-            $current_match_status->journeys_liking_mine=array();
-			$current_match_status->journeys_i_like=array();
-            $groupid = self::add_groups($firstMatch,$secondMatch);
-            try {
-			Journey::where('journey_id','=',strval($secondMatch))->update(array(
-				'match_status' => json_encode($current_match_status),
-				'people_needed' => intval($current_journey->people_needed)-1,
-			));
-			try {
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'match_status' => json_encode($match_status),
-				'people_needed' => $people_needed,
-			));
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
-			return Error::success("Group successfully Registered",array('group_id'=>$groupid));
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
-		}
-		try {
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'match_status' => json_encode($match_status),
-				'people_needed' => $people_needed,
-			));
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
-
-		return Error::success("Mate successfully added");
-	}
 	public function get_group($group_id=0)
 	{
 		$group = Group::find($group_id);
@@ -344,38 +232,39 @@ class HomeController extends BaseController {
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		$suitable_matches=self::find_mates($journey_id)["mates"];
+		
+		$suitable_matches=self::find_mates($journey_id)['mates'];
 		if (!is_null($suitable_matches[0]))
 		{
 
 			$group = Group::where('group_id','=',$suitable_matches[0]->group_id)->first();
-			$people_so_far=json_decode($group->journeyids);
+			$people_so_far=json_decode($group->journey_ids);
 			array_push($people_so_far,$journey_id);
 			/************PATH WAYPOINTS TO BE FIXED************
 			***************************************************
 			**************************************************/
-			try {
+			//try {
 			Group::where('group_id','=',$group->group_id)->update(array(
-				'journeyids' => json_encode($people_so_far),
-				'path_waypoints' => json_encode(self::getwaypoints($journey,NULL,NULL)),
+				'journey_ids' => json_encode($people_so_far),
+				'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
 			));
 			return intval($suitable_matches[0]->group_id);
-		} catch (Exception $e) {
+		/*} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
-		}
+		}*/
 		}
 		
 		//Conditions for suitable group
 		//0 is false, 1 is true
 		else {
 		$group = new Group;
-		$group->journeyids = json_encode(array($journey_id,));
+		$group->journey_ids = json_encode(array($journey_id,));
 		
 		// 0 is NO
 		// 1 is YES
 		// -1 is no status
 		
-		$group->path_waypoints = json_encode(self::getwaypoints($journey,NULL,NULL));
+		$group->path_waypoints = json_encode(self::getwaypoints($journey_id));
 		$group->event_status = "nothing";
 		try {
 			$group->save();
@@ -386,103 +275,60 @@ class HomeController extends BaseController {
 		}
 	}
 	
-	public function getwaypoints($journey1,$journey2,$journey3)
+	public function getwaypoints($journey_id,$group_id=0)
 	{
-		$journeys=array();
-		if (is_null($journey2))
+		$journey=Journey::where('journey_id','=',$journey_id)->first();
+		if ($group_id==0)
 		{
-			$final_path=array(	'start'=>array(floatval($journey1->start_lat),floatval($journey1->start_long)),
-								'waypoints'=>NULL,
-								'end'=> array(floatval($journey1->end_lat),floatval($journey1->end_long)) ,	
-								 );
-			return $final_path;
-		}
-		if (is_null($journey3))
-		{
-			array_push($journeys,$journey1,$journey2);
-			$shortest=0.0;
-			$shortest_index1=0;
-			$shortest_index2=0;
-			$first_index_set=array(0,1);
-			$second_index_set=array(1,0);
-			for ($i=0;$i<2;$i++)
-			{
-				for ($j=0;$j<2;$j++)
-				{
-				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long) ,
-								 'second'=>array($journeys[$first_index_set[$j]]->end_lat,$journeys[$first_index_set[$j]]->end_long)	
-								 );
-				$test=self::find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
-								$journeys[$second_index_set[$j]]->end_lat,$journeys[$second_index_set[$j]]->end_long,$waypoints,1)->routes[0]->legs;
-				$distance=0;
-				for ($k=0;$k<sizeof($test);$k++)
-				{
-					$distance=$distance+$test[$k]->distance->value;
-				}
-				if ($distance<$shortest)
-				{
-					$shortest=$distance;
-					$shortest_index1=$i;
-					$shortest_index2=$j;
-				}
-				}
-			}
-			$final_waypoints = array(array($journeys[$second_index_set[$shortest_index1]]->start_lat,$journeys[$second_index_set[$shortest_index1]]->start_long) ,
-								 array($journeys[$first_index_set[$shortest_index2]]->end_lat,$journeys[$first_index_set[$shortest_index2]]->end_long)	
-								 );
-			$final_path=array(	'start'=>array($journeys[$first_index_set[$shortest_index1]]->start_lat,$journeys[$first_index_set[$shortest_index1]]->start_long),
-								'waypoints'=>$final_waypoints,
-								'end'=> array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long) ,	
+			$final_path=array(	'startwaypoints'=>array(array(floatval($journey->start_lat),floatval($journey->start_long))),
+								'endwaypoints'=> array(array(floatval($journey->end_lat),floatval($journey->end_long))) ,	
+								 'start_order'=>array($journey_id),
+								 'end_order'=>array($journey_id),
 								 );
 			return $final_path;
 		}
 		else
 		{
-			array_push($journeys,$journey1,$journey2,$journey3);
-			$shortest=0.0;
-			$shortest_index1=0;
-			$shortest_index2=0;
-			$first_index_set=array(0,0,1,1,2,2);
-			$second_index_set=array(1,2,0,2,0,1);
-			$third_index_set=array(2,1,2,0,1,0);
+			$final_path=json_decode(Group::where('group_id','=',$group_id)->first()->path_waypoints);
+			array_push($final_path->start_order,$journey_id);
+			array_push($final_path->startwaypoints,array(floatval($journey->start_lat),floatval($journey->start_long)));
+			$suitable_position=0;
+			$shortest_distance=10000000;
 			
-			for ($i=0;$i<6;$i++)
+			$current_coordinates_start=array(floatval($journey->start_lat),floatval($journey->start_long));
+			$current_coordinates_end=array(floatval($journey->end_lat),floatval($journey->end_long));
+			
+			for ($i=0;$i<sizeof($final_path->endwaypoints)+1;$i++)
 			{
-				for ($j=0;$j<6;$j++)
+				$waypoints=array();
+				for ($j=1;$j<sizeof($final_path->startwaypoints);$j++)
 				{
-				$waypoints=array('first'=>array($journeys[$second_index_set[$i]]->start_lat,$journeys[$second_index_set[$i]]->start_long) ,
-								 'second'=>array($journeys[$third_index_set[$i]]->start_lat,$journeys[$third_index_set[$i]]->start_long) ,	
-								 'third'=>array($journeys[$first_index_set[$j]]->end_lat,$journeys[$first_index_set[$j]]->end_long) ,
-								 'fourth'=>array($journeys[$second_index_set[$j]]->end_lat,$journeys[$second_index_set[$j]]->end_long)	
-								 );
-				$test=self::find_path($journeys[$first_index_set[$i]]->start_lat,$journeys[$first_index_set[$i]]->start_long,
-								$journeys[$third_index_set[$j]]->end_lat,$journeys[$third_index_set[$j]]->end_long,$waypoints,1)->routes[0]->legs;
+					array_push($waypoints,$final_path->startwaypoints[$j]);
+				}
+				array_push($waypoints,$current_coordinates_start);
+				$endwaypoints=$final_path->endwaypoints;
+				array_splice($endwaypoints, $i, 0, array($current_coordinates_end));
+				for ($j=0;$j<sizeof($final_path->endwaypoints)-1;$j++)
+				{
+					array_push($waypoints,$endwaypoints[$j]);
+				}
+				$test=self::find_path($final_path->startwaypoints[0][0],$final_path->startwaypoints[0][1],
+								end($endwaypoints)[0],end($endwaypoints)[1],$waypoints,1)->routes[0]->legs;
 				$distance=0;
 				for ($k=0;$k<sizeof($test);$k++)
 				{
 					$distance=$distance+$test[$k]->distance->value;
 				}
-				if ($distance<$shortest)
+				if ($distance<$shortest_distance)
 				{
-					$shortest=$distance;
-					$shortest_index1=$i;
-					$shortest_index2=$j;
-				}
+					$shortest_position=$i;
+					$shortest_distance=$distance;
 				}
 			}
-			$final_waypoints=array(array($journeys[$second_index_set[$shortest_index1]]->start_lat,$journeys[$second_index_set[$shortest_index1]]->start_long) ,
-								 array($journeys[$third_index_set[$shortest_index1]]->start_lat,$journeys[$third_index_set[$shortest_index1]]->start_long) ,	
-								 array($journeys[$first_index_set[$shortest_index2]]->end_lat,$journeys[$first_index_set[$shortest_index2]]->end_long) ,
-								 array($journeys[$second_index_set[$shortest_index2]]->end_lat,$journeys[$second_index_set[$shortest_index2]]->end_long),	
-								 );
-			$final_path=array(	'start'=>array($journeys[$first_index_set[$shortest_index1]]->start_lat,$journeys[$first_index_set[$shortest_index1]]->start_long),
-								'waypoints'=>$final_waypoints,
-								'end'=> array($journeys[$third_index_set[$shortest_index2]]->end_lat,$journeys[$third_index_set[$shortest_index2]]->end_long) ,	
-								 );
+			array_splice($final_path->end_order,$shortest_position,0,$journey_id);
+			array_splice($final_path->endwaypoints,$shortest_position,0,$current_coordinates_end);
 			return $final_path;
 		}
-
-
 	}
 
 	public function find_mates($journey_id=0,$margin_after=30)
@@ -500,15 +346,12 @@ class HomeController extends BaseController {
 			return Error::make(1,10);
 		}
 		
-		if ($journey->people_needed<2)
-		{
-			return Error::make(1,13);
-		}
+		
 		// TODO : Fetch all list from the journey table with valid time time intersection
 		
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-600);
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
-		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('people_needed' , '>' , 0 )->where('id','!=',intval($journey->id))->get();
+		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('id','!=',intval($journey->id))->get();
 		// get the userid's
 		/*
 		*****************HOME AND OFFICE STARTS**************************************
@@ -568,7 +411,7 @@ class HomeController extends BaseController {
 			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
 			$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
-			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journeyids);
+			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journey_ids);
 
 			if (sizeof($people_so_far)>=$max_people)
 				continue;
@@ -623,133 +466,6 @@ class HomeController extends BaseController {
 		
 	}
 
-	public function match_third($group_id)
-	{
-		$requirements = ['user_id','response'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-			return Error::make(0,100,$check);
-
-		$group = Group::where('group_id','=',$group_id)->first();
-		if(is_null($group)){
-			return Error::make(1,17);
-		}
-		$response=intval(Input::get('response'));
-		$userid=intval(Input::get('user_id'));
-		$accept_third=json_decode($group->accept_third);
-		if ($accept_third->journey_id==0)
-			return Error::make(1,14);
-		if ($response==0)
-		{
-			$accept_third->journey_id=0;
-			$accept_third->user1=-1;
-			$accept_third->user2=-1;
-			try {
-            	Group::where('group_id','=',$group_id)->update(array(
-				'accept_third' => json_encode($accept_third),
-			));
-            	return Error::success("User turned down the request");
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-		}
-		else if ($response==1)
-		{
-			if ($group->user_id1==$userid)
-				$accept_third->user1=1;
-			else if ($group->user_id2==$userid)
-				$accept_third->user2=1;
-			else
-				return Error::make(1,16);
-			try {
-            	Group::where('group_id','=',$group_id)->update(array(
-				'accept_third' => json_encode($accept_third),
-			));
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-		}
-		else
-			return Error::make(1,15);
-	//check whether both have accepted the third person
-	if ($accept_third->user1==1 && $accept_third->user2==1)
-	{
-		$group->journey_id3=$accept_third->journey_id;
-		$journey3 = Journey::where('journey_id','=',$accept_third->journey_id)->first();
-		if(is_null($journey3)){
-			return Error::make(1,10);
-		}
-		
-		$accept_third = array('journey_id'=>0, 'user1'=>-1, 'user2'=>-1);
-		// 0 is NO
-		// 1 is YES
-		// -1 is no status
-		
-		$journey1 = Journey::where('journey_id','=',$group->journey_id1)->first();
-		if(is_null($journey1)){
-			return Error::make(1,10);
-		}
-		$journey2 = Journey::where('journey_id','=',$group->journey_id2)->first();
-		if(is_null($journey2)){
-			return Error::make(1,10);
-		}
-		
-		try {
-            	Group::where('group_id','=',$group_id)->update(array(
-				'accept_third' => json_encode($accept_third),
-				'user_id3' => intval($journey3->id),
-				'journey_id3' => intval($journey3->journey_id),
-				'path_waypoints' =>  json_encode(self::getwaypoints($journey1,$journey2,$journey3)),
-
-			));
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-	//Update pending table
-			$match_status=json_decode($journey1->match_status);
-			array_push($match_status->matched_journeys,intval($journey3->journey_id));
-	try {
-            	Journey::where('journey_id','=',$group->journey_id1)->update(array(
-				'people_needed' => 0,
-				'match_status' => json_encode($match_status),
-			));
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-			$match_status=json_decode($journey2->match_status);
-			array_push($match_status->matched_journeys,intval($journey3->journey_id));
-		try {
-            	Journey::where('journey_id','=',$group->journey_id2)->update(array(
-				'people_needed' => 0,
-				'match_status' => json_encode($match_status),
-			));
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-			$match_status=json_decode($journey3->match_status);
-			$match_status->journeys_liking_mine=array();
-			$match_status->journeys_i_like=array();
-			array_push($match_status->matched_journeys,intval($journey1->journey_id),intval($journey2->journey_id));
-	try {
-            	Journey::where('journey_id','=',$group->journey_id3)->update(array(
-				'people_needed' => 0,
-				'match_status' => json_encode($match_status),
-			));
-            }
-            catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-			}
-			return Error::success("Group of 3 successfully created");
-
-	}
-	else
-		return Error::success("User accepted the request");
-	}
 	public function get_pending($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();

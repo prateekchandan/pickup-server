@@ -26,6 +26,8 @@ class Error{
 		'16' => 'user not in group!',
 		'17' => 'invalid group code!',
 		'18' => 'driver not in journey!',
+		'19' => 'invalid driver id',
+		'20' => 'this person isn\'t travelling here !!',
 		);
 
 	// Error type

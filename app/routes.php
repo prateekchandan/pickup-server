@@ -20,13 +20,13 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController@get'));
 	Route::get('user/{user_id}/all_journey', array('as' => 'user.journey', 'uses' => 'UserController@all_journey'));
 	Route::post('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
-	Route::post('add_mates/{id}', array('as' => 'journey.add_mates', 'uses' => 'HomeController@add_mates'));
+	//Route::post('add_mates/{id}', array('as' => 'journey.add_mates', 'uses' => 'HomeController@add_mates'));
 	//Route::post('edit_journey/{id}', array('as' => 'journey.edit', 'uses' => 'HomeController@journey_edit'));
 	Route::any('delete_journey/{id}', array('as' => 'journey.delete', 'uses' => 'HomeController@journey_delete'));
 	//Route::get('journey' , 'HomeController@MakeGroups');
 	Route::get('get_pending/{id}/' , 'HomeController@get_pending');
 	
-	Route::post('match_third/{id}/' , 'HomeController@match_third');
+	//Route::post('match_third/{id}/' , 'HomeController@match_third');
 	Route::get('journey/{id}/{user?}' , 'HomeController@get_journey');
 	Route::post('modify_location/{id}','HomeController@modify_location');
 	Route::any('change_event/{id}' , 'HomeController@event_change');
@@ -34,6 +34,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('add_group_to_driver/{id}', array('as' => 'driver.add_group', 'uses' => 'DriverController@give_driver_group'));
 	Route::post('driver_modify_location/{id}','DriverController@modify_location');
 	Route::get('group_enlist/{id}','DriverController@group_enlist');
+	Route::post('end_journey_of_person/{id}','DriverController@end_journey');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));

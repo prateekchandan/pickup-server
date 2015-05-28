@@ -64,17 +64,16 @@ class AddingDatabase extends Migration {
 			$table->double('distance');
 			$table->double('time');
 			$table->longtext('path');
-			$table->longtext('match_status');
-			$table->integer('people_needed')->default(2);
 			$table->timestamps();
 		});
 
 		Schema::create('groups', function(Blueprint $table)
 		{
 			$table->increments('group_id');
-			$table->longtext('journeyids');
+			$table->longtext('journey_ids');
 			$table->longtext('path_waypoints');
 			$table->longtext('event_status')->nullable();
+			$table->integer('driver_id')->nullable();
 			//$table->longtext('accept_third');
 			$table->timestamps();
 		});
@@ -120,6 +119,7 @@ class AddingDatabase extends Migration {
 			$table->increments('driver_id');
 			$table->string('driver_name', 200);
 			$table->string('current_pos',200)->default("19.1336,72.9154");
+			$table->string('driver_status',200)->default("vacant");
 			$table->integer('group_id')->unsigned()->nullable();
 			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
 			$table->timestamps();
