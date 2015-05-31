@@ -35,6 +35,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('driver_modify_location/{id}','DriverController@modify_location');
 	Route::get('group_enlist/{id}','DriverController@group_enlist');
 	Route::post('end_journey_of_person/{id}','DriverController@end_journey');
+	Route::get('allocate_driver','DriverController@allocate_driver');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));

@@ -223,7 +223,7 @@ class HomeController extends BaseController {
 		if(is_null($group)){
 			return Error::make(1,1);
 		}
-		return $user;
+		return $group;
 	}
 	
 	public function add_to_group($journey_id)
@@ -259,7 +259,7 @@ class HomeController extends BaseController {
 		else {
 		$group = new Group;
 		$group->journey_ids = json_encode(array($journey_id,));
-		
+		$group->journey_time = $journey->journey_time;
 		// 0 is NO
 		// 1 is YES
 		// -1 is no status

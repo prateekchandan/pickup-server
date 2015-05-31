@@ -1,1 +1,2 @@
 Laravel development server started on http://0.0.0.0:8002
+[Mon Jun  1 00:31:35 2015] PHP Parse error:  syntax error, unexpected '}' in /home/kalpesh/pickup_server/app/controllers/DriverController.php on line 163
