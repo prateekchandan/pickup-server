@@ -41,6 +41,7 @@ class AddingDatabase extends Migration {
 			$table->double('path_time');
 			$table->time('leaving_home')->default("09:00:00");
 			$table->time('leaving_office')->default("17:00:00");
+			$table->double('total_distance_travelled')->default(0);
 			$table->timestamps();
 			$table->rememberToken();
 		});
@@ -64,6 +65,7 @@ class AddingDatabase extends Migration {
 			$table->double('distance');
 			$table->double('time');
 			$table->longtext('path');
+			$table->double('distance_travelled')->default(0);
 			$table->timestamps();
 		});
 
