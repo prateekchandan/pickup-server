@@ -91,6 +91,30 @@ class DriverController extends BaseController {
 			return Error::make(1,10);
 		}
 		$requirements = ['position'];
+		$new_coordinate_array = explode(',',Input::get('position'));
+		$old_coordinate_array = explode(',',$driver->current_pos);
+		$distance_increment = self::distance(floatval($new_coordinate_array[0]),
+											floatval($new_coordinate_array[1]),
+											floatval($old_coordinate_array[0]),
+											floatval($new_coordinate_array[1]));
+		if ($driver->driver_status=='occupied')
+		{
+			$group = Group::where('group_id','=',$driver->group_id)->first();
+			$journey_ids = json_decode($group->journey_ids);
+			foreach ($journey_ids as $journey_id)
+			{
+				$journey = Journey::where('journey_id','=',$journey_id)->first();
+				$new_distance = intval($journey->distance_travelled)+$distance_increment;
+				try {
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'distance_travelled' => $distance_travelled,
+				));
+			} 
+			catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+			}
+			}
+		}
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -201,6 +225,18 @@ class DriverController extends BaseController {
 			}
 			if ($closest_driver_id!=0)
 			{
+				$people_so_far=json_decode($group->journey_ids);
+				foreach ($people_so_far as $journey_id1) {
+				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
+				$user = User::where('id' , '=',intval($journey_details->id))->first();
+				$uMsg = array();
+				$uMsg['type'] = 10;
+				$uMsg['new_user_id'] = $user->id;
+				$uMsg['event'] = "Driver allocated!";
+				PushNotification::app('Pickup')
+	            	->to($user->registration_id)
+	            	->send(json_encode($uMsg));
+				}
 				try {
 					Driver::where('driver_id','=',$closest_driver_id)->update(array(
 						'group_id' => intval($group->group_id),

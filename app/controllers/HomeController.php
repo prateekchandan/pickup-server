@@ -236,22 +236,29 @@ class HomeController extends BaseController {
 		$suitable_matches=self::find_mates($journey_id)['mates'];
 		if (!is_null($suitable_matches[0]))
 		{
-
 			$group = Group::where('group_id','=',$suitable_matches[0]->group_id)->first();
 			$people_so_far=json_decode($group->journey_ids);
+			foreach ($people_so_far as $journey_id1) {
+				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
+				$user = User::where('id' , '=',intval($journey_details->id))->first();
+				$uMsg = array();
+				$uMsg['type'] = 10;
+				$uMsg['new_user_id'] = $user->id;
+				$uMsg['event'] = "A new user has just joined!";
+				PushNotification::app('Pickup')
+	            	->to($user->registration_id)
+	            	->send(json_encode($uMsg));
+			}
 			array_push($people_so_far,$journey_id);
-			/************PATH WAYPOINTS TO BE FIXED************
-			***************************************************
-			**************************************************/
-			//try {
+			try {
 			Group::where('group_id','=',$group->group_id)->update(array(
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
 			));
 			return intval($suitable_matches[0]->group_id);
-		/*} catch (Exception $e) {
+		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
-		}*/
+		}
 		}
 		
 		//Conditions for suitable group
