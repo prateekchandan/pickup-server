@@ -230,9 +230,9 @@ class DriverController extends BaseController {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
 				$uMsg = array();
-				$uMsg['type'] = 10;
-				$uMsg['new_user_id'] = $user->id;
-				$uMsg['event'] = "Driver allocated!";
+				$uMsg['code'] = 11;
+				$uMsg['user'] = $user->id;
+				$uMsg['message'] = "Driver allocated!";
 				PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));

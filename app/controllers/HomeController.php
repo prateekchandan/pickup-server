@@ -242,9 +242,9 @@ class HomeController extends BaseController {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
 				$uMsg = array();
-				$uMsg['type'] = 10;
-				$uMsg['new_user_id'] = $user->id;
-				$uMsg['event'] = "A new user has just joined!";
+				$uMsg['code'] = 10;
+				$uMsg['user'] = $user->id;
+				$uMsg['message'] = "A new user has just joined!";
 				PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
