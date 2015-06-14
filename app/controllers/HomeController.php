@@ -229,6 +229,7 @@ class HomeController extends BaseController {
 	public function add_to_group($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		$new_user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
@@ -243,7 +244,7 @@ class HomeController extends BaseController {
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
 				$uMsg = array();
 				$uMsg['type'] = 10;
-				$uMsg['data'] = array('user_id'=>intval($journey->id));
+				$uMsg['data'] = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
 				$uMsg['message'] = "A new user has just joined!";
 				PushNotification::app('Pickup')
 	            	->to($user->registration_id)
