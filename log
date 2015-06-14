@@ -1,2 +1,2 @@
-Laravel development server started on http://0.0.0.0:8002
-[Mon Jun  1 00:31:35 2015] PHP Parse error:  syntax error, unexpected '}' in /home/kalpesh/pickup_server/app/controllers/DriverController.php on line 163
+PHP Parse error:  syntax error, unexpected '}' in /home/kalpesh/Projects/pickup_server/app/routes.php on line 40
+{"error":{"type":"Symfony\\Component\\Debug\\Exception\\FatalErrorException","message":"syntax error, unexpected '}'","file":"\/home\/kalpesh\/Projects\/pickup_server\/app\/routes.php","line":40}}
