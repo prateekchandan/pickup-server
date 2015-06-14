@@ -234,9 +234,12 @@ class DriverController extends BaseController {
 				$uMsg['type'] = 11;
 				$uMsg['data'] = array('driver_id'=>$closest_driver_id);
 				$uMsg['message'] = "Driver allocated!";
-				$success=PushNotification::app('Pickup')
+				$collection=PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
+	            	foreach ($collection->pushManager as $push) {
+    		$success = $push->getAdapter()->getResponse();
+				}
 	            	self::log_data(json_encode($success));
 				}
 				try {

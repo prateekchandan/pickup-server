@@ -246,9 +246,13 @@ class HomeController extends BaseController {
 				$uMsg['type'] = 10;
 				$uMsg['data'] = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
 				$uMsg['message'] = "A new user has just joined!";
-				$success = PushNotification::app('Pickup')
+				//echo $user->registration_id;
+				$collection = PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
+	            foreach ($collection->pushManager as $push) {
+    			$success = $push->getAdapter()->getResponse();
+				}
 	            self::log_data(json_encode($success));
 			}
 
