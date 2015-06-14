@@ -57,11 +57,17 @@ class UserController extends BaseController {
 		$user->office_text=Input::get('office_text');
 		$user->leaving_office=Input::get('leaving_office');
 		$user->leaving_home=Input::get('leaving_home');
+		try {
 		$user->home_to_office=self::getPath($user->home_location,$user->office_location);
 		$user->office_to_home=self::getPath($user->office_location,$user->home_location);
 		$json=json_decode($user->home_to_office);
 		$user->home_to_office=json_encode(Graining::get_hashed_grid_points($user->home_to_office));
 		$user->office_to_home=json_encode(Graining::get_hashed_grid_points($user->office_to_home));
+		}
+		catch (Exception $e)
+		{
+			return Error::make(1,21);
+		}
 		$user->path_distance=$json->routes[0]->legs[0]->distance->value;
 		$user->path_time=$json->routes[0]->legs[0]->duration->value;
 		try {

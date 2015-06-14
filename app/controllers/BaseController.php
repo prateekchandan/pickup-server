@@ -34,6 +34,17 @@ class BaseController extends Controller {
 		return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($this->privatekey), base64_decode($encrypted), MCRYPT_MODE_CBC, md5(md5($this->privatekey))), "\0");
 		
 	}
+	public function log_data($data)
+	{
+	$file = fopen("/root/cronlog.txt",'a');
+	fwrite($file,$data);
+	if($data != ""){
+        $t = date("Y-m-d G:i:s",time());
+        $data ="\nPinged the server now at ".$t."\n----------------------------------\n\n";
+	}
+	fwrite($file,$data);
+
+	}
 
 
 	

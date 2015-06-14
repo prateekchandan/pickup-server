@@ -246,10 +246,12 @@ class HomeController extends BaseController {
 				$uMsg['type'] = 10;
 				$uMsg['data'] = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
 				$uMsg['message'] = "A new user has just joined!";
-				PushNotification::app('Pickup')
+				$success = PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
+	            self::log_data($success);
 			}
+
 			array_push($people_so_far,$journey_id);
 			try {
 			Group::where('group_id','=',$group->group_id)->update(array(

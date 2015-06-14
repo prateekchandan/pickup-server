@@ -234,9 +234,10 @@ class DriverController extends BaseController {
 				$uMsg['type'] = 11;
 				$uMsg['data'] = array('driver_id'=>$closest_driver_id);
 				$uMsg['message'] = "Driver allocated!";
-				PushNotification::app('Pickup')
+				$success=PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
+	            	self::log_data($success);
 				}
 				try {
 					Driver::where('driver_id','=',$closest_driver_id)->update(array(
