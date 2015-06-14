@@ -45,6 +45,15 @@ class BaseController extends Controller {
 	fwrite($file,$data);
 
 	}
+	public function send_push($user_id=0)
+	{
+		$user=User::where('id','=',$user_id)->first();
+		$data = array('arbit','max');
+		$collection=PushNotification::app('Pickup')
+	            	->to($user->registration_id)
+	            	->send(json_encode($data));
+	    return json_encode($collection);
+	}
 
 
 	

@@ -37,6 +37,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('end_journey_of_person/{id}','DriverController@end_journey');
 	Route::get('allocate_driver','DriverController@allocate_driver');
 	Route::get('get_driver/{id}','DriverController@get');
+	Route::post('send_push/{id}','HomeController@send_push');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));
