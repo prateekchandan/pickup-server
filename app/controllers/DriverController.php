@@ -237,7 +237,7 @@ class DriverController extends BaseController {
 				$success=PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
-	            	self::log_data($success);
+	            	self::log_data(json_encode($success));
 				}
 				try {
 					Driver::where('driver_id','=',$closest_driver_id)->update(array(

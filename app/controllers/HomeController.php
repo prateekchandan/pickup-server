@@ -249,7 +249,7 @@ class HomeController extends BaseController {
 				$success = PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
-	            self::log_data($success);
+	            self::log_data(json_encode($success));
 			}
 
 			array_push($people_so_far,$journey_id);
