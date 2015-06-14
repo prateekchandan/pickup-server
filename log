@@ -1,2 +1,0 @@
-PHP Parse error:  syntax error, unexpected '}' in /home/kalpesh/Projects/pickup_server/app/routes.php on line 40
-{"error":{"type":"Symfony\\Component\\Debug\\Exception\\FatalErrorException","message":"syntax error, unexpected '}'","file":"\/home\/kalpesh\/Projects\/pickup_server\/app\/routes.php","line":40}}
