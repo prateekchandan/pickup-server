@@ -253,7 +253,8 @@ class HomeController extends BaseController {
 	            foreach ($collection->pushManager as $push) {
     			$success = $push->getAdapter()->getResponse();
 				}
-	            self::log_data(json_encode($success));
+	            $data = print_r($success,true);
+	            	self::log_data($data);
 			}
 
 			array_push($people_so_far,$journey_id);

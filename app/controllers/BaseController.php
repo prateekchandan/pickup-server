@@ -52,7 +52,15 @@ class BaseController extends Controller {
 		$collection=PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($data));
-	    return json_encode($collection->getFeedback());
+	    foreach ($collection->pushManager as $push) {
+    		$success = $push->getAdapter()->getResponse();
+				}
+			$k = print_r($success,true);
+			//self::log_data($k);
+			return json_encode($k);
+			//return "abc";
+			
+
 	}
 
 

@@ -240,7 +240,8 @@ class DriverController extends BaseController {
 	            	foreach ($collection->pushManager as $push) {
     		$success = $push->getAdapter()->getResponse();
 				}
-	            	self::log_data(json_encode($success));
+				$data = print_r($success,true);
+	            	self::log_data($data);
 				}
 				try {
 					Driver::where('driver_id','=',$closest_driver_id)->update(array(
