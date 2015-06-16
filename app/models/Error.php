@@ -28,7 +28,8 @@ class Error{
 		'18' => 'driver not in journey!',
 		'19' => 'invalid driver id',
 		'20' => 'this person isn\'t travelling here !!',
-		'21' => 'Invalid long/lat. Check your GPS.'
+		'21' => 'Invalid long/lat. Check your GPS.',
+		'22' => 'Group doesn\'t exist!',
 		);
 
 	// Error type

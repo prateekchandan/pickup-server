@@ -341,7 +341,7 @@ class HomeController extends BaseController {
 				}
 			}
 			array_splice($final_path->end_order,$shortest_position,0,$journey_id);
-			array_splice($final_path->endwaypoints,$shortest_position,0,$current_coordinates_end);
+			array_splice($final_path->endwaypoints,$shortest_position,0,array($current_coordinates_end));
 			return $final_path;
 		}
 	}
@@ -489,12 +489,33 @@ class HomeController extends BaseController {
 		$journey->path=NULL;
 		return $journey;
 	}
-	public function journey_edit($journey_id){
-
+	public function journey_edit($journey_id) {
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
 			return Error::make(1,11);
-
+		try {
+			$group = Group::where('group_id','=',intval($journey->group_id))->first();
+			$people_so_far = json_decode($group->journey_ids);
+			$path = json_decode($group->path_waypoints);
+			if(($key = array_search($journey_id, $people_so_far)) !== false) {
+ 			   array_splice($people_so_far, $key, 1);
+			}
+			if(($key = array_search($journey_id, $path->start_order)) !== false) {
+ 			   array_splice($path->start_order, $key, 1);
+ 			   array_splice($path->startwaypoints, $key, 1);
+			}
+			if(($key = array_search($journey_id, $path->end_order)) !== false) {
+ 			   array_splice($path->end_order, $key, 1);
+ 			   array_splice($path->endwaypoints, $key, 1);
+			}
+			Group::where('group_id','=',$group->group_id)->update(array(
+				'journey_ids' => json_encode($people_so_far),
+				'path_waypoints' => json_encode($path),
+			));
+		}
+		catch(Exception $e) {
+			return Error::make(1,22);
+		}
 		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
@@ -566,7 +587,8 @@ class HomeController extends BaseController {
 				'distance' => $distance,
 				'time' => $journey_time,
 			));
-			$group_id=self::add_to_group($journey_id);
+
+			$group_id=self::add_to_group(intval($journey_id));
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'group_id' => $group_id,
 			));
