@@ -566,8 +566,11 @@ class HomeController extends BaseController {
 				'distance' => $distance,
 				'time' => $journey_time,
 			));
-
-			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id)));
+			$group_id=self::add_to_group($journey_id);
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'group_id' => $group_id,
+			));
+			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id), 'group_id'=>intval($group_id)));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
