@@ -106,6 +106,8 @@ class UserController extends BaseController {
 		if(is_null($user)){
 			return Error::make(1,1);
 		}
+		$user['error'] = 0;
+		$user['message']="ok";
 		return $user;
 	}
 
