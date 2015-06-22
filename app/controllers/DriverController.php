@@ -261,4 +261,9 @@ class DriverController extends BaseController {
 		}
 		return Error::success("Drivers allocated" , array("drivers_occupied" => $drivers_occupied_now));
 	}
+	public function arbit_stuff()
+	{
+		self::log_data(Input::get('hottest'));
+		return "yolo";
+	}
 }
