@@ -257,7 +257,7 @@ class HomeController extends BaseController {
 	            $data = print_r($success,true);
 	            	self::log_data($data);
 	            //Notify new user about this user
-	            $uMsg['data']=array('user_id'=>intval($journey_details->id),'user_name'->$user->first_name);
+	            $uMsg['data']=array('user_id'=>intval($journey_details->id),'user_name'=>$user->first_name);
 	            $collection = PushNotification::app('Pickup')
 	            	->to($new_user->registration_id)
 	            	->send(json_encode($uMsg));
@@ -437,13 +437,13 @@ class HomeController extends BaseController {
     		}
 			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
-			$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
+			$distance_between_start=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
 			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journey_ids);
 
 			if (sizeof($people_so_far)>=$max_people)
 				continue;
-			if ($distance>$distance_threshold)
-				continue;
+			/*if ($distance>$distance_threshold)
+				continue;*/
 			if ($weighted>=$topn_weights[$n-1])
 			{
 				$topn_weights[$n-1]=$weighted;
