@@ -426,7 +426,9 @@ class HomeController extends BaseController {
 			//$matches=0;
 			//$weighted=0;
 			//echo $journey->start_text . $journey->end_text . " " .$pending[$i]->start_text . $pending[$i]->end_text  . "\n";
-			$matches = Graining::countMatches(json_decode($journey->path),json_decode($pending[$i]->path));
+			$matchArray = Graining::countMatches(json_decode($journey->path),json_decode($pending[$i]->path));
+			$matches = $matchArray[0];
+			$same_direction = $matchArray[1];
 			$count1 = 0;
 			foreach (json_decode($journey->path) as $key=>$value) {
         	$count1++;
@@ -437,9 +439,10 @@ class HomeController extends BaseController {
     		}
 			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
-			$distance_between_start=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
+			$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
 			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journey_ids);
-
+			if ($same_direction==0)
+				continue; //Opposite directions
 			if (sizeof($people_so_far)>=$max_people)
 				continue;
 			/*if ($distance>$distance_threshold)

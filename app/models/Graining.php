@@ -34,7 +34,7 @@ public static function get_hashed_grid_points($strpath1)
 	//echo sizeof($gridpoints1) . "\n";
 	$pathgridpoints1=array();
 	for ($i=0;$i<sizeof($gridpoints1);$i++)
-		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=1;
+		$pathgridpoints1[md5($gridpoints1[$i]['lat'] . $gridpoints1[$i]['lng'])]=$i;
 	//echo sizeof($pathgridpoints1) . "\n";
 	return $pathgridpoints1;
 }
@@ -120,11 +120,29 @@ public static function countMatches($path1,$path2)
 {
 	$count=0;
 	$count2=0;
+	$direction=array();
 	foreach($path1 as $x => $x_value) {
-    if (array_key_exists($x, $path2))
+    if (array_key_exists($x, $path2)) {
+    	$direction[$count]=$path2->$x;
 		$count++;
 	}
-	return $count;
+	}
+	$ascending=0;
+	$descending=0;
+	for ($i=0;$i<sizeof($direction)-1;$i++)
+	{
+		if ($direction[$i]<$direction[$i+1])
+			$ascending++;
+		else
+			$descending++;
+	}
+	$matchArray = array();
+	array_push($matchArray, $count);
+	if ($ascending>=$descending)
+		array_push($matchArray,1);
+	else
+		array_push($matchArray,0);
+	return $matchArray;
 }
 
 /*
