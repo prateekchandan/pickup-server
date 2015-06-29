@@ -239,6 +239,7 @@ class HomeController extends BaseController {
 		{
 			$group = Group::where('group_id','=',$suitable_matches[0]->group_id)->first();
 			$people_so_far=json_decode($group->journey_ids);
+			
 			foreach ($people_so_far as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
@@ -246,7 +247,7 @@ class HomeController extends BaseController {
 				$uMsg['type'] = 10;
 				$uMsg['data'] = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
 				$uMsg['message'] = "A new user has just joined!";
-				//echo $user->registration_id;
+				//Notifying all existing users about new guy
 				$collection = PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
@@ -255,7 +256,18 @@ class HomeController extends BaseController {
 				}
 	            $data = print_r($success,true);
 	            	self::log_data($data);
+	            //Notify new user about this user
+	            $uMsg['data']=array('user_id'=>intval($journey_details->id),'user_name'->$user->first_name);
+	            $collection = PushNotification::app('Pickup')
+	            	->to($new_user->registration_id)
+	            	->send(json_encode($uMsg));
+	            foreach ($collection->pushManager as $push) {
+    			$success = $push->getAdapter()->getResponse();
+				}
+	            $data = print_r($success,true);
+	            	self::log_data($data);
 			}
+			//Notifying new user about all existing users
 
 			array_push($people_so_far,$journey_id);
 			try {
