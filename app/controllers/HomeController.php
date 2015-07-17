@@ -216,7 +216,7 @@ class HomeController extends BaseController {
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
 		
-		try {
+		//try {
 			$journey->save();
 			$group_id=0;
 			
@@ -226,9 +226,9 @@ class HomeController extends BaseController {
 			));
 
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
+		//} catch (Exception $e) {
+		//	return Error::make(101,101,$e->getMessage());
+		//}
 	}
 
 	public function get_group($group_id=0)
@@ -252,23 +252,25 @@ class HomeController extends BaseController {
 		$ideal_match_found=False;
 		for ($i=1;$i<=3;$i++)
 		{
-			for ($j=1;$j<=3;$j++)
+			$match = self::find_mates($journey_id,$i,1)['mates'][0];
+			if (!is_null($match) && $match->match_amount>$best_match_value)
 			{
-				$match = self::find_mates($journey_id,$i,$j)['mates'];
-				if ($match->match_amount>$best_match_value)
+				$best_match=$match;
+				$best_match_value=$match->match_amount;
+			}
+			if ($best_match_value>=50)
+			{
+				$ideal_match_found=True;
+				switch($i)
 				{
-					$best_match=$match;
-					$best_match_value=$match->$match_amount;
-				}
-				if ($best_match_value>=50)
-				{
-					ideal_match_found=True;
+					case 2:
+					self::swap_paths($journey_id,1,2);
+					break;
+					case 3:
+					self::swap_paths($journey_id,1,3);
 					break;
 				}
-			}
-			if (ideal_match_found)
-			{
-
+				break;
 			}
 		}
 		if (!is_null($best_match))
@@ -305,15 +307,15 @@ class HomeController extends BaseController {
 			//Notifying new user about all existing users
 
 			array_push($people_so_far,$journey_id);
-			try {
+			//try {
 			Group::where('group_id','=',$group->group_id)->update(array(
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
 			));
-			return intval($suitable_matches[0]->group_id);
-		} catch (Exception $e) {
+			return intval($best_match->group_id);
+		/*} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
-		}
+		}*/
 		}
 		
 		//Conditions for suitable group
