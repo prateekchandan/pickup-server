@@ -247,13 +247,34 @@ class HomeController extends BaseController {
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		
-		$suitable_matches=self::find_mates($journey_id)['mates'];
-		if (!is_null($suitable_matches[0]))
+		$best_match=NULL;
+		$best_match_value=0;
+		$ideal_match_found=False;
+		for ($i=1;$i<=3;$i++)
 		{
-			$group = Group::where('group_id','=',$suitable_matches[0]->group_id)->first();
+			for ($j=1;$j<=3;$j++)
+			{
+				$match = self::find_mates($journey_id,$i,$j)['mates'];
+				if ($match->match_amount>$best_match_value)
+				{
+					$best_match=$match;
+					$best_match_value=$match->$match_amount;
+				}
+				if ($best_match_value>=50)
+				{
+					ideal_match_found=True;
+					break;
+				}
+			}
+			if (ideal_match_found)
+			{
+
+			}
+		}
+		if (!is_null($best_match))
+		{
+			$group = Group::where('group_id','=',$best_match->group_id)->first();
 			$people_so_far=json_decode($group->journey_ids);
-			
 			foreach ($people_so_far as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
@@ -403,7 +424,7 @@ class HomeController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
-	public function find_mates($journey_id=0,$margin_after=30)
+	public function find_mates($journey_id=0,$request_path_number=1,$test_path_number=1,$margin_after=30)
 	{
 		
 		/*
@@ -465,21 +486,33 @@ class HomeController extends BaseController {
 			$corresponding_ids[$i]=0;
 		}
 		//Matching Pending Journeys
+		$request_path=$journey->path;
+		if ($request_path_number==2)
+			$request_path=$journey->path2;
+		else if ($request_path_number==3)
+			$request_path=$journey->path3;
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
 			
 			//$matches=0;
 			//$weighted=0;
 			//echo $journey->start_text . $journey->end_text . " " .$pending[$i]->start_text . $pending[$i]->end_text  . "\n";
-			$matchArray = Graining::countMatches(json_decode($journey->path),json_decode($pending[$i]->path));
+			$test_path=$pending[$i]->path;
+			if ($test_path_number==2)
+				$test_path=$pending[$i]->path2;
+			else if ($test_path_number==3)
+				$test_path=$pending[$i]->path3;
+			if (is_null($test_path))
+				continue;
+			$matchArray = Graining::countMatches(json_decode($request_path),json_decode($test_path));
 			$matches = $matchArray[0];
 			$same_direction = $matchArray[1];
 			$count1 = 0;
-			foreach (json_decode($journey->path) as $key=>$value) {
+			foreach (json_decode($request_path) as $key=>$value) {
         	$count1++;
     		}
     		$count2 = 0;
-			foreach (json_decode($pending[$i]->path) as $key=>$value) {
+			foreach (json_decode($test_path) as $key=>$value) {
         	$count2++;
     		}
 			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
