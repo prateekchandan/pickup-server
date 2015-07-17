@@ -134,17 +134,27 @@ class HomeController extends BaseController {
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
-
-		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'),array(),1);
+		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'), array(), 1);
 		if(is_null($path)){
 			return Error::make(0,3);
 		}
+		$path1=NULL;
+		$path2=NULL;
+		$path3=NULL;
+		if (array_key_exists(0, $path->routes))
+			$path1 = $path->routes[0];
+		else
+			return Error::make(1,23);
+		if (array_key_exists(1, $path->routes))
+			$path2 = $path->routes[1];
+		if (array_key_exists(2, $path->routes))
+			$path3 = $path->routes[2];
 		$distance  = 0;
-		foreach ($path->routes[0]->legs as $key => $value) {
+		foreach ($path1->legs as $key => $value) {
 			$distance += $value->distance->value;
 		}
 		$journey_time  = 0;
-		foreach ($path->routes[0]->legs as $key => $value) {
+		foreach ($path1->legs as $key => $value) {
 			$journey_time += $value->duration->value;
 		}
 		if($distance > 100000)
@@ -190,8 +200,12 @@ class HomeController extends BaseController {
 		$journey->start_long = Input::get('start_long');
 		$journey->end_lat = Input::get('end_lat');
 		$journey->end_long = Input::get('end_long');
-		$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
-		$journey->path = json_encode(Graining::get_hashed_grid_points(json_encode($json_path)));
+		//$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
+		$journey->path = json_encode(Graining::get_hashed_grid_points(json_encode($path1)));
+		if (!is_null($path2))
+			$journey->path2 = json_encode(Graining::get_hashed_grid_points(json_encode($path2)));
+		if (!is_null($path3))
+			$journey->path3 = json_encode(Graining::get_hashed_grid_points(json_encode($path3)));
 		$journey->start_text = Input::get('start_text');
 		$journey->end_text = Input::get('end_text');
 		$journey->id = Input::get('user_id');
@@ -202,7 +216,7 @@ class HomeController extends BaseController {
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
 		
-		//try {
+		try {
 			$journey->save();
 			$group_id=0;
 			
@@ -212,9 +226,9 @@ class HomeController extends BaseController {
 			));
 
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
-		/*} catch (Exception $e) {
+		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
-		}*/
+		}
 	}
 
 	public function get_group($group_id=0)
@@ -357,7 +371,38 @@ class HomeController extends BaseController {
 			return $final_path;
 		}
 	}
-
+	public function swap_paths($journey_id,$path1,$path2)
+	{
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		try {
+			if (($path1==1 && $path2==2) || ($path1==2 && $path2==1))
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'path' => $journey->path2,
+				'path2' => $journey->path,
+			));
+			else if (($path1==1 && $path2==3) || ($path1==3 && $path2==1))
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'path' => $journey->path3,
+				'path3' => $journey->path,
+			));
+			else if (($path1==2 && $path2==3) || ($path1==3 && $path2==2))
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'path2' => $journey->path3,
+				'path3' => $journey->path2,
+			));
+			$journey = Journey::where('journey_id','=',$journey_id)->first();
+			if ($journey->path2=="")
+				Journey::where('journey_id','=',$journey_id)->update(array(
+				'path2' => NULL,
+			));
+			if ($journey->path3=="")
+				Journey::where('journey_id','=',$journey_id)->update(array(
+				'path3' => NULL,
+			));
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+	}
 	public function find_mates($journey_id=0,$margin_after=30)
 	{
 		
@@ -523,10 +568,18 @@ class HomeController extends BaseController {
  			   array_splice($path->end_order, $key, 1);
  			   array_splice($path->endwaypoints, $key, 1);
 			}
-			Group::where('group_id','=',$group->group_id)->update(array(
+			if (sizeof($people_so_far)==0)
+			{
+				Group::where('group_id','=',$group->group_id)->delete();
+			}
+			else
+			{
+				Group::where('group_id','=',$group->group_id)->update(array(
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode($path),
-			));
+				));
+			}
+			
 		}
 		catch(Exception $e) {
 			return Error::make(1,22);
@@ -540,6 +593,17 @@ class HomeController extends BaseController {
 		if(is_null($path)){
 			return Error::make(0,3);
 		}
+		$path1=NULL;
+		$path2=NULL;
+		$path3=NULL;
+		if (array_key_exists(0, $path->routes))
+			$path1 = $path->routes[0];
+		else
+			return Error::make(1,23);
+		if (array_key_exists(1, $path->routes))
+			$path2 = $path->routes[1];
+		if (array_key_exists(2, $path->routes))
+			$path3 = $path->routes[2];
 		$distance  = 0;
 		foreach ($path->routes[0]->legs as $key => $value) {
 			$distance += $value->distance->value;
@@ -584,7 +648,14 @@ class HomeController extends BaseController {
 		if(!is_null($journey))
 			return Error::make(1,9);
 		//$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
-		//echo $timestamp;	
+		//echo $timestamp;
+		$final_path2 = NULL;	
+		if (!is_null($path2))
+			$final_path2 = json_encode(Graining::get_hashed_grid_points(json_encode($path2)));
+		$final_path3 = NULL;	
+		if (!is_null($path3))
+			$final_path3 = json_encode(Graining::get_hashed_grid_points(json_encode($path2)));
+		
 		try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'start_lat' => Input::get('start_lat'),
@@ -594,7 +665,9 @@ class HomeController extends BaseController {
 				'start_text' => Input::get('start_text'),
 				'end_text' => Input::get('end_text'),
 				'id' => Input::get('user_id'),
-				'path' => json_encode(Graining::get_hashed_grid_points(json_encode($path))),
+				'path' => json_encode(Graining::get_hashed_grid_points(json_encode($path1))),
+				'path2' => $final_path2,
+				'path3' => $final_path3,
 				'journey_time' => $timestamp,
 				'margin_before' => Input::get('margin_before'),
 				'margin_after' => Input::get('margin_after'),

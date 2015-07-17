@@ -30,6 +30,7 @@ class Error{
 		'20' => 'this person isn\'t travelling here !!',
 		'21' => 'Invalid long/lat. Check your GPS.',
 		'22' => 'Group doesn\'t exist!',
+		'23' => 'Server Breakdown :(',
 		);
 
 	// Error type

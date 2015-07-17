@@ -65,6 +65,8 @@ class AddingDatabase extends Migration {
 			$table->double('distance');
 			$table->double('time');
 			$table->longtext('path');
+			$table->longtext('path2')->nullable();
+			$table->longtext('path3')->nullable();
 			$table->double('distance_travelled')->default(0);
 			$table->timestamps();
 		});

@@ -38,7 +38,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('allocate_driver','DriverController@allocate_driver');
 	Route::get('get_driver/{id}','DriverController@get');
 	Route::post('send_push/{id}','HomeController@send_push');
-	Route::post('arbit_stuff','DriverController@arbit_stuff');
+	//Route::post('arbit_stuff','HomeController@swap');
 });
 
 Route::get('verify/{code}',array('uses'=>'UserController@verify'));

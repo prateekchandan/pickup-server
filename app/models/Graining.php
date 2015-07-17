@@ -28,6 +28,8 @@ public static function amount_matching($strpath1,$strpath2) {
 public static function get_hashed_grid_points($strpath1)
 {
 	$path1=json_decode($strpath1);
+	if (is_null($path1))
+		return NULL;
 	$points1=self::extractPoints($path1);
 	//echo sizeof($points1) . "\n";
 	$gridpoints1=self::matchWithGrid($points1);
@@ -71,13 +73,13 @@ public static function extractPoints($path1)
 {
 	$threshold=0.1;
 	$points=array();
-	array_push($points,array('lat' => $path1->routes[0]->legs[0]->start_location->lat , 'lng' => $path1->routes[0]->legs[0]->start_location->lng));
+	array_push($points,array('lat' => $path1->legs[0]->start_location->lat , 'lng' => $path1->legs[0]->start_location->lng));
 	//$points = Polyline::Decode($path1->routes[0]->legs[0]->steps[0]->polyline->points);
-	for ($i=0;$i<sizeof($path1->routes[0]->legs);$i++)
+	for ($i=0;$i<sizeof($path1->legs);$i++)
 	{
-		for ($j=0;$j<sizeof($path1->routes[0]->legs[$i]->steps);$j++)
+		for ($j=0;$j<sizeof($path1->legs[$i]->steps);$j++)
 		{
-			$points_in_this_step=Polyline::Decode($path1->routes[0]->legs[$i]->steps[$j]->polyline->points);
+			$points_in_this_step=Polyline::Decode($path1->legs[$i]->steps[$j]->polyline->points);
 			for ($k=2;$k<sizeof($points_in_this_step);$k+=2)
 			{
 				array_push($points,array('lat' => $points_in_this_step[$k] , 'lng' => $points_in_this_step[$k+1]));

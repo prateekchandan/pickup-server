@@ -150,6 +150,8 @@ class DriverController extends BaseController {
 				return Error::make(1,10);
 			}
 			$temp_journey->path=NULL;
+			$temp_journey->path2=NULL;
+			$temp_journey->path3=NULL;
 			$final_data[$i]=$temp_journey;
 			$user_data = User::find($temp_journey->id);
 			if(is_null($user_data)){

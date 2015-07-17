@@ -60,16 +60,17 @@ class UserController extends BaseController {
 		try {
 		$user->home_to_office=self::getPath($user->home_location,$user->office_location);
 		$user->office_to_home=self::getPath($user->office_location,$user->home_location);
-		$json=json_decode($user->home_to_office);
-		$user->home_to_office=json_encode(Graining::get_hashed_grid_points($user->home_to_office));
-		$user->office_to_home=json_encode(Graining::get_hashed_grid_points($user->office_to_home));
+		$json_home_office=json_decode($user->home_to_office)->routes[0];
+		$json_office_home=json_decode($user->office_to_home)->routes[0];
+		$user->home_to_office=json_encode(Graining::get_hashed_grid_points(json_encode($json_home_office)));
+		$user->office_to_home=json_encode(Graining::get_hashed_grid_points(json_encode($json_office_home)));
 		}
 		catch (Exception $e)
 		{
 			return Error::make(1,21);
 		}
-		$user->path_distance=$json->routes[0]->legs[0]->distance->value;
-		$user->path_time=$json->routes[0]->legs[0]->duration->value;
+		$user->path_distance=$json_home_office->legs[0]->distance->value;
+		$user->path_time=$json_home_office->legs[0]->duration->value;
 		try {
 			$user->save();
 			//$user->id = 10;
