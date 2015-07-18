@@ -216,7 +216,7 @@ class HomeController extends BaseController {
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
 		
-		//try {
+		try {
 			$journey->save();
 			$group_id=0;
 			
@@ -226,9 +226,9 @@ class HomeController extends BaseController {
 			));
 
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
-		//} catch (Exception $e) {
-		//	return Error::make(101,101,$e->getMessage());
-		//}
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
 	}
 
 	public function get_group($group_id=0)
@@ -307,15 +307,15 @@ class HomeController extends BaseController {
 			//Notifying new user about all existing users
 
 			array_push($people_so_far,$journey_id);
-			//try {
+			try {
 			Group::where('group_id','=',$group->group_id)->update(array(
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
 			));
 			return intval($best_match->group_id);
-		/*} catch (Exception $e) {
+		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
-		}*/
+		}
 		}
 		
 		//Conditions for suitable group
