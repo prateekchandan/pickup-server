@@ -249,11 +249,11 @@ class HomeController extends BaseController {
 		}
 		for ($j=0;$j<sizeof($final_path->endwaypoints)-1;$j++)
 		{
-			array_push($waypoints,$endwaypoints[$j]);
+			array_push($waypoints,$final_path->endwaypoints[$j]);
 		}
 		$path=self::find_path($final_path->startwaypoints[0][0],$final_path->startwaypoints[0][1],
-						end($endwaypoints)[0],end($endwaypoints)[1],$waypoints,1)->routes[0];
-		$hashed_path = json_encode(Graining::get_hashed_grid_points(json_encode($path1)));
+						end($final_path->endwaypoints)[0],end($final_path->endwaypoints)[1],$waypoints,1)->routes[0];
+		$hashed_path = json_encode(Graining::get_hashed_grid_points(json_encode($path)));
 		Group::where('group_id','=',$group_id)->update(array(
 				'path' => $hashed_path,
 			));
