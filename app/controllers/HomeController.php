@@ -216,7 +216,7 @@ class HomeController extends BaseController {
 		$journey->distance = $distance;
 		$journey->time = $journey_time;
 		
-		try {
+		//try {
 			$journey->save();
 			$group_id=0;
 			
@@ -226,9 +226,9 @@ class HomeController extends BaseController {
 			));
 
 			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
+		//} catch (Exception $e) {
+		//	return Error::make(101,101,$e->getMessage());
+		//}
 	}
 
 	public function get_group($group_id=0)
@@ -289,7 +289,7 @@ class HomeController extends BaseController {
 		{
 			for ($i=1;$i<=3;$i++)
 			{
-				for ($j=1;$j<3;$j++)
+				for ($j=1;$j<=3;$j++)
 				{
 					$match = self::find_mates($journey_id,$i,$j,True)['mates'][0];
 					if (!is_null($match) && $match->match_amount>$best_match_value)
@@ -568,14 +568,17 @@ class HomeController extends BaseController {
 			$request_path=$journey->path2;
 		else if ($request_path_number==3)
 			$request_path=$journey->path3;
+		$temp_pending=array();
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
 			$num_people = sizeof(json_decode($pending[$i]->journey_ids));	
 			if ($num_people==1 && $check_individual==False)
-				array_splice($pending,$i,1);
+				continue;
 			if ($num_people>1 && $check_individual==True)
-				array_splice($pending,$i,1);
+				continue;
+			array_push($temp_pending, $pending[$i]);
 		}
+		$pending=$temp_pending;
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
 			
@@ -610,7 +613,6 @@ class HomeController extends BaseController {
 			//echo "for the current config, matches are ".$matches." and totals are ".$count1." ".$count2;
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
 			//$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
-			$people_so_far = json_decode($pending[$i]->journey_ids);
 			if ($same_direction==0)
 				continue; //Opposite directions
 			if (sizeof($people_so_far)>=$max_people)
