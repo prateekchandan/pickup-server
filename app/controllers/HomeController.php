@@ -268,9 +268,11 @@ class HomeController extends BaseController {
 		$best_match=NULL;
 		$best_match_value=0;
 		$ideal_match_found=False;
+		//Match with groups first
+		//Match with individual people in a group. Use all paths
 		for ($i=1;$i<=3;$i++)
 		{
-			$match = self::find_mates($journey_id,$i,1)['mates'][0];
+			$match = self::find_mates($journey_id,$i,1,False)['mates'][0];
 			if (!is_null($match) && $match->match_amount>$best_match_value)
 			{
 				$best_match=$match;
@@ -279,21 +281,35 @@ class HomeController extends BaseController {
 			if ($best_match_value>=50)
 			{
 				$ideal_match_found=True;
-				switch($i)
-				{
-					case 2:
-					self::swap_paths($journey_id,1,2);
-					break;
-					case 3:
-					self::swap_paths($journey_id,1,3);
-					break;
-				}
+				self::swap_paths($journey_id,1,$i);
 				break;
 			}
 		}
+		if ($ideal_match_found==False)
+		{
+			for ($i=1;$i<=3;$i++)
+			{
+				for ($j=1;$j<3;$j++)
+				{
+					$match = self::find_mates($journey_id,$i,$j,True)['mates'][0];
+					if (!is_null($match) && $match->match_amount>$best_match_value)
+					{
+						$best_match=$match;
+						$best_match_value=$match->match_amount;
+					}
+					if ($best_match_value>=50)
+					{
+						$ideal_match_found=True;
+						self::swap_paths($journey_id,1,$i);
+						break 2;
+					}
+				}
+			}
+		}
+		//Convert best_match data to good format
 		if (!is_null($best_match))
 		{
-			echo "Best match percent is " . $best_match_value . '\n';
+			//echo "Best match percent is " . $best_match_value ;
 
 			$group = Group::where('group_id','=',$best_match->group_id)->first();
 			$people_so_far=json_decode($group->journey_ids);
@@ -494,27 +510,18 @@ class HomeController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
-	public function find_mates($journey_id=0,$request_path_number=1,$test_path_number=1,$margin_after=30)
+	public function find_mates($journey_id=0,$request_path_number=1,$test_path_number=1,
+								$check_individual=False,$margin_after=30)
 	{
-		
-		/*
-		$requirements = ['margin_after'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-			return Error::make(0,100,$check);
-		$margin_after=Input::get('margin_after');
-		*/
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		
-		
-		// TODO : Fetch all list from the journey table with valid time time intersection
-		
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-600);
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
-		$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('id','!=',intval($journey->id))->get();
+		$pending = Group::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->get();
+		//$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('id','!=',intval($journey->id))->get();
+		
 		// get the userid's
 		/*
 		*****************HOME AND OFFICE STARTS**************************************
@@ -563,17 +570,30 @@ class HomeController extends BaseController {
 			$request_path=$journey->path3;
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
+			$num_people = sizeof(json_decode($pending[$i]->journey_ids));	
+			if ($num_people==1 && $check_individual==False)
+				array_splice($pending,$i,1);
+			if ($num_people>1 && $check_individual==True)
+				array_splice($pending,$i,1);
+		}
+		for ($i=0;$i<sizeof($pending);$i++)
+		{
 			
 			//$matches=0;
 			//$weighted=0;
 			//echo $journey->start_text . $journey->end_text . " " .$pending[$i]->start_text . $pending[$i]->end_text  . "\n";
+			$people_so_far = json_decode($pending[$i]->journey_ids);
+			if ($check_individual==True)
+			{
+				$individual_journey = Journey::where('group_id','=',$pending[$i]->group_id)->first();
+				if ($test_path_number==1)
+					$pending[$i]->path = $individual_journey->path;
+				else if ($test_path_number==2)
+					$pending[$i]->path = $individual_journey->path2;
+				else if ($test_path_number==3)
+					$pending[$i]->path = $individual_journey->path3;
+			}
 			$test_path=$pending[$i]->path;
-			if ($test_path_number==2)
-				$test_path=$pending[$i]->path2;
-			else if ($test_path_number==3)
-				$test_path=$pending[$i]->path3;
-			if (is_null($test_path) || is_null($request_path))
-				continue;
 			$matchArray = Graining::countMatches(json_decode($request_path),json_decode($test_path));
 			$matches = $matchArray[0];
 			$same_direction = $matchArray[1];
@@ -587,10 +607,10 @@ class HomeController extends BaseController {
     		}
 			//$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			$weighted = (($matches/$count1)+($matches/$count2))/2;
-			echo "for the current config, matches are ".$matches." and totals are ".$count1." ".$count2;
+			//echo "for the current config, matches are ".$matches." and totals are ".$count1." ".$count2;
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
-			$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
-			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journey_ids);
+			//$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
+			$people_so_far = json_decode($pending[$i]->journey_ids);
 			if ($same_direction==0)
 				continue; //Opposite directions
 			if (sizeof($people_so_far)>=$max_people)
@@ -600,7 +620,7 @@ class HomeController extends BaseController {
 			if ($weighted>=$topn_weights[$n-1])
 			{
 				$topn_weights[$n-1]=$weighted;
-				$corresponding_ids[$n-1]=$pending[$i]->journey_id;
+				$corresponding_ids[$n-1]=$pending[$i]->group_id;
 			}
 			for ($j=$n-2;$j>=0;$j--)
 			{
@@ -615,8 +635,6 @@ class HomeController extends BaseController {
 				}
 			}
 		}
-		//Superimposing journeys liking me
-		
 		$final_data=array();
 		for ($i=0;$i<sizeof($corresponding_ids);$i++)
 		{
@@ -626,19 +644,12 @@ class HomeController extends BaseController {
 				$final_data[$i]=NULL;
 				continue;
 			}
-			$temp_journey = Journey::where('journey_id','=',$temp_id)->first();
-		if(is_null($temp_journey)){
+			$temp_group = Group::where('group_id','=',$temp_id)->first();
+		if(is_null($temp_group)){
 			return Error::make(1,10);
 		}
-		$temp_journey->path=NULL;
-		$final_data[$i]=$temp_journey;
-		$user_data = User::find($temp_journey->id);
-		if(is_null($user_data)){
-			return Error::make(1,1);
-		}
-		$user_data->home_to_office=NULL;
-		$user_data->office_to_home=NULL;
-		$final_data[$i]->user_data=$user_data;
+		$temp_group->path=NULL;
+		$final_data[$i]=$temp_group;
 		$final_data[$i]->match_amount=$topn_weights[$i]*100;
 		}
 		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
