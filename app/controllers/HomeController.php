@@ -239,7 +239,25 @@ class HomeController extends BaseController {
 		}
 		return $group;
 	}
-	
+	public function generate_group_path($group_id)
+	{
+		$final_path=json_decode(Group::where('group_id','=',$group_id)->first()->path_waypoints);
+		$waypoints=array();
+		for ($j=1;$j<sizeof($final_path->startwaypoints);$j++)
+		{
+			array_push($waypoints,$final_path->startwaypoints[$j]);
+		}
+		for ($j=0;$j<sizeof($final_path->endwaypoints)-1;$j++)
+		{
+			array_push($waypoints,$endwaypoints[$j]);
+		}
+		$path=self::find_path($final_path->startwaypoints[0][0],$final_path->startwaypoints[0][1],
+						end($endwaypoints)[0],end($endwaypoints)[1],$waypoints,1)->routes[0];
+		$hashed_path = json_encode(Graining::get_hashed_grid_points(json_encode($path1)));
+		Group::where('group_id','=',$group_id)->update(array(
+				'path' => $hashed_path,
+			));
+	}
 	public function add_to_group($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
@@ -275,6 +293,8 @@ class HomeController extends BaseController {
 		}
 		if (!is_null($best_match))
 		{
+			echo "Best match percent is " . $best_match_value . '\n';
+
 			$group = Group::where('group_id','=',$best_match->group_id)->first();
 			$people_so_far=json_decode($group->journey_ids);
 			foreach ($people_so_far as $journey_id1) {
@@ -312,6 +332,7 @@ class HomeController extends BaseController {
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
 			));
+			self::generate_group_path($group->group_id);
 			return intval($best_match->group_id);
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -332,13 +353,25 @@ class HomeController extends BaseController {
 		$group->event_status = "nothing";
 		try {
 			$group->save();
+			self::generate_group_path($group->id);
 			return $group->id;
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
 		}
 	}
-	
+	public function find_dot_product_units($vector1,$vector2)
+	{
+		$magnitude1 = sqrt($vector1[0]*$vector1[0]+$vector1[1]*$vector1[1]);
+		$magnitude2 = sqrt($vector2[0]*$vector2[0]+$vector2[1]*$vector2[1]);
+		if ($magnitude1==0 || $magnitude2==0)
+			return 1;
+		$vector1[0] = $vector1[0]/$magnitude1;
+		$vector1[1] = $vector1[1]/$magnitude1;
+		$vector2[0] = $vector2[0]/$magnitude2;
+		$vector2[1] = $vector2[1]/$magnitude2;
+		return ($vector1[0]*$vector2[0]+$vector1[1]*$vector2[1]);
+	}
 	public function getwaypoints($journey_id,$group_id=0)
 	{
 		$journey=Journey::where('journey_id','=',$journey_id)->first();
@@ -354,13 +387,48 @@ class HomeController extends BaseController {
 		else
 		{
 			$final_path=json_decode(Group::where('group_id','=',$group_id)->first()->path_waypoints);
-			array_push($final_path->start_order,$journey_id);
-			array_push($final_path->startwaypoints,array(floatval($journey->start_lat),floatval($journey->start_long)));
-			$suitable_position=0;
-			$shortest_distance=10000000;
-			
+			//Order startwaypoints using direction vector
+			$direction_vector = array($final_path->endwaypoints[0][0]-$final_path->startwaypoints[0][0],
+									  $final_path->endwaypoints[0][1]-$final_path->startwaypoints[0][1]);
+
+
 			$current_coordinates_start=array(floatval($journey->start_lat),floatval($journey->start_long));
 			$current_coordinates_end=array(floatval($journey->end_lat),floatval($journey->end_long));
+			
+			$suitable_start_position=0;
+			$largest_dot_product=-10000000;
+			
+			for ($i=0;$i<sizeof($final_path->startwaypoints)+1;$i++)
+			{
+				$startwaypoints=$final_path->startwaypoints;
+				array_splice($startwaypoints, $i, 0, array($current_coordinates_start));
+				$graph_vectors = array();
+				for ($j=0;$j<sizeof($startwaypoints)-1;$j++)
+				{
+					array_push($graph_vectors,array($startwaypoints[$j+1][0]-$startwaypoints[$j][0],
+													$startwaypoints[$j+1][1]-$startwaypoints[$j][1]));
+				}
+				$dot_product=0;
+				//print_r($startwaypoints);
+				//print_r($graph_vectors);
+				//print_r($direction_vector);
+				for ($j=0;$j<sizeof($graph_vectors);$j++)
+					$dot_product=$dot_product+self::find_dot_product_units($direction_vector,$graph_vectors[$j]);
+				//echo "The dot product is ".$dot_product;
+				if ($dot_product>$largest_dot_product)
+				{
+					$suitable_start_position=$i;
+					$largest_dot_product=$dot_product;
+				}
+			}
+			array_splice($final_path->start_order,$suitable_start_position,0,$journey_id);
+			array_splice($final_path->startwaypoints,$suitable_start_position,0,array($current_coordinates_start));
+
+			//array_push($final_path->start_order,$journey_id);
+			//array_push($final_path->startwaypoints,array(floatval($journey->start_lat),floatval($journey->start_long)));
+			
+			$suitable_end_position=0;
+			$shortest_distance=10000000;
 			
 			for ($i=0;$i<sizeof($final_path->endwaypoints)+1;$i++)
 			{
@@ -385,12 +453,12 @@ class HomeController extends BaseController {
 				}
 				if ($distance<$shortest_distance)
 				{
-					$shortest_position=$i;
+					$suitable_end_position=$i;
 					$shortest_distance=$distance;
 				}
 			}
-			array_splice($final_path->end_order,$shortest_position,0,$journey_id);
-			array_splice($final_path->endwaypoints,$shortest_position,0,array($current_coordinates_end));
+			array_splice($final_path->end_order,$suitable_end_position,0,$journey_id);
+			array_splice($final_path->endwaypoints,$suitable_end_position,0,array($current_coordinates_end));
 			return $final_path;
 		}
 	}
@@ -484,7 +552,7 @@ class HomeController extends BaseController {
 		$n=5;
 		for ($i=0;$i<$n;$i++)
 		{
-			$topn_weights[$i]=0;
+			$topn_weights[$i]=0.5;
 			$corresponding_ids[$i]=0;
 		}
 		//Matching Pending Journeys
@@ -504,7 +572,7 @@ class HomeController extends BaseController {
 				$test_path=$pending[$i]->path2;
 			else if ($test_path_number==3)
 				$test_path=$pending[$i]->path3;
-			if (is_null($test_path))
+			if (is_null($test_path) || is_null($request_path))
 				continue;
 			$matchArray = Graining::countMatches(json_decode($request_path),json_decode($test_path));
 			$matches = $matchArray[0];
@@ -517,7 +585,9 @@ class HomeController extends BaseController {
 			foreach (json_decode($test_path) as $key=>$value) {
         	$count2++;
     		}
-			$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
+			//$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
+			$weighted = (($matches/$count1)+($matches/$count2))/2;
+			echo "for the current config, matches are ".$matches." and totals are ".$count1." ".$count2;
 			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
 			$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
 			$people_so_far = json_decode(Group::where('group_id','=',$pending[$i]->group_id)->first()->journey_ids);
@@ -614,6 +684,7 @@ class HomeController extends BaseController {
 				'path_waypoints' => json_encode($path),
 				));
 			}
+			self::generate_group_path($group->group_id);
 			
 		}
 		catch(Exception $e) {
