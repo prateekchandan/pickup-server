@@ -21,7 +21,6 @@ class AddingDatabase extends Migration {
 		Schema::create('users', function(Blueprint $table)
 		{
 			$table->increments('id');
-
 			$table->string('email',50)->unique();
 			$table->string('first_name', 200);
 			$table->string('second_name', 200);
@@ -68,6 +67,7 @@ class AddingDatabase extends Migration {
 			$table->longtext('path2')->nullable();
 			$table->longtext('path3')->nullable();
 			$table->double('distance_travelled')->default(0);
+			$table->longtext('best_match')->nullable();
 			$table->timestamps();
 		});
 
@@ -80,6 +80,7 @@ class AddingDatabase extends Migration {
 			$table->longtext('event_status')->nullable();
 			$table->integer('driver_id')->nullable();
 			$table->dateTime('journey_time');
+			$table->dateTime('start_time');
 			//$table->longtext('accept_third');
 			$table->timestamps();
 		});

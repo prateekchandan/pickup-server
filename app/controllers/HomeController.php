@@ -154,8 +154,9 @@ class HomeController extends BaseController {
 			$distance += $value->distance->value;
 		}
 		$journey_time  = 0;
+		$path_time = 0;
 		foreach ($path1->legs as $key => $value) {
-			$journey_time += $value->duration->value;
+			$path_time += $value->duration->value;
 		}
 		if($distance > 100000)
 			return Error::make(1,4);
@@ -214,29 +215,96 @@ class HomeController extends BaseController {
 		$journey->margin_after = Input::get('margin_after');
 		$journey->preference = Input::get('preference');
 		$journey->distance = $distance;
-		$journey->time = $journey_time;
+		$journey->time = $path_time;
 		
-		//try {
+		try {
 			$journey->save();
 			$group_id=0;
 			
-			$group_id=self::add_to_group($journey->id);
+			/*$group_id=self::add_to_group($journey->id);
 			Journey::where('journey_id','=',$journey->id)->update(array(
 				'group_id' => $group_id,
-			));
+			));*/
 
-			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'group_id'=>$group_id));
-		//} catch (Exception $e) {
-		//	return Error::make(101,101,$e->getMessage());
-		//}
+			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id));
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
 	}
-
+	public function get_best_match($journey_id)
+	{
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		$new_user = User::where('id','=',$journey->id)->first();
+		if(is_null($journey)){
+			return Error::make(1,10);
+		}
+		$best_match=NULL;
+		$best_match_value=0;
+		$path_number=1;
+		$ideal_match_found=False;
+		//Match with groups first
+		//Match with individual people in a group. Use all paths
+		for ($i=1;$i<=3;$i++)
+		{
+			$match = self::find_mates($journey_id,$i,1,False)['mates'][0];
+			if (!is_null($match) && $match->match_amount>$best_match_value)
+			{
+				$best_match=$match;
+				$best_match_value=$match->match_amount;
+				$path_number=$i;
+			}
+		}
+		if (!is_null($best_match))
+		{
+			$ideal_match_found=True;
+			self::swap_paths($journey_id,1,$path_number);	
+		}
+		if ($ideal_match_found==False)
+		{
+			for ($i=1;$i<=3;$i++)
+			{
+				for ($j=1;$j<=3;$j++)
+				{
+					$match = self::find_mates($journey_id,$i,$j,True)['mates'][0];
+					if (!is_null($match) && $match->match_amount>$best_match_value)
+					{
+						$best_match=$match;
+						$best_match_value=$match->match_amount;
+						$path_number=$i;
+					}
+				}
+			}
+			if (!is_null($best_match))
+			{
+				$ideal_match_found=True;
+				self::swap_paths($journey_id,1,$path_number);
+			}
+		}
+		if (!is_null($best_match))
+		{
+			$id = $best_match->group_id;
+		$best_match->id=intval($id);
+			try {
+				Journey::where('journey_id','=',$journey_id)->update(array(
+				'best_match' => json_encode($best_match),
+			));	
+			}
+			 catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+			
+		}
+		
+		$final_data = array("match_amount"=>$best_match_value,"best_match"=>$best_match);
+		return $final_data;
+	}
 	public function get_group($group_id=0)
 	{
-		$group = Group::find($group_id);
+		$group = Group::where('group_id','=',$group_id)->first();
 		if(is_null($group)){
 			return Error::make(1,1);
 		}
+		$group->path=null;
 		return $group;
 	}
 	public function generate_group_path($group_id)
@@ -260,58 +328,19 @@ class HomeController extends BaseController {
 	}
 	public function add_to_group($journey_id)
 	{
+		$journey_id=intval($journey_id);
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		$new_user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		$best_match=NULL;
-		$best_match_value=0;
-		$ideal_match_found=False;
-		//Match with groups first
-		//Match with individual people in a group. Use all paths
-		for ($i=1;$i<=3;$i++)
-		{
-			$match = self::find_mates($journey_id,$i,1,False)['mates'][0];
-			if (!is_null($match) && $match->match_amount>$best_match_value)
-			{
-				$best_match=$match;
-				$best_match_value=$match->match_amount;
-			}
-			if ($best_match_value>=50)
-			{
-				$ideal_match_found=True;
-				self::swap_paths($journey_id,1,$i);
-				break;
-			}
-		}
-		if ($ideal_match_found==False)
-		{
-			for ($i=1;$i<=3;$i++)
-			{
-				for ($j=1;$j<=3;$j++)
-				{
-					$match = self::find_mates($journey_id,$i,$j,True)['mates'][0];
-					if (!is_null($match) && $match->match_amount>$best_match_value)
-					{
-						$best_match=$match;
-						$best_match_value=$match->match_amount;
-					}
-					if ($best_match_value>=50)
-					{
-						$ideal_match_found=True;
-						self::swap_paths($journey_id,1,$i);
-						break 2;
-					}
-				}
-			}
-		}
+		$best_match = json_decode($journey->best_match);
 		//Convert best_match data to good format
 		if (!is_null($best_match))
 		{
 			//echo "Best match percent is " . $best_match_value ;
 
-			$group = Group::where('group_id','=',$best_match->group_id)->first();
+			$group = Group::where('group_id','=',$best_match->id)->first();
 			$people_so_far=json_decode($group->journey_ids);
 			foreach ($people_so_far as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
@@ -348,8 +377,12 @@ class HomeController extends BaseController {
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
 			));
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'group_id' => $group->group_id,
+			));
 			self::generate_group_path($group->group_id);
-			return intval($best_match->group_id);
+			return Error::success("Group successfully confirmed!",array('group_id'=>intval($group->group_id)));
+			return intval($group->group_id);
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
@@ -359,18 +392,22 @@ class HomeController extends BaseController {
 		//0 is false, 1 is true
 		else {
 		$group = new Group;
-		$group->journey_ids = json_encode(array($journey_id,));
+		$group->journey_ids = json_encode(array(intval($journey_id),));
 		$group->journey_time = $journey->journey_time;
+		$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
 		// 0 is NO
 		// 1 is YES
 		// -1 is no status
 		
-		$group->path_waypoints = json_encode(self::getwaypoints($journey_id));
+		$group->path_waypoints = json_encode(self::getwaypoints(intval($journey_id)));
 		$group->event_status = "nothing";
 		try {
 			$group->save();
 			self::generate_group_path($group->id);
-			return $group->id;
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'group_id' => $group->id,
+			));
+			return Error::success("Group successfully confirmed!",array('group_id'=>$group->id));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
@@ -517,9 +554,9 @@ class HomeController extends BaseController {
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-600);
+		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$margin_after*60);
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
-		$pending = Group::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->get();
+		$pending = Group::where('journey_time' , '>=' , $t1 )->where('start_time' , '<' , $t1 )->get();
 		//$pending = Journey::where('journey_time' , '>=' , $t1 )->where('journey_time' , '<' , $t2 )->where('id','!=',intval($journey->id))->get();
 		
 		// get the userid's
@@ -597,6 +634,8 @@ class HomeController extends BaseController {
 					$pending[$i]->path = $individual_journey->path3;
 			}
 			$test_path=$pending[$i]->path;
+			if (is_null($test_path) || is_null($request_path))
+				continue;
 			$matchArray = Graining::countMatches(json_decode($request_path),json_decode($test_path));
 			$matches = $matchArray[0];
 			$same_direction = $matchArray[1];
@@ -672,6 +711,7 @@ class HomeController extends BaseController {
 		if(is_null($journey))
 			return Error::make(1,11);
 		try {
+			/*
 			$group = Group::where('group_id','=',intval($journey->group_id))->first();
 			$people_so_far = json_decode($group->journey_ids);
 			$path = json_decode($group->path_waypoints);
@@ -698,7 +738,7 @@ class HomeController extends BaseController {
 				));
 			}
 			self::generate_group_path($group->group_id);
-			
+			*/
 		}
 		catch(Exception $e) {
 			return Error::make(1,22);
@@ -728,8 +768,9 @@ class HomeController extends BaseController {
 			$distance += $value->distance->value;
 		}
 		$journey_time  = 0;
+		$path_time=0;
 		foreach ($path->routes[0]->legs as $key => $value) {
-			$journey_time += $value->duration->value;
+			$path_time += $value->duration->value;
 		}
 		if($distance > 100000)
 			return Error::make(1,4);
@@ -792,14 +833,14 @@ class HomeController extends BaseController {
 				'margin_after' => Input::get('margin_after'),
 				'preference' => Input::get('preference'),
 				'distance' => $distance,
-				'time' => $journey_time,
+				'time' => $path_time,
 			));
-
+			/*
 			$group_id=self::add_to_group(intval($journey_id));
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'group_id' => $group_id,
-			));
-			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id), 'group_id'=>intval($group_id)));
+			));*/
+			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id)));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}

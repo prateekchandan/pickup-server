@@ -15,11 +15,13 @@
 Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('add_user', array('as' => 'user.add', 'uses' => 'UserController@add'));
 	Route::post('register_gcm', array('as' => 'user.gcm', 'uses' => 'UserController@gcm_add'));
-	Route::get('get_group' , array('as' => 'group.get', 'uses' => 'HomeController@get_group'));
+	Route::get('get_group/{id}' , array('as' => 'group.get', 'uses' => 'HomeController@get_group'));
 	//Route::get('find_mates/{id}',array('as' => 'journey.find_mates', 'uses' => 'HomeController@find_mates'));
 	Route::get('user/{user_id}', array('as' => 'user.add', 'uses' => 'UserController@get'));
 	Route::get('user/{user_id}/all_journey', array('as' => 'user.journey', 'uses' => 'UserController@all_journey'));
 	Route::post('add_journey', array('as' => 'journey.add', 'uses' => 'HomeController@journey_add'));
+	Route::get('get_best_match/{id}','HomeController@get_best_match');
+	Route::get('confirm/{id}','HomeController@add_to_group');
 	//Route::post('add_mates/{id}', array('as' => 'journey.add_mates', 'uses' => 'HomeController@add_mates'));
 	//Route::post('edit_journey/{id}', array('as' => 'journey.edit', 'uses' => 'HomeController@journey_edit'));
 	Route::any('delete_journey/{id}', array('as' => 'journey.delete', 'uses' => 'HomeController@journey_delete'));
