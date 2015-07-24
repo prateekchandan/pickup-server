@@ -27,9 +27,9 @@ class UserController extends BaseController {
 	}
 	public function add()
 	{
-		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr' ,
+		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr'/* ,
 		'home_location' , 'home_text' , 'office_location' , 'office_text' , 'leaving_office' , 
-		'leaving_home'];
+		'leaving_home'*/];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -51,12 +51,12 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 		$user->mac_addr = Input::get('mac_addr');
 		$user->current_pos="19.1336,72.9154";
-		$user->home_location=Input::get('home_location');
+		/*$user->home_location=Input::get('home_location');
 		$user->home_text=Input::get('home_text');
 		$user->office_location=Input::get('office_location');
 		$user->office_text=Input::get('office_text');
 		$user->leaving_office=Input::get('leaving_office');
-		$user->leaving_home=Input::get('leaving_home');
+		$user->leaving_home=Input::get('leaving_home');*/
 		try {
 		$user->home_to_office=self::getPath($user->home_location,$user->office_location);
 		$user->office_to_home=self::getPath($user->office_location,$user->home_location);
