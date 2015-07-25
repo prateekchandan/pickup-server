@@ -36,8 +36,8 @@ class AddingDatabase extends Migration {
 			$table->string('office_text',200)->default("Hostel 15, IIT Bombay");
 			$table->longtext('home_to_office');
 			$table->longtext('office_to_home');
-			$table->double('path_distance');
-			$table->double('path_time');
+			$table->double('path_distance')->default(0);
+			$table->double('path_time')->default(0);
 			$table->time('leaving_home')->default("09:00:00");
 			$table->time('leaving_office')->default("17:00:00");
 			$table->double('total_distance_travelled')->default(0);
