@@ -32,7 +32,7 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 		$user = User::where('id' , '=', Input::get('user_id'))->first();
-		if (!is_null($user))
+		if (is_null($user))
 			return Error::make(1,1);
 		try {
 			User::where('id','=',$user->id)->update(array(
@@ -40,7 +40,7 @@ class UserController extends BaseController {
 				'home_text' => Input::get('home_text'),
 			));
 			self::compute_home_office($user->id);
-			return Error::success("Home successfully Added" , array("user_id" => $user->id));
+			return Error::success("Home successfully Added" , array("user_id" => intval($user->id)));
 			
 		}
 		 catch (Exception $e) {
@@ -55,7 +55,7 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 		$user = User::where('id' , '=', Input::get('user_id'))->first();
-		if (!is_null($user))
+		if (is_null($user))
 			return Error::make(1,1);
 		try {
 			User::where('id','=',$user->id)->update(array(
@@ -63,7 +63,7 @@ class UserController extends BaseController {
 				'office_text' => Input::get('office_text'),
 			));
 			$state=self::compute_home_office($user->id);
-			return Error::success("Office successfully Added" , array("user_id" => $user->id));
+			return Error::success("Office successfully Added" , array("user_id" => intval($user->id)));
 			
 		}
 		 catch (Exception $e) {
@@ -73,9 +73,9 @@ class UserController extends BaseController {
 	public function compute_home_office($user_id)
 	{
 		$user = User::where('id' , '=', $user_id)->first();
-		if (!is_null($user))
+		if (is_null($user))
 			return Error::make(1,1);
-		if (!(strcmp($user->home_location,"none")==0 && strcmp($user->office_location,"none")==0))
+		if (!(strcmp($user->home_location,"none")==0 || strcmp($user->office_location,"none")==0))
 		{
 			try 
 			{
@@ -96,6 +96,8 @@ class UserController extends BaseController {
 			User::where('id','=',$user_id)->update(array(
 				'home_to_office' => $user->home_to_office,
 				'office_to_home' => $user->office_to_home,
+				'path_distance' => $user->path_distance,
+				'path_time' => $user->path_time,
 			));
 		}
 		 catch (Exception $e) {
