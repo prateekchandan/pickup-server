@@ -80,7 +80,25 @@ class UserController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+	public function check_existence()
+	{
+		$requirements = ['fbid'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
 
+		$user = User::where('fbid' , '=', Input::get('fbid'))->first();
+
+		$final_data = array("user_present"=>0,"user_data"=>$user);
+		if (!is_null($user))
+		{
+			$final_data['user_present']=1;
+			$final_data['user_data']->home_to_office=NULL;
+			$final_data['user_data']->office_to_home=NULL;
+		}
+		return $final_data;
+		
+	}
 	public function getPath($start,$end)
 	{
 		$path=file_get_contents("https://maps.googleapis.com/maps/api/directions/json?origin=$start&destination=$end");
