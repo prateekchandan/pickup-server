@@ -35,6 +35,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('journey/{id}/{user?}' , 'HomeController@get_journey');
 	Route::post('modify_location/{id}','HomeController@modify_location');
 	Route::any('change_event/{id}' , 'HomeController@event_change');
+	Route::post('cancel_journey/{id}','HomeController@cancel_journey');
 	Route::post('add_driver', array('as' => 'driver.add', 'uses' => 'DriverController@add'));
 	Route::post('add_group_to_driver/{id}', array('as' => 'driver.add_group', 'uses' => 'DriverController@give_driver_group'));
 	Route::post('driver_modify_location/{id}','DriverController@modify_location');

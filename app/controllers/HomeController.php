@@ -707,6 +707,42 @@ class HomeController extends BaseController {
 		$journey->path=NULL;
 		return $journey;
 	}
+	public function cancel_journey($journey_id)
+	{
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if(is_null($journey))
+			return Error::make(1,11);
+		$group = Group::where('group_id','=',intval($journey->group_id))->first();
+		if(is_null($group))
+			return Error::make(1,11);
+		$people_so_far = json_decode($group->journey_ids);
+		$path = json_decode($group->path_waypoints);
+		if(($key = array_search($journey_id, $people_so_far)) !== false) {
+			   array_splice($people_so_far, $key, 1);
+		}
+		if(($key = array_search($journey_id, $path->start_order)) !== false) {
+			   array_splice($path->start_order, $key, 1);
+			   array_splice($path->startwaypoints, $key, 1);
+		}
+		if(($key = array_search($journey_id, $path->end_order)) !== false) {
+			   array_splice($path->end_order, $key, 1);
+			   array_splice($path->endwaypoints, $key, 1);
+		}
+		if (sizeof($people_so_far)==0)
+		{
+			Group::where('group_id','=',$group->group_id)->delete();
+		}
+		else
+		{
+			Group::where('group_id','=',$group->group_id)->update(array(
+			'journey_ids' => json_encode($people_so_far),
+			'path_waypoints' => json_encode($path),
+			));
+		}
+		self::generate_group_path($group->group_id);
+		return Error::success("Journey Cancelled successfully",array('journey_id'=>intval($journey_id)));
+		
+	}
 	public function journey_edit($journey_id) {
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
