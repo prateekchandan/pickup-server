@@ -25,11 +25,87 @@ class UserController extends BaseController {
 		}
 		
 	}
+	public function set_home()
+	{
+		$requirements = ['user_id','home_location','home_text'/*,'leaving_home'*/];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$user = User::where('id' , '=', Input::get('user_id'))->first();
+		if (!is_null($user))
+			return Error::make(1,1);
+		try {
+			User::where('id','=',$user->id)->update(array(
+				'home_location' => Input::get('home_location'),
+				'home_text' => Input::get('home_text'),
+			));
+			self::compute_home_office($user->id);
+			return Error::success("Home successfully Added" , array("user_id" => $user->id));
+			
+		}
+		 catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+		
+	}
+	public function set_office()
+	{
+			$requirements = ['user_id','office_location','office_text'/*,'leaving_office'*/];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$user = User::where('id' , '=', Input::get('user_id'))->first();
+		if (!is_null($user))
+			return Error::make(1,1);
+		try {
+			User::where('id','=',$user->id)->update(array(
+				'office_location' => Input::get('office_location'),
+				'office_text' => Input::get('office_text'),
+			));
+			$state=self::compute_home_office($user->id);
+			return Error::success("Office successfully Added" , array("user_id" => $user->id));
+			
+		}
+		 catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+	}
+	public function compute_home_office($user_id)
+	{
+		$user = User::where('id' , '=', $user_id)->first();
+		if (!is_null($user))
+			return Error::make(1,1);
+		if (!(strcmp($user->home_location,"none")==0 && strcmp($user->office_location,"none")==0))
+		{
+			try 
+			{
+				$user->home_to_office=self::getPath($user->home_location,$user->office_location);
+				$user->office_to_home=self::getPath($user->office_location,$user->home_location);
+				$json_home_office=json_decode($user->home_to_office)->routes[0];
+				$json_office_home=json_decode($user->office_to_home)->routes[0];
+				$user->home_to_office=json_encode(Graining::get_hashed_grid_points(json_encode($json_home_office)));
+				$user->office_to_home=json_encode(Graining::get_hashed_grid_points(json_encode($json_office_home)));
+			}
+			catch (Exception $e)
+			{
+				return Error::make(1,21);
+			}
+			$user->path_distance=$json_home_office->legs[0]->distance->value;
+			$user->path_time=$json_home_office->legs[0]->duration->value;
+			try {
+			User::where('id','=',$user_id)->update(array(
+				'home_to_office' => $user->home_to_office,
+				'office_to_home' => $user->office_to_home,
+			));
+		}
+		 catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+		}
+	}
 	public function add()
 	{
-		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr'/* ,
-		'home_location' , 'home_text' , 'office_location' , 'office_text' , 'leaving_office' , 
-		'leaving_home'*/];
+		$requirements = ['fbid' , 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -51,7 +127,7 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 		$user->mac_addr = Input::get('mac_addr');
 		$user->current_pos="19.1336,72.9154";
-		/*$user->home_location=Input::get('home_location');
+		/*$user->home_location=;
 		$user->home_text=Input::get('home_text');
 		$user->office_location=Input::get('office_location');
 		$user->office_text=Input::get('office_text');
@@ -88,7 +164,6 @@ class UserController extends BaseController {
 			return Error::make(0,100,$check);
 
 		$user = User::where('fbid' , '=', Input::get('fbid'))->first();
-
 		$final_data = array("user_present"=>0,"user_data"=>$user);
 		if (!is_null($user))
 		{

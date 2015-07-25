@@ -30,10 +30,10 @@ class AddingDatabase extends Migration {
 			$table->string('registration_id',1000)->nullable();
 			$table->string('mac_addr',200)->nullable();
 			$table->string('current_pos',200)->default("19.1336,72.9154");
-			$table->string('home_location',200)->default("19.1336,72.9154");
-			$table->string('office_location',200)->default("19.1336,72.9154");
-			$table->string('home_text',200)->default("Hostel 15, IIT Bombay");
-			$table->string('office_text',200)->default("Hostel 15, IIT Bombay");
+			$table->string('home_location',200)->default("none");
+			$table->string('office_location',200)->default("none");
+			$table->string('home_text',200)->default("none");
+			$table->string('office_text',200)->default("none");
 			$table->longtext('home_to_office');
 			$table->longtext('office_to_home');
 			$table->double('path_distance')->default(0);
