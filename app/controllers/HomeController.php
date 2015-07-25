@@ -328,6 +328,7 @@ class HomeController extends BaseController {
 	}
 	public function add_to_group($journey_id)
 	{
+		
 		$journey_id=intval($journey_id);
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		$new_user = User::where('id','=',$journey->id)->first();

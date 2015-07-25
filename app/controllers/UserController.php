@@ -57,7 +57,7 @@ class UserController extends BaseController {
 		$user->office_text=Input::get('office_text');
 		$user->leaving_office=Input::get('leaving_office');
 		$user->leaving_home=Input::get('leaving_home');*/
-		try {
+		/*try {
 		$user->home_to_office=self::getPath($user->home_location,$user->office_location);
 		$user->office_to_home=self::getPath($user->office_location,$user->home_location);
 		$json_home_office=json_decode($user->home_to_office)->routes[0];
@@ -70,7 +70,7 @@ class UserController extends BaseController {
 			return Error::make(1,21);
 		}
 		$user->path_distance=$json_home_office->legs[0]->distance->value;
-		$user->path_time=$json_home_office->legs[0]->duration->value;
+		$user->path_time=$json_home_office->legs[0]->duration->value;*/
 		try {
 			$user->save();
 			//$user->id = 10;
