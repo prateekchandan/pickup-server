@@ -164,14 +164,15 @@ class HomeController extends BaseController {
 		$user = User::find(Input::get('user_id'));
 		if(is_null($user))
 			return Error::make(1,1);
-
+		/*
 		if (DateTime::createFromFormat('Y-m-d G:i:s', Input::get('journey_time')) !== FALSE) {
 		  $timestamp = (array)DateTime::createFromFormat('Y-m-d G:i:s', Input::get('journey_time'));
 		  $timestamp = $timestamp['date'];
 		}
 		else{
 			return Error::make(1,5);
-		}
+		}*/
+		$timestamp=Input::get('journey_time');
 		$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)
@@ -690,7 +691,16 @@ class HomeController extends BaseController {
 		if(is_null($temp_group)){
 			return Error::make(1,10);
 		}
+
+		$people_so_far=json_decode($temp_group->journey_ids);
+		$user_ids=array();
+			foreach ($people_so_far as $journey_id1) {
+				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
+				$user = User::where('id' , '=',intval($journey_details->id))->first();
+				array_push($user_ids, $user->id);
+			}
 		$temp_group->path=NULL;
+		$temp_group->user_ids=$user_ids;
 		$final_data[$i]=$temp_group;
 		$final_data[$i]->match_amount=$topn_weights[$i]*100;
 		}
