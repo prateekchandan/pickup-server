@@ -295,9 +295,11 @@ class HomeController extends BaseController {
 		}
 			
 		}
-		
+		$msg="Mates found!";
+		if (is_null($best_match))
+			$msg="No Mates found!";
 		$final_data = array("match_amount"=>$best_match_value,"best_match"=>$best_match);
-		return $final_data;
+		return Error::success($msg,$final_data);
 	}
 	public function get_group($group_id=0)
 	{
