@@ -235,10 +235,11 @@ class HomeController extends BaseController {
 	public function get_best_match($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
-		$new_user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
+		$new_user = User::where('id','=',$journey->id)->first();
+		
 		$best_match=NULL;
 		$best_match_value=0;
 		$path_number=1;
@@ -723,10 +724,12 @@ class HomeController extends BaseController {
 	
 	public function cancel_journey($journey_id)
 	{
+		//User can't cancel journeys after ride is done.
+
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
-		$user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey))
 			return Error::make(1,11);
+		$user = User::where('id','=',$journey->id)->first();
 		$group = Group::where('group_id','=',intval($journey->group_id))->first();
 		if(is_null($group))
 			return Error::make(1,11);
@@ -841,13 +844,14 @@ class HomeController extends BaseController {
 		if(is_null($user))
 			return Error::make(1,1);
 
-		if (DateTime::createFromFormat('Y-m-d G:i:s', Input::get('journey_time')) !== FALSE) {
+		/*if (DateTime::createFromFormat('Y-m-d G:i:s', Input::get('journey_time')) !== FALSE) {
 		  $timestamp = (array)DateTime::createFromFormat('Y-m-d G:i:s', Input::get('journey_time'));
 		  $timestamp = $timestamp['date'];
 		}
 		else{
 			return Error::make(1,5);
-		}
+		}*/
+		$timestamp=Input::get('journey_time');
 		$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)

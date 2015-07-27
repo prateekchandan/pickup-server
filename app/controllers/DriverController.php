@@ -89,7 +89,10 @@ class DriverController extends BaseController {
 			if (($key = array_search($journey_id, $people_so_far)) !== false) {
     		array_splice($people_so_far, $key, 1);
 			}
-			self::send_push($people_so_far,14,array("journey_id"=>$journey_id));
+			$journey = Journey::where('journey_id','=',$journey_id)->first();
+			$user = User::where('id','=',$journey->id)->first();
+			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
+			self::send_push($people_so_far,14,$push_data);
 		}
 		try {
 			Group::where('group_id','=',$group_id)->update(array(
@@ -149,7 +152,7 @@ class DriverController extends BaseController {
 				$new_distance = intval($journey->distance_travelled)+$distance_increment;
 				try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
-				'distance_travelled' => $distance_travelled,
+				'distance_travelled' => $new_distance,
 				));
 			} 
 			catch (Exception $e) {
@@ -231,7 +234,10 @@ class DriverController extends BaseController {
 			Group::where('group_id','=',$driver->group_id)->update(array(
 				'people_on_ride' => json_encode($corresponding_ids),
 				));
-			self::send_push($people_so_far,15,array("journey_id"=>$journey_id));
+			$journey = Journey::where('journey_id','=',$journey_id)->first();
+			$user = User::where('id','=',$journey->id)->first();
+			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
+			self::send_push($people_so_far,15,$push_data);
 			//$user->id = 10;
 			//$this->sendmail($user);
 			return Error::success("Person removed" , array("journey_id removed" => intval(Input::get('journey_id'))));

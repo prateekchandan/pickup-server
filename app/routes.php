@@ -40,10 +40,11 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('add_group_to_driver/{id}', array('as' => 'driver.add_group', 'uses' => 'DriverController@give_driver_group'));
 	Route::post('driver_modify_location/{id}','DriverController@modify_location');
 	Route::get('group_enlist/{id}','DriverController@group_enlist');
-	Route::post('end_journey_of_person/{id}','DriverController@end_journey');
+	Route::post('end_journey/{id}','DriverController@end_journey');
 	Route::get('allocate_driver','DriverController@allocate_driver');
 	Route::get('get_driver/{id}','DriverController@get');
 	Route::post('send_push/{id}','HomeController@send_push');
+	Route::post('picked_up_person/{id}','DriverController@picked_up_person');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 

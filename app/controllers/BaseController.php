@@ -36,7 +36,7 @@ class BaseController extends Controller {
 	}
 	public function log_data($data)
 	{
-	$file = fopen("/root/cronlog.txt",'a');
+	$file = fopen("/home/kalpesh/cronlog.txt",'a');
 	fwrite($file,$data);
 	if($data != ""){
         $t = date("Y-m-d G:i:s",time());
@@ -54,6 +54,7 @@ class BaseController extends Controller {
 								12=>"Driver is reaching you..",
 								11=>"Driver allocated!",
 								14=>"Picked up person",
+								15=>"Person just finished ride!",
 				);
 		$message = $message_data[$msgcode];
 		foreach ($journey_ids as $journey_id1) {

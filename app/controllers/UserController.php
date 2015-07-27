@@ -173,7 +173,8 @@ class UserController extends BaseController {
 			$final_data['user_data']->home_to_office=NULL;
 			$final_data['user_data']->office_to_home=NULL;
 		}
-		return $final_data;
+		return Error::success("Successfully logged in",$final_data);
+		//return $final_data;
 		
 	}
 	public function getPath($start,$end)
