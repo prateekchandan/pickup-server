@@ -51,7 +51,9 @@ class BaseController extends Controller {
 		$message_data = array(
 								13=>"A User cancelled his journey!",
 								10=>"A new user has just joined!",
+								12=>"Driver is reaching you..",
 								11=>"Driver allocated!",
+								14=>"Picked up person",
 				);
 		$message = $message_data[$msgcode];
 		foreach ($journey_ids as $journey_id1) {

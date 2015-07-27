@@ -73,7 +73,34 @@ class DriverController extends BaseController {
 		}
 	}
 
-	
+	public function picked_up_person($group_id)
+	{
+		$requirements = ['journey_id'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$journey_id = intval(Input::get('journey_id'));
+		$group = Group::where('group_id','=',$group_id)->first();
+		$people_so_far = json_decode($group->journey_ids);
+		$people_on_ride = json_decode($group->people_on_ride);
+		if (!in_array($journey_id, $people_on_ride))
+		{
+			array_push($people_on_ride, $journey_id);
+			if (($key = array_search($journey_id, $people_so_far)) !== false) {
+    		array_splice($people_so_far, $key, 1);
+			}
+			self::send_push($people_so_far,14,array("journey_id"=>$journey_id));
+		}
+		try {
+			Group::where('group_id','=',$group_id)->update(array(
+				'people_on_ride' => json_encode($people_on_ride),
+				));
+			} 
+			catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+			}
+		return Error::success("Person picked up!",array('journey_id'=>$journey_id));
+	}	
 
 	public function get($driver_id=0)
 	{
@@ -104,9 +131,21 @@ class DriverController extends BaseController {
 		{
 			$group = Group::where('group_id','=',$driver->group_id)->first();
 			$journey_ids = json_decode($group->journey_ids);
+			$people_on_ride = json_decode($group->people_on_ride);
 			foreach ($journey_ids as $journey_id)
 			{
 				$journey = Journey::where('journey_id','=',$journey_id)->first();
+				$user = User::where('id','=',$journey->id)->first();
+				if (!in_array($journey_id, $people_on_ride))
+				{
+					$user_coordinate_array = explode(',',$user->current_pos);
+					$distance = self::distance(floatval($new_coordinate_array[0]),
+												floatval($new_coordinate_array[1]),
+												floatval($user_coordinate_array[0]),
+												floatval($user_coordinate_array[1]));
+					if ($distance<0.5)
+						self::send_push(array($journey_id,),12,json_decode("{}"));
+				}
 				$new_distance = intval($journey->distance_travelled)+$distance_increment;
 				try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
@@ -140,7 +179,7 @@ class DriverController extends BaseController {
 		if(is_null($group)){
 			return Error::make(1,18);
 		}
-		$corresponding_ids=json_decode($group->journey_ids);
+		$corresponding_ids=json_decode($group->people_on_ride);
 		$final_data=array();
 		for ($i=0;$i<sizeof($corresponding_ids);$i++)
 		{
@@ -170,6 +209,7 @@ class DriverController extends BaseController {
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
+		$journey_id=intval(Input::get('journey_id'));
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if(is_null($driver)){
 			return Error::make(1,10);
@@ -180,16 +220,18 @@ class DriverController extends BaseController {
 		}
 
 		$corresponding_ids=json_decode($group->people_on_ride);
-		if (!in_array(intval(Input::get('journey_id')), $corresponding_ids)) {
+		$people_so_far=json_decode($group->journey_ids);
+		if (!in_array($journey_id, $corresponding_ids)) {
 			return Error::make(1,20); 
 		}
-		if (($key = array_search(intval(Input::get('journey_id')), $corresponding_ids)) !== false) {
+		if (($key = array_search($journey_id, $corresponding_ids)) !== false) {
 			array_splice($corresponding_ids, $key, 1);
 		}
 		try {
 			Group::where('group_id','=',$driver->group_id)->update(array(
 				'people_on_ride' => json_encode($corresponding_ids),
 				));
+			self::send_push($people_so_far,15,array("journey_id"=>$journey_id));
 			//$user->id = 10;
 			//$this->sendmail($user);
 			return Error::success("Person removed" , array("journey_id removed" => intval(Input::get('journey_id'))));
