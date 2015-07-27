@@ -179,7 +179,7 @@ class DriverController extends BaseController {
 			return Error::make(1,18);
 		}
 
-		$corresponding_ids=json_decode($group->journey_ids);
+		$corresponding_ids=json_decode($group->people_on_ride);
 		if (!in_array(intval(Input::get('journey_id')), $corresponding_ids)) {
 			return Error::make(1,20); 
 		}
@@ -188,7 +188,7 @@ class DriverController extends BaseController {
 		}
 		try {
 			Group::where('group_id','=',$driver->group_id)->update(array(
-				'journey_ids' => json_encode($corresponding_ids),
+				'people_on_ride' => json_encode($corresponding_ids),
 				));
 			//$user->id = 10;
 			//$this->sendmail($user);
@@ -229,6 +229,8 @@ class DriverController extends BaseController {
 			if ($closest_driver_id!=0)
 			{
 				$people_so_far=json_decode($group->journey_ids);
+				self::send_push($people_so_far,11,array('driver_id'=>$closest_driver_id));
+				/*
 				foreach ($people_so_far as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
@@ -244,7 +246,7 @@ class DriverController extends BaseController {
 				}
 				$data = print_r($success,true);
 	            	self::log_data($data);
-				}
+				}*/
 				try {
 					Driver::where('driver_id','=',$closest_driver_id)->update(array(
 						'group_id' => intval($group->group_id),

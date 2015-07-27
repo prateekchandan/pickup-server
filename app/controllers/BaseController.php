@@ -45,22 +45,32 @@ class BaseController extends Controller {
 	fwrite($file,$data);
 
 	}
-	public function send_push($user_id=0)
-	{
-		$user=User::where('id','=',$user_id)->first();
-		$data = array('arbit','max');
-		$collection=PushNotification::app('Pickup')
-	            	->to($user->registration_id)
-	            	->send(json_encode($data));
-	    foreach ($collection->pushManager as $push) {
-    		$success = $push->getAdapter()->getResponse();
-				}
-			$k = print_r($success,true);
-			//self::log_data($k);
-			return json_encode($k);
-			//return "abc";
-			
 
+	public function send_push($journey_ids,$msgcode,$data)
+	{
+		$message_data = array(
+								13=>"A User cancelled his journey!",
+								10=>"A new user has just joined!",
+								11=>"Driver allocated!",
+				);
+		$message = $message_data[$msgcode];
+		foreach ($journey_ids as $journey_id1) {
+				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
+				$user = User::where('id' , '=',intval($journey_details->id))->first();
+				$uMsg = array();
+				$uMsg['type'] = $msgcode;
+				$uMsg['data'] = $data;
+				$uMsg['message'] = $message;
+				//Notifying all existing users about new guy
+				$collection = PushNotification::app('Pickup')
+	            	->to($user->registration_id)
+	            	->send(json_encode($uMsg));
+	            foreach ($collection->pushManager as $push) {
+    			$success = $push->getAdapter()->getResponse();
+				}
+	            $log_data = print_r($success,true);
+	            	self::log_data($log_data);
+			}
 	}
 
 

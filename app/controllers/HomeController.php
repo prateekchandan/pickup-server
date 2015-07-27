@@ -350,6 +350,9 @@ class HomeController extends BaseController {
 
 			$group = Group::where('group_id','=',$best_match->id)->first();
 			$people_so_far=json_decode($group->journey_ids);
+			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
+			self::send_push($people_so_far,10,$push_data);
+			/*
 			foreach ($people_so_far as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
@@ -366,17 +369,9 @@ class HomeController extends BaseController {
 				}
 	            $data = print_r($success,true);
 	            	self::log_data($data);
-	            //Notify new user about this user
-	            $uMsg['data']=array('user_id'=>intval($journey_details->id),'user_name'=>$user->first_name);
-	            $collection = PushNotification::app('Pickup')
-	            	->to($new_user->registration_id)
-	            	->send(json_encode($uMsg));
-	            foreach ($collection->pushManager as $push) {
-    			$success = $push->getAdapter()->getResponse();
-				}
-	            $data = print_r($success,true);
-	            	self::log_data($data);
-			}
+
+	            //Notify Driver.
+			}*/
 			//Notifying new user about all existing users
 
 			array_push($people_so_far,$journey_id);
@@ -401,6 +396,7 @@ class HomeController extends BaseController {
 		else {
 		$group = new Group;
 		$group->journey_ids = json_encode(array(intval($journey_id),));
+		$group->people_on_ride = json_encode(array());
 		$group->journey_time = $journey->journey_time;
 		$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
 		// 0 is NO
@@ -724,14 +720,20 @@ class HomeController extends BaseController {
 
 		return $journey;
 	}
+	
 	public function cancel_journey($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		$user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey))
 			return Error::make(1,11);
 		$group = Group::where('group_id','=',intval($journey->group_id))->first();
 		if(is_null($group))
 			return Error::make(1,11);
+		$people_on_ride = json_decode($group->people_on_ride);
+		if (in_array($journey_id, $people_on_ride)) {
+    		return Error::success("You can't cancel the ride now!",array('journey_id'=>intval($journey_id)));
+		}
 		$people_so_far = json_decode($group->journey_ids);
 		$path = json_decode($group->path_waypoints);
 		if(($key = array_search($journey_id, $people_so_far)) !== false) {
@@ -748,6 +750,10 @@ class HomeController extends BaseController {
 		if (sizeof($people_so_far)==0)
 		{
 			Group::where('group_id','=',$group->group_id)->delete();
+
+			//Notify Driver
+
+
 		}
 		else
 		{
@@ -757,6 +763,8 @@ class HomeController extends BaseController {
 			));
 		}
 		self::generate_group_path($group->group_id);
+		$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
+		self::send_push($people_so_far,13,$push_data);
 		return Error::success("Journey Cancelled successfully",array('journey_id'=>intval($journey_id)));
 		
 	}
