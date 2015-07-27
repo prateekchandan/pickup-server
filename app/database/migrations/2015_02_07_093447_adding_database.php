@@ -23,6 +23,10 @@ class AddingDatabase extends Migration {
 			$table->increments('id');
 			$table->string('email',50)->unique();
 			$table->string('first_name', 200);
+			$table->string('age',20);
+			$table->string('phone',20);
+			$table->string('company',200);
+			$table->string('company_email',200)->nullable();
 			$table->string('second_name', 200);
 			$table->string('gender',10);
 			$table->string('fbid',50);
