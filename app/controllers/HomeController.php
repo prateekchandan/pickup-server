@@ -298,7 +298,7 @@ class HomeController extends BaseController {
 		$msg="Mates found!";
 		if (is_null($best_match))
 		{
-			$best_match=json_encode (json_decode ("{}"));
+			$best_match=json_decode ("{}");
 			$msg="No Mates found!";
 		}
 			
