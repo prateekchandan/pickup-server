@@ -297,7 +297,11 @@ class HomeController extends BaseController {
 		}
 		$msg="Mates found!";
 		if (is_null($best_match))
+		{
+			$best_match=array();
 			$msg="No Mates found!";
+		}
+			
 		$final_data = array("match_amount"=>$best_match_value,"best_match"=>$best_match);
 		return Error::success($msg,$final_data);
 	}
@@ -308,7 +312,7 @@ class HomeController extends BaseController {
 			return Error::make(1,1);
 		}
 		$group->path=null;
-		return $group;
+		return Error::success("Group Details..",$group);
 	}
 	public function generate_group_path($group_id)
 	{
@@ -717,6 +721,7 @@ class HomeController extends BaseController {
 		if(is_null($journey))
 			return Error::make(1,11);
 		$journey->path=NULL;
+
 		return $journey;
 	}
 	public function cancel_journey($journey_id)
