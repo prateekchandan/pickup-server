@@ -408,6 +408,7 @@ class HomeController extends BaseController {
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'group_id' => $group->id,
 				));
+				$group->path_waypoints = json_decode($group->path_waypoints);
 				return Error::success("Group successfully confirmed!",array(
 					'group_id'=>$group->id,
 					'group' => $group
