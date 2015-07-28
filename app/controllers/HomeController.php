@@ -366,52 +366,55 @@ class HomeController extends BaseController {
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
 			self::send_push($people_so_far,10,$push_data);
 			
-	//Notifying new user about all existing users
+		//Notifying new user about all existing users
 
-	array_push($people_so_far,$journey_id);
-	try {
-		Group::where('group_id','=',$group->group_id)->update(array(
-			'journey_ids' => json_encode($people_so_far),
-			'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
-		));
-		Journey::where('journey_id','=',$journey_id)->update(array(
-			'group_id' => $group->group_id,
-		));
-		self::generate_group_path($group->group_id);
-		return Error::success("Group successfully confirmed!",array(
-			'group_id'=>intval($group->group_id),
-			'group' => Group::where('group_id','=',$group->group_id)->first()
-			));
-	} catch (Exception $e) {
-		return Error::make(101,101,$e->getMessage());
-	}
-}
+			array_push($people_so_far,$journey_id);
+			try {
+				Group::where('group_id','=',$group->group_id)->update(array(
+					'journey_ids' => json_encode($people_so_far),
+					'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
+				));
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'group_id' => $group->group_id,
+				));
+				self::generate_group_path($group->group_id);
+				return Error::success("Group successfully confirmed!",array(
+					'group_id'=>intval($group->group_id),
+					'group' => Group::where('group_id','=',$group->group_id)->first()
+					));
+			} catch (Exception $e) {
+				return Error::make(101,101,$e->getMessage());
+			}
+		}
 
-//Conditions for suitable group
-//0 is false, 1 is true
-else {
-	$group = new Group;
-	$group->journey_ids = json_encode(array(intval($journey_id),));
-	$group->people_on_ride = json_encode(array());
-	$group->journey_time = $journey->journey_time;
-	$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
-	// 0 is NO
-	// 1 is YES
-	// -1 is no status
+		//Conditions for suitable group
+		//0 is false, 1 is true
+		else {
+			$group = new Group;
+			$group->journey_ids = json_encode(array(intval($journey_id),));
+			$group->people_on_ride = json_encode(array());
+			$group->journey_time = $journey->journey_time;
+			$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
+			// 0 is NO
+			// 1 is YES
+			// -1 is no status
 
-	$group->path_waypoints = json_encode(self::getwaypoints(intval($journey_id)));
-	$group->event_status = "nothing";
-	try {
-		$group->save();
-		self::generate_group_path($group->id);
-		Journey::where('journey_id','=',$journey_id)->update(array(
-			'group_id' => $group->id,
-		));
-		return Error::success("Group successfully confirmed!",array('group_id'=>$group->id));
-	} catch (Exception $e) {
-		return Error::make(101,101,$e->getMessage());
-	}
-}
+			$group->path_waypoints = json_encode(self::getwaypoints(intval($journey_id)));
+			$group->event_status = "nothing";
+			try {
+				$group->save();
+				self::generate_group_path($group->id);
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'group_id' => $group->id,
+				));
+				return Error::success("Group successfully confirmed!",array(
+					'group_id'=>$group->id,
+					'group' => Group::where('group_id','=',$group->group_id)->first()
+					));
+			} catch (Exception $e) {
+				return Error::make(101,101,$e->getMessage());
+			}
+		}
 }
 public function find_dot_product_units($vector1,$vector2)
 {
