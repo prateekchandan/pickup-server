@@ -346,7 +346,11 @@ class HomeController extends BaseController {
 			return Error::make(1,10);
 		}
 		if (!is_null($journey->group_id)){
-			return Error::success("Already on a Journey!",array('group_id'=>intval($journey->group_id)));
+			return Error::success("Already on a Journey!",array(
+				'group_id'=>intval($journey->group_id) ,
+				'group' => Group::where('group_id','=',$journey->group_id)->first()
+				)
+			);
 		}
 
 		$new_user = User::where('id','=',$journey->id)->first();
@@ -361,26 +365,7 @@ class HomeController extends BaseController {
 			$people_so_far=json_decode($group->journey_ids);
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
 			self::send_push($people_so_far,10,$push_data);
-			/*
-			foreach ($people_so_far as $journey_id1) {
-			$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
-			$user = User::where('id' , '=',intval($journey_details->id))->first();
-			$uMsg = array();
-			$uMsg['type'] = 10;
-			$uMsg['data'] = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
-			$uMsg['message'] = "A new user has just joined!";
-			//Notifying all existing users about new guy
-			$collection = PushNotification::app('Pickup')
-			->to($user->registration_id)
-			->send(json_encode($uMsg));
-			foreach ($collection->pushManager as $push) {
-			$success = $push->getAdapter()->getResponse();
-		}
-		$data = print_r($success,true);
-		self::log_data($data);
-
-		//Notify Driver.
-	}*/
+			
 	//Notifying new user about all existing users
 
 	array_push($people_so_far,$journey_id);
@@ -393,7 +378,10 @@ class HomeController extends BaseController {
 			'group_id' => $group->group_id,
 		));
 		self::generate_group_path($group->group_id);
-		return Error::success("Group successfully confirmed!",array('group_id'=>intval($group->group_id)));
+		return Error::success("Group successfully confirmed!",array(
+			'group_id'=>intval($group->group_id),
+			'group' => Group::where('group_id','=',$group->group_id)->first()
+			));
 	} catch (Exception $e) {
 		return Error::make(101,101,$e->getMessage());
 	}
