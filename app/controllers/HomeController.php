@@ -294,7 +294,19 @@ class HomeController extends BaseController {
 			 catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
+
 			
+		}
+		else
+		{
+			try {
+				Journey::where('journey_id','=',$journey_id)->update(array(
+				'best_match' => NULL,
+			));	
+			}
+			 catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
 		}
 		$msg="Mates found!";
 		if (is_null($best_match))
@@ -339,6 +351,8 @@ class HomeController extends BaseController {
 		
 		$journey_id=intval($journey_id);
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		if (!is_null($journey->group_id))
+			Error::make(1,30);
 		$new_user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
@@ -890,7 +904,7 @@ class HomeController extends BaseController {
 				'end_long' => Input::get('end_long'),
 				'start_text' => Input::get('start_text'),
 				'end_text' => Input::get('end_text'),
-				'id' => Input::get('user_id'),
+				'id' => intval(Input::get('user_id')),
 				'path' => json_encode(Graining::get_hashed_grid_points(json_encode($path1))),
 				'path2' => $final_path2,
 				'path3' => $final_path3,

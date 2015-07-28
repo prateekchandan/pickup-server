@@ -31,6 +31,7 @@ class Error{
 		'21' => 'Invalid long/lat. Check your GPS.',
 		'22' => 'Group doesn\'t exist!',
 		'23' => 'No routes found!',
+		'30' => 'Journey already confirmed!',
 		);
 
 	// Error type
