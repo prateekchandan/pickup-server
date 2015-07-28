@@ -700,15 +700,18 @@ class HomeController extends BaseController {
 
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
-		return Error::make(1,11);
+			return Error::make(1,11);
+
 		$user = User::where('id','=',$journey->id)->first();
 		$group = Group::where('group_id','=',intval($journey->group_id))->first();
 		if(is_null($group))
-		return Error::make(1,11);
+			return Error::make(1,11);
+
 		$people_on_ride = json_decode($group->people_on_ride);
 		if (in_array($journey_id, $people_on_ride)) {
 			return Error::success("You can't cancel the ride now!",array('journey_id'=>intval($journey_id)));
 		}
+
 		$people_so_far = json_decode($group->journey_ids);
 		$path = json_decode($group->path_waypoints);
 		if(($key = array_search($journey_id, $people_so_far)) !== false) {
@@ -725,7 +728,9 @@ class HomeController extends BaseController {
 		if (sizeof($people_so_far)==0)
 		{
 			Group::where('group_id','=',$group->group_id)->delete();
-
+			Journey::where("journey_id","=",$journey_id)->update(array(
+				'group_id'=>NULL
+			));
 			//Notify Driver
 
 
