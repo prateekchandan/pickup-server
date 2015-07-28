@@ -355,7 +355,7 @@ class HomeController extends BaseController {
 			return Error::make(1,10);
 		}
 		if (!is_null($journey->group_id))
-			Error::make(1,30);
+			return Error::make(1,30);
 		$new_user = User::where('id','=',$journey->id)->first();
 		
 		$best_match = json_decode($journey->best_match);
