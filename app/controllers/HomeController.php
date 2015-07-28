@@ -320,6 +320,8 @@ class HomeController extends BaseController {
 
 	public function generate_group_path($group_id)
 	{
+		if(is_null(Group::where('group_id','=',$group_id)->first())
+			return;
 		$final_path=json_decode(Group::where('group_id','=',$group_id)->first()->path_waypoints);
 		$waypoints=array();
 		for ($j=1;$j<sizeof($final_path->startwaypoints);$j++)
