@@ -351,12 +351,13 @@ class HomeController extends BaseController {
 		
 		$journey_id=intval($journey_id);
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
-		if (!is_null($journey->group_id))
-			Error::make(1,30);
-		$new_user = User::where('id','=',$journey->id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
+		if (!is_null($journey->group_id))
+			Error::make(1,30);
+		$new_user = User::where('id','=',$journey->id)->first();
+		
 		$best_match = json_decode($journey->best_match);
 		//Convert best_match data to good format
 		if (!is_null($best_match))
