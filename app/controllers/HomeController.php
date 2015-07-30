@@ -366,7 +366,8 @@ class HomeController extends BaseController {
 
 			$group = Group::where('group_id','=',$best_match->id)->first();
 			$people_so_far=json_decode($group->journey_ids);
-			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name);
+			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name,
+								'fbid'=>$new_user->fbid);
 			self::send_push($people_so_far,10,$push_data);
 
 			//Notifying new user about all existing users

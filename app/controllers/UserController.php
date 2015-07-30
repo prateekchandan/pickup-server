@@ -119,7 +119,6 @@ class UserController extends BaseController {
 			$user->save();
 			return Error::success("User Already Present" , array("user_id" => $user->id));
 		}
-
 		$user = new User;
 		$user->fbid = Input::get('fbid');
 		$user->age = Input::get('age');
@@ -133,14 +132,8 @@ class UserController extends BaseController {
 		$user->registration_id = Input::get('gcm_id');
 		$user->mac_addr = Input::get('mac_addr');
 		$user->current_pos="19.1336,72.9154";
-		try
-		{
+		if (Input::has('company_email'))
 			$user->company_email = Input::get('company_email');
-		}
-		catch(Exception $e)
-		{
-			
-		}
 		/*$user->home_location=;
 		$user->home_text=Input::get('home_text');
 		$user->office_location=Input::get('office_location');

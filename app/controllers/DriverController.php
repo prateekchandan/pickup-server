@@ -33,12 +33,13 @@ class DriverController extends BaseController {
 	}
 	public function add()
 	{
-		$requirements = ['driver_name'];
+		$requirements = ['driver_name','phone'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
 		$driver = new Driver;
 		$driver->group_id = Input::get('group_id');
+		$driver->phone = Input::get('phone');
 		$driver->driver_name = Input::get('driver_name');
 		
 		try {
@@ -147,7 +148,7 @@ class DriverController extends BaseController {
 												floatval($user_coordinate_array[0]),
 												floatval($user_coordinate_array[1]));
 					if ($distance<0.5)
-						self::send_push(array($journey_id,),12,json_decode("{}"));
+						self::send_push(array($journey_id,),12,array('driver_id'=>$driver_id));
 				}
 				$new_distance = intval($journey->distance_travelled)+$distance_increment;
 				try {

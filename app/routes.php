@@ -45,6 +45,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('get_driver/{id}','DriverController@get');
 	Route::post('send_push/{id}','HomeController@send_push');
 	Route::post('picked_up_person/{id}','DriverController@picked_up_person');
+	Route::get('push_test/{id}','BaseController@push_test');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 
