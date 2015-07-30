@@ -131,6 +131,11 @@ class AddingDatabase extends Migration {
 			$table->increments('driver_id');
 			$table->string('driver_name', 200);
 			$table->string('current_pos',200)->default("19.1336,72.9154");
+			$table->string('phone',200);
+			$table->string('photo_url',500)->nullable();
+			$table->string('car_model',200)->nullable();
+			$table->string('car_number',200)->nullable();
+			$table->string('registration_id',1000)->nullable();
 			$table->string('driver_status',200)->default("vacant");
 			$table->integer('group_id')->unsigned()->nullable();
 			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
