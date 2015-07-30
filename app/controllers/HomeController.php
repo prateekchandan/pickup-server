@@ -748,7 +748,7 @@ class HomeController extends BaseController {
 		self::generate_group_path($group->group_id);
 		$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
 		self::send_push($people_so_far,13,$push_data);
-		return Error::success("Journey Cancelled successfully",array('journey_id'=>intval($journey_id)));
+		return Error::success("Journey Cancelled successfully!!",array('journey_id'=>intval($journey_id)));
 	}
 
 	public function journey_edit($journey_id) {
