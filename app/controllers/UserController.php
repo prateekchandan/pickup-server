@@ -108,7 +108,7 @@ class UserController extends BaseController {
 	public function add()
 	{
 		$requirements = ['fbid' ,'age','phone','company',
-						 'name' , 'email' , 'gender' , 'device_id' , 'gcm_id','mac_addr'];
+						 'name' , 'email' , 'gender' , 'device_id','mac_addr'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -129,7 +129,7 @@ class UserController extends BaseController {
 		$user->email =  Input::get('email');
 		$user->gender = Input::get('gender');
 		$user->device_id = Input::get('device_id');
-		$user->registration_id = Input::get('gcm_id');
+		$user->registration_id = "";
 		$user->mac_addr = Input::get('mac_addr');
 		$user->current_pos="19.1336,72.9154";
 		if (Input::has('company_email'))
