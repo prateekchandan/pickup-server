@@ -45,7 +45,14 @@ class BaseController extends Controller {
 	fwrite($file,$data);
 
 	}
-
+	public function push_test($journey_id)
+	{
+		$requirements = ['msgcode'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+		return Error::make(0,100,$check);
+		self::send_push(array($journey_id),intval(Input::get('msgcode')),array());
+	}
 	public function send_push($journey_ids,$msgcode,$data)
 	{
 		$message_data = array(
