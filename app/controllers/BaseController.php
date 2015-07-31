@@ -66,7 +66,7 @@ class BaseController extends Controller {
 		}
 		if($check)
 		return Error::make(0,100,$check);
-		self::send_push(array($journey_id),intval(Input::get('msgcode')),array());
+		self::send_push(array($journey_id),intval(Input::get('msgcode')),$data);
 	}
 	public function send_push($journey_ids,$msgcode,$data)
 	{
