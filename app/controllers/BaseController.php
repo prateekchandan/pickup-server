@@ -50,7 +50,7 @@ class BaseController extends Controller {
 		$requirements = ['msgcode'];
 		$check  = self::check_requirements($requirements);
 		$data = array();
-		switch(Input::get('msgcode'))
+		switch(intval(Input::get('msgcode')))
 		{
 			case 10:
 			$data = array('user_id'=>1,'user_name'=>'Meet Udeshi','fbid'=>'11323');
