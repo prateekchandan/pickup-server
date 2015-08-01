@@ -237,7 +237,11 @@ class HomeController extends BaseController {
 		//Match with individual people in a group. Use all paths
 		for ($i=1;$i<=3;$i++)
 		{
-			$match = self::find_mates($journey_id,$i,1,False)['mates'][0];
+			$match_array = self::find_mates($journey_id,$i,1,False)['mates'];
+			$log_data = "Matching route ".$i." of journey_id ".$journey_id." with groups...\n";
+			$log_data+=print_r($match_array,true);
+			self::log_matches($log_data);
+			$match = $match_array[0];
 			if (!is_null($match) && $match->match_amount>$best_match_value)
 			{
 				$best_match=$match;
@@ -256,7 +260,11 @@ class HomeController extends BaseController {
 			{
 				for ($j=1;$j<=3;$j++)
 				{
-					$match = self::find_mates($journey_id,$i,$j,True)['mates'][0];
+					$match_array = self::find_mates($journey_id,$i,$j,True)['mates'];
+					$log_data = "Matching route ".$i." of journey_id ".$journey_id." with lonely group journey ".$j."...\n";
+					$log_data+=print_r($match_array,true);
+					self::log_matches($log_data);
+					$match = $match_array[0];
 					if (!is_null($match) && $match->match_amount>$best_match_value)
 					{
 						$best_match=$match;
