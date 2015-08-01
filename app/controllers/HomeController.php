@@ -495,9 +495,43 @@ class HomeController extends BaseController {
 			array_splice($final_path->start_order,$suitable_start_position,0,$journey_id);
 			array_splice($final_path->startwaypoints,$suitable_start_position,0,array($current_coordinates_start));
 
+
+
+
+
+
+			$suitable_end_position=0;
+			$largest_dot_product=-10000000;
+
+			for ($i=0;$i<sizeof($final_path->endwaypoints)+1;$i++)
+			{
+				$endwaypoints=$final_path->endwaypoints;
+				array_splice($endwaypoints, $i, 0, array($current_coordinates_end));
+				$graph_vectors = array();
+				for ($j=0;$j<sizeof($endwaypoints)-1;$j++)
+				{
+					array_push($graph_vectors,array($endwaypoints[$j+1][0]-$endwaypoints[$j][0],
+					$endwaypoints[$j+1][1]-$endwaypoints[$j][1]));
+				}
+				$dot_product=0;
+				//print_r($startwaypoints);
+				//print_r($graph_vectors);
+				//print_r($direction_vector);
+				for ($j=0;$j<sizeof($graph_vectors);$j++)
+				$dot_product=$dot_product+self::find_dot_product_units($direction_vector,$graph_vectors[$j]);
+				//echo "The dot product is ".$dot_product;
+				if ($dot_product>$largest_dot_product)
+				{
+					$suitable_end_position=$i;
+					$largest_dot_product=$dot_product;
+				}
+			}
+			array_splice($final_path->end_order,$suitable_end_position,0,$journey_id);
+			array_splice($final_path->endwaypoints,$suitable_end_position,0,array($current_coordinates_end));
+
 			//array_push($final_path->start_order,$journey_id);
 			//array_push($final_path->startwaypoints,array(floatval($journey->start_lat),floatval($journey->start_long)));
-
+			/*
 			$suitable_end_position=0;
 			$shortest_distance=10000000;
 
@@ -530,6 +564,7 @@ class HomeController extends BaseController {
 			}
 			array_splice($final_path->end_order,$suitable_end_position,0,$journey_id);
 			array_splice($final_path->endwaypoints,$suitable_end_position,0,array($current_coordinates_end));
+			*/
 			return $final_path;
 		}
 	}
