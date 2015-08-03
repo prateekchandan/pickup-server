@@ -282,6 +282,6 @@ class UserController extends BaseController {
 			}
 		}
 
-		return $history;
+		return Error::success("Here is the ride history!",array("history"=>$history));
 	}
 }
