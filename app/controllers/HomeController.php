@@ -408,6 +408,7 @@ class HomeController extends BaseController {
 				self::generate_group_path($group->group_id);
 				$send_group = Group::where('group_id','=',$group->group_id)->first();
 				$send_group->mates = $mates;
+				$send_group->path = NULL;
 				return Error::success("Group successfully confirmed!",array(
 					'group_id'=>intval($group->group_id),
 					'group' => $send_group,
@@ -439,9 +440,10 @@ class HomeController extends BaseController {
 				));
 				$group->mates = array();
 				$group->path_waypoints = json_decode($group->path_waypoints);
+				$group->path = NULL;
 				return Error::success("Group successfully confirmed!",array(
 					'group_id'=>$group->id,
-					'group' => $group
+					'group' => $group,
 				));
 			} catch (Exception $e) {
 				return Error::make(101,101,$e->getMessage());
