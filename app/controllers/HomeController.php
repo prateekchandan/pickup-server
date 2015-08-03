@@ -384,6 +384,8 @@ class HomeController extends BaseController {
 			//echo "Best match percent is " . $best_match_value ;
 
 			$group = Group::where('group_id','=',$best_match->id)->first();
+			if (is_null($group))
+				return Error::make(1,17);
 			$people_so_far=json_decode($group->journey_ids);
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name,
 								'fbid'=>$new_user->fbid);
