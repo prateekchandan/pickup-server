@@ -377,7 +377,12 @@ class HomeController extends BaseController {
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name,
 								'fbid'=>$new_user->fbid);
 			self::send_push($people_so_far,10,$push_data);
-
+			$mates=array();
+			foreach ($people_so_far as $mate_id) {
+				$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
+				array_push($mates, $mate_journey->id);
+				# code...
+			}
 			//Notifying new user about all existing users
 
 			array_push($people_so_far,$journey_id);
@@ -390,9 +395,11 @@ class HomeController extends BaseController {
 					'group_id' => $group->group_id,
 				));
 				self::generate_group_path($group->group_id);
+				$send_group = Group::where('group_id','=',$group->group_id)->first();
+				$send_group->mates = $mates;
 				return Error::success("Group successfully confirmed!",array(
 					'group_id'=>intval($group->group_id),
-					'group' => Group::where('group_id','=',$group->group_id)->first()
+					'group' => $send_group,
 				));
 			} catch (Exception $e) {
 				return Error::make(101,101,$e->getMessage());
@@ -419,6 +426,7 @@ class HomeController extends BaseController {
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'group_id' => $group->id,
 				));
+				$group->mates = array();
 				$group->path_waypoints = json_decode($group->path_waypoints);
 				return Error::success("Group successfully confirmed!",array(
 					'group_id'=>$group->id,
