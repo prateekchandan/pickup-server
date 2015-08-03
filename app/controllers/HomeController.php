@@ -350,7 +350,6 @@ class HomeController extends BaseController {
 
 	public function add_to_group($journey_id)
 	{
-
 		$journey_id=intval($journey_id);
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey)){
@@ -366,7 +365,7 @@ class HomeController extends BaseController {
 				array_push($mates, intval($mate_journey->id));
 				# code...
 			}
-			$send_group->mates = $mates;
+			$send_group->users_list = $mates;
 			$send_group->path = NULL;
 			return Error::success("Already on a Journey!",array(
 				'group_id'=>intval($journey->group_id) ,
@@ -409,7 +408,7 @@ class HomeController extends BaseController {
 				));
 				self::generate_group_path($group->group_id);
 				$send_group = Group::where('group_id','=',$group->group_id)->first();
-				$send_group->mates = $mates;
+				$send_group->users_list = $mates;
 				$send_group->path = NULL;
 				return Error::success("Group successfully confirmed!",array(
 					'group_id'=>intval($group->group_id),
@@ -440,7 +439,7 @@ class HomeController extends BaseController {
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'group_id' => $group->id,
 				));
-				$group->mates = array();
+				$group->users_list = array();
 				$group->path_waypoints = json_decode($group->path_waypoints);
 				$group->path = NULL;
 				return Error::success("Group successfully confirmed!",array(
