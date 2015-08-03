@@ -391,7 +391,7 @@ class HomeController extends BaseController {
 			$mates=array();
 			foreach ($people_so_far as $mate_id) {
 				$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
-				array_push($mates, $mate_journey->id);
+				array_push($mates, intval($mate_journey->id));
 				# code...
 			}
 			//Notifying new user about all existing users
