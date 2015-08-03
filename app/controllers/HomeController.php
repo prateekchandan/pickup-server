@@ -355,7 +355,7 @@ class HomeController extends BaseController {
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		if (!is_null($journey->group_id)){
+		if (!is_null($journey->group_id) && $journey->group_id!=-1){
 			$send_group=Group::where('group_id','=',$journey->group_id)->first();
 			$mates=array();
 			foreach (json_decode($send_group->journey_ids) as $mate_id) {
