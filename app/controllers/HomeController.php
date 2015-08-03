@@ -363,10 +363,11 @@ class HomeController extends BaseController {
 				if ($mate_id==$journey_id)
 					continue;
 				$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
-				array_push($mates, $mate_journey->id);
+				array_push($mates, intval($mate_journey->id));
 				# code...
 			}
 			$send_group->mates = $mates;
+			$send_group->path = NULL;
 			return Error::success("Already on a Journey!",array(
 				'group_id'=>intval($journey->group_id) ,
 				'group' => $send_group,
