@@ -50,7 +50,7 @@ class UserController extends BaseController {
 	}
 	public function set_office()
 	{
-			$requirements = ['user_id','office_location','office_text'/*,'leaving_office'*/];
+		$requirements = ['user_id','office_location','office_text'/*,'leaving_office'*/];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -232,5 +232,54 @@ class UserController extends BaseController {
 		}
 		$journey = Journey::where('id','=',$uid)->orderBy('updated_at','desc')->get();
 		return $journey;
+	}
+
+	public function get_history($user_id)
+	{
+		$user = User::where('id' , '=', $user_id)->first();
+		if (is_null($user))
+			return Error::make(1,1);
+		$all_journeys = Journey::where('id','=',$user_id)->get();
+		$history = array();
+		foreach ($all_journeys as $journey) {
+			$group = Group::where('group_id','=',$journey->group_id)->first();
+			if ($journey->group_id==-1)
+			{
+				//$journey_ids = json_decode($group->journey_ids);
+				$data = array("mates"=>array(),"status"=>"cancelled",
+					"start_text"=>$journey->start_text, "end_text"=>$journey->end_text,
+					"distance"=>$journey->distance, "fare"=>0,
+					"start_lat"=>$journey->start_lat,"start_long"=>$journey->start_long,
+					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long);
+				array_push($history,$data);
+			}
+			else if (!is_null($group) && strcmp($group->event_status,"completed")==0)
+			{
+				$journey_ids = json_decode($group->journey_ids);
+				$mate_data = array();
+				foreach($journey_ids as $mate_id)
+				{
+					if ($mate_id==$journey->journey_id)
+						continue;
+					$mate_pending = Journey::where('journey_id','=',$mate_id)->first();
+					$mate_user = User::where('id','=',$mate_pending->id)->first();
+					if (is_null($mate_user))
+						return Error::make(1,1);
+					array_push($mate_data, array('user_id'=>intval($mate_user->id),
+												'fbid'=>$mate_user->fbid,
+												'user_name'=>$mate_user->first_name,
+												'age'=>$mate_user->age,
+												'gender'=>$mate_user->gender));
+				}
+				$data = array("mates"=>$mate_data,"status"=>"completed",
+					"start_text"=>$journey->start_text, "end_text"=>$journey->end_text,
+					"distance"=>$journey->distance, "fare"=>1000,
+					"start_lat"=>$journey->start_lat,"start_long"=>$journey->start_long,
+					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long);
+				array_push($history,$data);
+			}
+		}
+
+		return $history;
 	}
 }

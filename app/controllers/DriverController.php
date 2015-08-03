@@ -84,6 +84,7 @@ class DriverController extends BaseController {
 		$group = Group::where('group_id','=',$group_id)->first();
 		$people_so_far = json_decode($group->journey_ids);
 		$people_on_ride = json_decode($group->people_on_ride);
+		$status = $group->event_status;
 		if (!in_array($journey_id, $people_on_ride))
 		{
 			array_push($people_on_ride, $journey_id);
@@ -96,8 +97,11 @@ class DriverController extends BaseController {
 			self::send_push($people_so_far,14,$push_data);
 		}
 		try {
+			if (sizeof($people_on_ride)==1)
+				$status = "started";
 			Group::where('group_id','=',$group_id)->update(array(
 				'people_on_ride' => json_encode($people_on_ride),
+				'event_status' => $status,
 				));
 			} 
 			catch (Exception $e) {
@@ -222,7 +226,7 @@ class DriverController extends BaseController {
 		if(is_null($group)){
 			return Error::make(1,18);
 		}
-
+		$status=$group->event_status;
 		$corresponding_ids=json_decode($group->people_on_ride);
 		$people_so_far=json_decode($group->journey_ids);
 		if (!in_array($journey_id, $corresponding_ids)) {
@@ -232,8 +236,11 @@ class DriverController extends BaseController {
 			array_splice($corresponding_ids, $key, 1);
 		}
 		try {
+			if (sizeof($corresponding_ids)==0)
+				$status="completed";
 			Group::where('group_id','=',$driver->group_id)->update(array(
 				'people_on_ride' => json_encode($corresponding_ids),
+				'event_status' => $status,
 				));
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			$user = User::where('id','=',$journey->id)->first();

@@ -412,7 +412,7 @@ class HomeController extends BaseController {
 			// -1 is no status
 
 			$group->path_waypoints = json_encode(self::getwaypoints(intval($journey_id)));
-			$group->event_status = "nothing";
+			$group->event_status = "confirmed";
 			try {
 				$group->save();
 				self::generate_group_path($group->id);
@@ -774,9 +774,6 @@ class HomeController extends BaseController {
 		if (sizeof($people_so_far)==0)
 		{
 			Group::where('group_id','=',$group->group_id)->delete();
-			Journey::where("journey_id","=",$journey_id)->update(array(
-				'group_id'=>NULL
-			));
 			//Notify Driver
 
 
@@ -788,6 +785,9 @@ class HomeController extends BaseController {
 				'path_waypoints' => json_encode($path),
 			));
 		}
+		Journey::where("journey_id","=",$journey_id)->update(array(
+				'group_id'=>-1,
+			));
 		self::generate_group_path($group->group_id);
 		$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
 		self::send_push($people_so_far,13,$push_data);

@@ -1,1 +1,5 @@
 Laravel development server started on http://0.0.0.0:8002
+[Mon Aug  3 23:19:36 2015] PHP Parse error:  syntax error, unexpected '{' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 249
+[Mon Aug  3 23:19:59 2015] PHP Parse error:  syntax error, unexpected '"distance"' (T_CONSTANT_ENCAPSED_STRING), expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 251
+[Mon Aug  3 23:21:18 2015] PHP Parse error:  syntax error, unexpected '"distance"' (T_CONSTANT_ENCAPSED_STRING), expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 252
+[Mon Aug  3 23:21:57 2015] PHP Parse error:  syntax error, unexpected '"distance"' (T_CONSTANT_ENCAPSED_STRING), expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 252
