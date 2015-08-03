@@ -357,9 +357,19 @@ class HomeController extends BaseController {
 			return Error::make(1,10);
 		}
 		if (!is_null($journey->group_id)){
+			$send_group=Group::where('group_id','=',$journey->group_id)->first();
+			$mates=array();
+			foreach (json_decode($send_group->journey_ids) as $mate_id) {
+				if ($mate_id==$journey_id)
+					continue;
+				$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
+				array_push($mates, $mate_journey->id);
+				# code...
+			}
+			$send_group->mates = $mates;
 			return Error::success("Already on a Journey!",array(
 				'group_id'=>intval($journey->group_id) ,
-				'group' => Group::where('group_id','=',$journey->group_id)->first()
+				'group' => $send_group,
 				)
 			);
 		}
