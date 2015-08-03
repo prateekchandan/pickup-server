@@ -250,7 +250,8 @@ class UserController extends BaseController {
 					"start_text"=>$journey->start_text, "end_text"=>$journey->end_text,
 					"distance"=>$journey->distance, "fare"=>0,
 					"start_lat"=>$journey->start_lat,"start_long"=>$journey->start_long,
-					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long);
+					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long,
+					"journey_time"=>$journey->journey_time);
 				array_push($history,$data);
 			}
 			else if (!is_null($group) && strcmp($group->event_status,"completed")==0)
@@ -275,7 +276,8 @@ class UserController extends BaseController {
 					"start_text"=>$journey->start_text, "end_text"=>$journey->end_text,
 					"distance"=>$journey->distance, "fare"=>1000,
 					"start_lat"=>$journey->start_lat,"start_long"=>$journey->start_long,
-					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long);
+					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long,
+					"journey_time"=>$journey->journey_time);
 				array_push($history,$data);
 			}
 		}
