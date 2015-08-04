@@ -61,8 +61,10 @@ class DriverController extends BaseController {
 		$driver = Driver::where('username','=',Input::get('username'))->first();
 		if (is_null($driver))
 			return Error::make(1,33);
-		if (strcmp($driver->password, Input::get('password')))
+		if (strcmp($driver->password, Input::get('password'))==0)
 			return Error::success('Login successful!',array('driver'=>$driver));
+		else
+			return Error::make(1,34);
 	}
 	public function give_driver_group($driver_id=0)
 	{
