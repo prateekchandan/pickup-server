@@ -90,6 +90,7 @@ class BaseController extends Controller {
 								15=>"Person just finished ride!",
 				);
 		$message = $message_data[$msgcode];
+		$data->time=time();
 		foreach ($journey_ids as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
