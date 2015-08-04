@@ -432,7 +432,6 @@ class HomeController extends BaseController {
 			// 0 is NO
 			// 1 is YES
 			// -1 is no status
-
 			$group->path_waypoints = json_encode(self::getwaypoints(intval($journey_id)));
 			$group->event_status = "confirmed";
 			try {
@@ -928,6 +927,7 @@ class HomeController extends BaseController {
 
 		try {
 			Journey::where('journey_id','=',$journey_id)->update(array(
+				'group_id' => NULL,
 				'start_lat' => Input::get('start_lat'),
 				'start_long' => Input::get('start_long'),
 				'end_lat' => Input::get('end_lat'),

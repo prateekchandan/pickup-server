@@ -38,7 +38,7 @@ class DriverController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 		$driver = new Driver;
-		$driver->group_id = Input::get('group_id');
+		//$driver->group_id = Input::get('group_id');
 		$driver->phone = Input::get('phone');
 		$driver->driver_name = Input::get('driver_name');
 		
@@ -321,9 +321,33 @@ class DriverController extends BaseController {
 		}
 		return Error::success("Drivers allocated" , array("drivers_occupied" => $drivers_occupied_now));
 	}
-	public function arbit_stuff()
+	public function get_picture($driver_id)
 	{
-		self::log_data(Input::get('hottest'));
-		return "yolo";
+		
+	}
+	public function upload_picture($driver_id)
+	{
+		$requirements = ['photo'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$file = Input::get('photo');
+		if (!$file->isValid())
+		{
+			return Error::make(1,31);
+		}	
+		$destinationPath = 'public/images/';
+		$filename = md5('driver'.$driver_id.$file->getClientOriginalExtension());
+		$uploadSuccess   = $file->move($destinationPath, $filename);
+		try
+		{
+			Driver::where('driver_id','=',$driver_id)->update(array(
+						'photo_url'=>$destinationPath.$filename,
+						));
+		}
+		catch(Exception $e) {
+					return Error::make(101,101,$e->getMessage());
+		}
+		return Error::success('Photograph uploaded successfully!',array('driver_id'=>$driver_id));
 	}
 }

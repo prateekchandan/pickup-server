@@ -32,6 +32,7 @@ class Error{
 		'22' => 'Group doesn\'t exist!',
 		'23' => 'No routes found!',
 		'30' => 'Journey already confirmed!',
+		'31' => 'Invalid file uploaded!',
 		);
 
 	// Error type
