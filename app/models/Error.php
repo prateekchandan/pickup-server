@@ -34,6 +34,7 @@ class Error{
 		'30' => 'Journey already confirmed!',
 		'31' => 'Invalid file uploaded!',
 		'32' => 'No file received',
+		'33' => 'Driver username doesn\'t exist!',
 		);
 
 	// Error type

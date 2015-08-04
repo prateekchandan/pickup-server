@@ -33,12 +33,14 @@ class DriverController extends BaseController {
 	}
 	public function add()
 	{
-		$requirements = ['driver_name','phone'];
+		$requirements = ['driver_name','phone','username','password'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
 		$driver = new Driver;
 		//$driver->group_id = Input::get('group_id');
+		$driver->username=Input::get('username');
+		$driver->password=Input::get('password');
 		$driver->phone = Input::get('phone');
 		$driver->driver_name = Input::get('driver_name');
 		$driver->images = json_encode(array('profile_picture'=>"",'address_proof'=>"",
@@ -50,7 +52,18 @@ class DriverController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
-
+	public function driver_login()
+	{
+		$requirements = ['username','password'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);	
+		$driver = Driver::where('username','=',Input::get('username'))->first();
+		if (is_null($driver))
+			return Error::make(1,33);
+		if (strcmp($driver->password, Input::get('password')))
+			return Error::success('Login successful!',array('driver'=>$driver));
+	}
 	public function give_driver_group($driver_id=0)
 	{
 		$requirements = ['group_id'];

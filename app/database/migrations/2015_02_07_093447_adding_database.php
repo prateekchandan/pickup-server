@@ -130,6 +130,8 @@ class AddingDatabase extends Migration {
 		{
 			$table->increments('driver_id');
 			$table->string('driver_name', 200);
+			$table->string('username',200);
+			$table->string('password',200);
 			$table->string('driver_address',500)->nullable();
 			$table->string('license_details',200)->nullable();
 			$table->longtext('images');
