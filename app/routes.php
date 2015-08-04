@@ -49,6 +49,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('get_history/{id}','UserController@get_history');
 	Route::post('upload_picture/{id}','DriverController@upload_picture');
 	Route::get('get_picture/{id}','DriverController@get_picture');
+	Route::post('driver_login','DriverController@driver_login');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 
