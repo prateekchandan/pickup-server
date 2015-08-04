@@ -33,6 +33,7 @@ class Error{
 		'23' => 'No routes found!',
 		'30' => 'Journey already confirmed!',
 		'31' => 'Invalid file uploaded!',
+		'32' => 'No file received',
 		);
 
 	// Error type

@@ -130,9 +130,12 @@ class AddingDatabase extends Migration {
 		{
 			$table->increments('driver_id');
 			$table->string('driver_name', 200);
+			$table->string('driver_address',500)->nullable();
+			$table->string('license_details',200)->nullable();
+			$table->longtext('images');
 			$table->string('current_pos',200)->default("19.1336,72.9154");
 			$table->string('phone',200);
-			$table->string('photo_url',500)->nullable();
+			//$table->string('profile_picture',500)->nullable();
 			$table->string('car_model',200)->nullable();
 			$table->string('car_number',200)->nullable();
 			$table->string('registration_id',1000)->nullable();

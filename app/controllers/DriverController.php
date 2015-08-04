@@ -41,7 +41,8 @@ class DriverController extends BaseController {
 		//$driver->group_id = Input::get('group_id');
 		$driver->phone = Input::get('phone');
 		$driver->driver_name = Input::get('driver_name');
-		
+		$driver->images = json_encode(array('profile_picture'=>"",'address_proof'=>"",
+											'license'=>""));
 		try {
 			$driver->save();
 			return Error::success("Driver successfully added" , array("driver_id" => $driver->id));
@@ -323,26 +324,43 @@ class DriverController extends BaseController {
 	}
 	public function get_picture($driver_id)
 	{
-		
+		$driver = Driver::where('driver_id','=',$driver_id)->first();
+		$images = json_decode($driver->images);
+		if (is_null($driver))
+			return Error::make(1,19);
+		$url = asset('images/'.$images->profile_picture);
+		return Error::success('Driver profile picture',array('dp_url'=>$url));
+		/*
+		;
+		$destinationPath = 'public/images/';
+		$filename = 'favicon.ico';
+		return URL::to('/').'/'.$destinationPath.$filename;*/
 	}
 	public function upload_picture($driver_id)
 	{
-		$requirements = ['photo'];
+
+		/*$requirements = ['photo'];
 		$check  = self::check_requirements($requirements);
 		if($check)
-			return Error::make(0,100,$check);
-		$file = Input::get('photo');
+			return Error::make(0,100,$check);*/
+		if (!Input::hasFile('photo'))
+			return Error::make(1,32);
+		$file = Input::file('photo');
 		if (!$file->isValid())
 		{
 			return Error::make(1,31);
 		}	
-		$destinationPath = 'public/images/';
-		$filename = md5('driver'.$driver_id.$file->getClientOriginalExtension());
+		$destinationPath = public_path()."/images/";
+		$filename = md5('driver'.$driver_id).'.'.$file->getClientOriginalExtension();
 		$uploadSuccess   = $file->move($destinationPath, $filename);
+		$driver = Driver::where('driver_id','=',$driver_id)->first();
+		$images = json_decode($driver->images);
+
+		$images->profile_picture=$filename;
 		try
 		{
 			Driver::where('driver_id','=',$driver_id)->update(array(
-						'photo_url'=>$destinationPath.$filename,
+						'images'=>json_encode($images),
 						));
 		}
 		catch(Exception $e) {

@@ -3,3 +3,28 @@ Laravel development server started on http://0.0.0.0:8002
 [Mon Aug  3 23:19:59 2015] PHP Parse error:  syntax error, unexpected '"distance"' (T_CONSTANT_ENCAPSED_STRING), expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 251
 [Mon Aug  3 23:21:18 2015] PHP Parse error:  syntax error, unexpected '"distance"' (T_CONSTANT_ENCAPSED_STRING), expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 252
 [Mon Aug  3 23:21:57 2015] PHP Parse error:  syntax error, unexpected '"distance"' (T_CONSTANT_ENCAPSED_STRING), expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/UserController.php on line 252
+[Tue Aug  4 21:04:26 2015] PHP Parse error:  syntax error, unexpected '}' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 329
+[Tue Aug  4 21:05:00 2015] 127.0.0.1:45194 [200]: /favicon.ico
+[Tue Aug  4 21:06:36 2015] 127.0.0.1:45197 [200]: /favicon.ico
+[Tue Aug  4 21:06:45 2015] 127.0.0.1:45207 [200]: /favicon.ico
+[Tue Aug  4 21:07:38 2015] 127.0.0.1:45209 [200]: /favicon.ico
+[Tue Aug  4 21:07:38 2015] 127.0.0.1:45211 [200]: /favicon.ico
+[Tue Aug  4 21:07:39 2015] 127.0.0.1:45213 [200]: /favicon.ico
+[Tue Aug  4 21:07:39 2015] 127.0.0.1:45215 [200]: /favicon.ico
+[Tue Aug  4 21:07:39 2015] 127.0.0.1:45217 [200]: /favicon.ico
+[Tue Aug  4 21:08:09 2015] 127.0.0.1:45220 [200]: /favicon.ico
+[Tue Aug  4 21:08:10 2015] 127.0.0.1:45222 [200]: /favicon.ico
+[Tue Aug  4 21:08:10 2015] 127.0.0.1:45224 [200]: /favicon.ico
+[Tue Aug  4 21:08:10 2015] 127.0.0.1:45226 [200]: /favicon.ico
+[Tue Aug  4 21:08:10 2015] 127.0.0.1:45228 [200]: /favicon.ico
+[Tue Aug  4 21:08:11 2015] 127.0.0.1:45230 [200]: /favicon.ico
+[Tue Aug  4 21:08:47 2015] 127.0.0.1:45236 [200]: /favicon.ico
+[Tue Aug  4 21:09:30 2015] 127.0.0.1:45238 [200]: /images/abc.txt
+[Tue Aug  4 21:09:30 2015] 127.0.0.1:45239 [200]: /favicon.ico
+[Tue Aug  4 21:10:15 2015] 127.0.0.1:45246 [200]: /images/abc.txt
+[Tue Aug  4 21:10:15 2015] 127.0.0.1:45247 [200]: /favicon.ico
+[Tue Aug  4 21:33:07 2015] PHP Fatal error:  Call to a member function isValid() on a non-object in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 346
+[Tue Aug  4 21:33:53 2015] PHP Fatal error:  Call to a member function isValid() on a non-object in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 346
+[Tue Aug  4 21:38:14 2015] PHP Fatal error:  Call to a member function isValid() on a non-object in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 346
+[Tue Aug  4 21:51:19 2015] 127.0.0.1:45851 [200]: /favicon.ico
+[Tue Aug  4 21:52:46 2015] 127.0.0.1:45871 [200]: /images/d95784faa6597a0253e483e500ced3ee.pdf
