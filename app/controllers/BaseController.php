@@ -91,7 +91,9 @@ class BaseController extends Controller {
 				);
 		$message = $message_data[$msgcode];
 		$data['time']=time();
+		$data['journey_id']=0;
 		foreach ($journey_ids as $journey_id1) {
+				$data['journey_id']=$journey_id1;
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
 				$uMsg = array();

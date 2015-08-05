@@ -126,8 +126,22 @@ class HomeController extends BaseController {
 
 	public function journey_add(){
 
-		if(Input::has('journey_id')){
+
+		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
+		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
+
+		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
+		
+		$isCancelled=False;
+		if (intval($check_existing_journey->group_id)==-1)
+			$isCancelled=True;
+
+		if(Input::has('journey_id') && $isCancelled==False){
 			return $this->journey_edit(Input::get('journey_id'));
+		}
+
+		if(!is_null($check_existing_journey) && $isCancelled==False){
+			return $this->journey_edit($check_existing_journey->journey_id);
 		}
 
 		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
@@ -180,13 +194,7 @@ class HomeController extends BaseController {
 		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || Input::get('preference') < 1 )
 		return Error::make(1,8);
 
-		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
-		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
-
-		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
-		if(!is_null($check_existing_journey)){
-			return $this->journey_edit($check_existing_journey->journey_id);
-		}
+		
 
 		$journey = new Journey;
 
