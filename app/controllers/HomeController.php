@@ -127,20 +127,22 @@ class HomeController extends BaseController {
 	public function journey_add(){
 
 
+		$timestamp=Input::get('journey_time');
+		
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
 		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
 		
-		$isCancelled=False;
-		if (intval($check_existing_journey->group_id)==-1)
-			$isCancelled=True;
+		$isCancelled=FALSE;
+		if (!is_null($check_existing_journey) && intval($check_existing_journey->group_id)==-1)
+			$isCancelled=TRUE;
 
-		if(Input::has('journey_id') && $isCancelled==False){
+		if(Input::has('journey_id') && $isCancelled==FALSE){
 			return $this->journey_edit(Input::get('journey_id'));
 		}
 
-		if(!is_null($check_existing_journey) && $isCancelled==False){
+		if(!is_null($check_existing_journey) && $isCancelled==FALSE){
 			return $this->journey_edit($check_existing_journey->journey_id);
 		}
 
@@ -179,7 +181,6 @@ class HomeController extends BaseController {
 		if(is_null($user))
 		return Error::make(1,1);
 
-		$timestamp=Input::get('journey_time');
 		$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)
