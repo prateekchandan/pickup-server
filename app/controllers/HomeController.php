@@ -144,7 +144,7 @@ class HomeController extends BaseController {
 			{
 				if (intval($check_existing_journey->group_id)!=-1)
 				{
-					self::cancel_journey($check_existing_journey->journey_id);
+					self::cancel_journey(intval($check_existing_journey->journey_id));
 				}
 			}
 			/*
