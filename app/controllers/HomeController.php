@@ -832,8 +832,7 @@ class HomeController extends BaseController {
 		return Error::success("Journey Cancelled successfully!!",array('journey_id'=>intval($journey_id)));
 	}
 
-	public function 
-	($journey_id) {
+	public function journey_edit($journey_id) {
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
 		return Error::make(1,11);
