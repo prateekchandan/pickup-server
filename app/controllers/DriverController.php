@@ -339,14 +339,15 @@ class DriverController extends BaseController {
 	}
 	public function get_picture($driver_id)
 	{
+		$image_name = 'driver_'.$driver_id.'.png';
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if (is_null($driver))
-			return Response::download(public_path().'/images'.'/default-user.png','default-user.png',
+			return Response::download(public_path().'/images'.'/default-user.png',$image_name,
 									array('content-type'=>'image/png') );
 		$images = json_decode($driver->images);
 		//$pathToFile = asset('images/');
 		if (sizeof($images->profile_picture)==1)
-			return Response::download(public_path().'/images'.'/default-user.png','default-user.png',
+			return Response::download(public_path().'/images'.'/default-user.png',$image_name,
 									array('content-type'=>'image/png') );
 		
 		else
