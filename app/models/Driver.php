@@ -4,6 +4,7 @@
 class Driver extends Eloquent{
 
 	protected $table = 'drivers';
+	protected $hidden = array('password');
 	
 
 	/**
