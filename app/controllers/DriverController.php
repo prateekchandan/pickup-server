@@ -341,7 +341,8 @@ class DriverController extends BaseController {
 	{
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if (is_null($driver))
-			return Error::make(1,19);
+			return Response::download(public_path().'/images'.'/default-user.png','default-user.png',
+									array('content-type'=>'image/png') );
 		$images = json_decode($driver->images);
 		//$pathToFile = asset('images/');
 		if (sizeof($images->profile_picture)==1)
