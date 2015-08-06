@@ -133,19 +133,25 @@ class HomeController extends BaseController {
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
 		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
-		
-		$isCancelled=FALSE;
-		if (!is_null($check_existing_journey) && intval($check_existing_journey->group_id)==-1)
-			$isCancelled=TRUE;
-
-		if(Input::has('journey_id') && $isCancelled==FALSE){
+		if (!is_null($check_existing_journey))
+		{
+			$editIntention=False;
+			if (is_null($check_existing_journey->group_id))
+				$editIntention=True;
+			if ($editIntention==True)
+				return $this->journey_edit($check_existing_journey->journey_id);
+			else
+			{
+				if (intval($check_existing_journey->group_id)!=-1)
+				{
+					self::cancel_journey($check_existing_journey->journey_id);
+				}
+			}
+			/*
+			if(Input::has('journey_id') && $isCancelled==FALSE){
 			return $this->journey_edit(Input::get('journey_id'));
+			}*/
 		}
-
-		if(!is_null($check_existing_journey) && $isCancelled==FALSE){
-			return $this->journey_edit($check_existing_journey->journey_id);
-		}
-
 		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
@@ -826,7 +832,8 @@ class HomeController extends BaseController {
 		return Error::success("Journey Cancelled successfully!!",array('journey_id'=>intval($journey_id)));
 	}
 
-	public function journey_edit($journey_id) {
+	public function 
+	($journey_id) {
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
 		return Error::make(1,11);
