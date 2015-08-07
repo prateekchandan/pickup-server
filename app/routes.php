@@ -33,7 +33,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	
 	//Route::post('match_third/{id}/' , 'HomeController@match_third');
 	Route::get('journey/{id}/{user?}' , 'HomeController@get_journey');
-	Route::post('modify_location/{id}','HomeController@modify_location');
+	Route::post('modify_location/{id}','UserController@modify_location');
 	Route::any('change_event/{id}' , 'HomeController@event_change');
 	Route::get('cancel_journey/{id}','HomeController@cancel_journey');
 	Route::post('add_driver', array('as' => 'driver.add', 'uses' => 'DriverController@add'));
@@ -50,6 +50,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('upload_picture/{id}','DriverController@upload_picture');
 	Route::get('get_picture/{id}','DriverController@get_picture');
 	Route::post('driver_login','DriverController@driver_login');
+	Route::post('add_rating','BaseController@add_rating');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 
