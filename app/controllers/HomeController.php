@@ -126,13 +126,19 @@ class HomeController extends BaseController {
 
 	public function journey_add(){
 
-
+		$requirements = ['user_id' , 'journey_time'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+		return Error::make(0,100,$check);
 		$timestamp=Input::get('journey_time');
 		
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
-		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
+		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->
+											where('journey_time' , '>' , $t2 )->
+											where('journey_time' , '<' , $t1 )->
+											where('group_id','!=',-1)->first();
 		if (!is_null($check_existing_journey))
 		{
 			$editIntention=False;
@@ -813,8 +819,6 @@ class HomeController extends BaseController {
 		{
 			Group::where('group_id','=',$group->group_id)->delete();
 			//Notify Driver
-
-
 		}
 		else
 		{
