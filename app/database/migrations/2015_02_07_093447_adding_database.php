@@ -12,6 +12,7 @@ class AddingDatabase extends Migration {
 	 */
 	public function up()
 	{
+		Schema::dropIfExists('ratings');
 		Schema::dropIfExists('drivers');
 		Schema::dropIfExists('groups');
 		Schema::dropIfExists('created_journeys');
@@ -146,6 +147,21 @@ class AddingDatabase extends Migration {
 			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
 			$table->timestamps();
 			$table->rememberToken();
+		});
+
+		Schema::create('ratings', function(Blueprint $table)
+		{
+			$table->increments('group_id');
+			$table->longtext('journey_ids');
+			$table->longtext('people_on_ride');
+			$table->longtext('path_waypoints');
+			$table->longtext('path')->nullable();
+			$table->longtext('event_status')->nullable();
+			$table->integer('driver_id')->nullable();
+			$table->dateTime('journey_time');
+			$table->dateTime('start_time');
+			//$table->longtext('accept_third');
+			$table->timestamps();
 		});
 }
 	/**
