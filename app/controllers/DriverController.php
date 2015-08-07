@@ -132,7 +132,7 @@ class DriverController extends BaseController {
 		if(is_null($driver)){
 			return Error::make(1,1);
 		}
-		return Error::success("Driver details",array('driver'=>$driver);
+		return Error::success("Driver details",array('driver'=>$driver));
 	}
 
 	public function modify_location($driver_id=0)
