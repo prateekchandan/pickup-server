@@ -141,7 +141,7 @@ class DriverController extends BaseController {
 	{
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if(is_null($driver)){
-			return Error::make(1,10);
+			return Error::make(1,19);
 		}
 		$requirements = ['position'];
 		$check  = self::check_requirements($requirements);

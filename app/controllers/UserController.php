@@ -201,7 +201,55 @@ class UserController extends BaseController {
 		$user->save();
 		return Error::success("Registration ID successfully added");
 	}
+	public function modify_location($user_id=0)
+	{
+		$user = User::where('id','=',$user_id)->first();
+		if(is_null($user)){
+			return Error::make(1,1);
+		}
+		$requirements = ['position'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$new_coordinate_array = explode(',',Input::get('position'));
+		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
+		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
+		$check_existing_journey = Journey::where('id' , '=' , intval($user_id))->
+											where('journey_time' , '>' , $t2 )->
+											where('journey_time' , '<' , $t1 )->
+											where('group_id','!=',-1)->first();
+		$final_data=array("driver"=>NULL,"mates"=>array());
+		if (!is_null($check_existing_journey) && !is_null($check_existing_journey->group_id))
+		{
+			$group = Group::where('group_id','=',intval($check_existing_journey->group_id))->first();
+			$people_so_far = json_decode($group->journey_ids);
+			foreach ($people_so_far as $value) {
+				$mate_journey = Journey::where('journey_id','=',$value)->first();
+				$mate_user = User::where('id','=',$mate_journey->id)->first();
+				array_push($final_data->mates, array("user_id"=>intval($mate_user->id),
+													"position"=>$mate_user->current_pos));
+			}
+			if (!is_null($group->driver_id))
+			{
+				$driver = Driver::where('$driver_id','=',$group->driver_id)->first();
+				if (is_null($driver))
+					Error::make(1,19);
+				$final_data->driver=array("driver_id"=>intval($group->driver_id),
+										  "position"=>$driver->current_pos);
+			}
+		}
+		try {
+			User::where('id','=',$user_id)->update(array(
+				'current_pos' => Input::get('position'),
+				));
+			//$user->id = 10;
+			//$this->sendmail($user);
+			return Error::success("User location changed" , array("positions" => $final_data));
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+	}
 	public function get($user_id=0)
 	{
 		$user = User::find($user_id);

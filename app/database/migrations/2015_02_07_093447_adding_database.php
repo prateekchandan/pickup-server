@@ -46,6 +46,8 @@ class AddingDatabase extends Migration {
 			$table->time('leaving_home')->default("09:00:00");
 			$table->time('leaving_office')->default("17:00:00");
 			$table->double('total_distance_travelled')->default(0);
+			$table->double('rating')->nullable();
+			$table->integer('number_rating')->default(0);
 			$table->timestamps();
 			$table->rememberToken();
 		});
@@ -145,21 +147,21 @@ class AddingDatabase extends Migration {
 			$table->string('driver_status',200)->default("vacant");
 			$table->integer('group_id')->unsigned()->nullable();
 			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
+			$table->double('rating')->nullable();
+			$table->integer('number_rating')->default(0);
 			$table->timestamps();
 			$table->rememberToken();
+
 		});
 
 		Schema::create('ratings', function(Blueprint $table)
 		{
-			$table->increments('group_id');
-			$table->longtext('journey_ids');
-			$table->longtext('people_on_ride');
-			$table->longtext('path_waypoints');
-			$table->longtext('path')->nullable();
-			$table->longtext('event_status')->nullable();
-			$table->integer('driver_id')->nullable();
-			$table->dateTime('journey_time');
-			$table->dateTime('start_time');
+			$table->increments('rating_id');
+			$table->string('from_type',200);
+			$table->string('to_type',200);
+			$table->integer('from_id');
+			$table->integer('to_id');
+			$table->integer('rating');
 			//$table->longtext('accept_third');
 			$table->timestamps();
 		});

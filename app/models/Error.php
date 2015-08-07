@@ -36,6 +36,7 @@ class Error{
 		'32' => 'No file received',
 		'33' => 'Driver username doesn\'t exist!',
 		'34' => 'Invalid password!',
+		'35' => 'to_type field must have value user or driver',
 		);
 
 	// Error type

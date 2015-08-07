@@ -54,7 +54,68 @@ class BaseController extends Controller {
         $data ="\nPinged the server now at ".$t."\n----------------------------------\n\n";
 	}
 	fwrite($file,$data);
-
+	}
+	public function add_rating()
+	{
+		$requirements = ['from_type','to_type','from_id','to_id','rating'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$rating = new Rating;
+		//$driver->group_id = Input::get('group_id');
+		$rating->from_type=Input::get('from_type');
+		$rating->to_type=Input::get('to_type');
+		$rating->from_id = intval(Input::get('from_id'));
+		$rating->to_id = intval(Input::get('to_id'));
+		$rating->rating = intval(Input::get('rating'));
+		if (strcmp($to_type, "driver"))
+		{
+			$driver = Driver::where('driver_id','=',$rating->to_id)->first();
+			if (is_null($driver))
+				return Error::make(1,19);
+			$driver_rating = floatval($driver->rating);
+			$rating_number = intval($driver->rating_number);
+			$driver_rating = ($driver_rating*$rating_number+$rating->rating) / ($rating_number+1);
+			$rating_number = $rating_number+1;
+			try {
+			Driver::where('driver_id','=',$driver->driver_id)->update(array(
+				'rating_number' => intval($rating_number),
+				'rating' => $driver_rating,
+				));
+			} 
+			catch (Exception $e) {
+				return Error::make(101,101,$e->getMessage());
+			}
+		}
+		else if (strcmp($to_type, "user"))
+		{
+			$user = User::where('id','=',$rating->to_id)->first();
+			if (is_null($user))
+				return Error::make(1,1);
+			$user_rating = floatval($user->rating);
+			$rating_number = intval($user->rating_number);
+			$user_rating = ($user_rating*$rating_number+$rating->rating) / ($rating_number+1);
+			$rating_number = $rating_number+1;
+			try {
+			User::where('id','=',$user->id)->update(array(
+				'rating_number' => intval($rating_number),
+				'rating' => $user_rating,
+				));
+			} 
+			catch (Exception $e) {
+				return Error::make(101,101,$e->getMessage());
+			}
+		}
+		else
+		{
+			return Error::make(1,35);
+		}
+		try {
+			$rating->save();
+			return Error::success("Rating saved successfully!" , array());
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
 	}
 	public function push_test($journey_id)
 	{

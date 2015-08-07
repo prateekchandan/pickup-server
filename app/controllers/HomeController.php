@@ -1050,7 +1050,7 @@ class HomeController extends BaseController {
 
 		return $returnObj;
 	}
-
+	
 	public function modify_location($id=0)
 	{
 		$jpair = FinalJourney::find($id);
