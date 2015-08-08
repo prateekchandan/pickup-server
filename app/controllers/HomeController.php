@@ -236,7 +236,7 @@ class HomeController extends BaseController {
 			$journey->save();
 			$group_id=0;
 
-			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id),'journey_time'=>$timestamp);
+			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'journey_time'=>$timestamp));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
