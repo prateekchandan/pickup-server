@@ -146,7 +146,6 @@ class HomeController extends BaseController {
         //print_r($check_existing_journey);
 		if (!is_null($check_existing_journey))
 		{
-
 			$editIntention=False;
 			if (is_null($check_existing_journey->group_id))
 				$editIntention=True;
