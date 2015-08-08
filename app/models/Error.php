@@ -37,7 +37,10 @@ class Error{
 		'33' => 'Driver username doesn\'t exist!',
 		'34' => 'Invalid password!',
 		'35' => 'to_type field must have value user or driver',
-		'36' => 'Journey not in Mumbai!'
+		'36' => 'Journey not in Mumbai!',
+		'37' => 'You cannot rate yourself!',
+		'38' => 'from_type must have value user or driver',
+		'39' => 'driver cannot rate another driver!',
 		);
 
 	// Error type

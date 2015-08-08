@@ -289,6 +289,7 @@ class DriverController extends BaseController {
 			$closest_distance=100000;
 			foreach($drivers as $driver)
 			{
+
 				$driver_pos = $driver->current_pos;
 				$driver_lat = floatval(substr($driver_pos,0,strpos($driver_pos,',')));
 				$driver_long = floatval(substr($driver_pos,strpos($driver_pos, ',')+1));
