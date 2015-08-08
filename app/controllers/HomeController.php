@@ -175,9 +175,18 @@ class HomeController extends BaseController {
 		$path2=NULL;
 		$path3=NULL;
 		if (array_key_exists(0, $path->routes))
-		$path1 = $path->routes[0];
+		{
+			$path1 = $path->routes[0];	
+			foreach ($path1->legs as $leg) {
+				$end_address = $leg->end_address;
+				$start_address = $leg->start_address;
+				if ((strpos($start_address,'Mumbai') == false && strpos($start_address,'Thane') == false)
+					||  (strpos($end_address,'Mumbai') == false && strpos($end_address,'Thane') == false))
+    				return Error::make(1,36);
+			}
+		}
 		else
-		return Error::make(1,23);
+			return Error::make(1,23);
 		if (array_key_exists(1, $path->routes))
 		$path2 = $path->routes[1];
 		if (array_key_exists(2, $path->routes))
@@ -892,7 +901,16 @@ class HomeController extends BaseController {
 		$path2=NULL;
 		$path3=NULL;
 		if (array_key_exists(0, $path->routes))
-			$path1 = $path->routes[0];
+		{
+			$path1 = $path->routes[0];	
+			foreach ($path1->legs as $leg) {
+				$end_address = $leg->end_address;
+				$start_address = $leg->start_address;
+				if ((strpos($start_address,'Mumbai') == false && strpos($start_address,'Thane') == false)
+					||  (strpos($end_address,'Mumbai') == false && strpos($end_address,'Thane') == false))
+    				return Error::make(1,36);
+			}
+		}
 		else
 			return Error::make(1,23);
 
