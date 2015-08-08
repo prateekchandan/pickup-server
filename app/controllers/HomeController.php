@@ -126,11 +126,11 @@ class HomeController extends BaseController {
 
 	public function journey_add(){
 
-		$requirements = ['user_id' , 'journey_time'];
+		$requirements = ['user_id'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
-		$timestamp=Input::get('journey_time');
+		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
 		
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
@@ -193,10 +193,10 @@ class HomeController extends BaseController {
 		if(is_null($user))
 		return Error::make(1,1);
 
-		$sec = strtotime($timestamp);
+		/*$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)
-		return Error::make(1,6);
+		return Error::make(1,6);*/
 
 		if(!(is_numeric(Input::get('margin_after')) && is_numeric(Input::get('margin_before'))))
 		return Error::make(1,7);
@@ -236,7 +236,7 @@ class HomeController extends BaseController {
 			$journey->save();
 			$group_id=0;
 
-			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id));
+			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id),'journey_time'=>$timestamp);
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
@@ -873,7 +873,7 @@ class HomeController extends BaseController {
 		catch(Exception $e) {
 			return Error::make(1,22);
 		}
-		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
+		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id', 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 
 		if($check)
@@ -913,11 +913,11 @@ class HomeController extends BaseController {
 			return Error::make(1,1);
 
 
-		$timestamp=Input::get('journey_time');
-		$sec = strtotime($timestamp);
+		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
+		/*$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)
-			return Error::make(1,6);
+			return Error::make(1,6);*/
 
 		if(!(is_numeric(Input::get('margin_after')) && is_numeric(Input::get('margin_before'))))
 			return Error::make(1,7);
@@ -965,7 +965,7 @@ class HomeController extends BaseController {
 				'time' => $path_time,
 			));
 
-			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id)));
+			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id),'journey_time'=>$timestamp));
 		} 
 		catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
