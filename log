@@ -1,3 +1,1 @@
 Laravel development server started on http://0.0.0.0:8002
-[Sat Aug  8 15:46:11 2015] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW) in /home/prateek/Desktop/pickup-server/app/controllers/HomeController.php on line 239
-[Sat Aug  8 15:46:54 2015] PHP Parse error:  syntax error, unexpected ';' in /home/prateek/Desktop/pickup-server/app/controllers/HomeController.php on line 239

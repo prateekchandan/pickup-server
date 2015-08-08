@@ -126,11 +126,11 @@ class HomeController extends BaseController {
 
 	public function journey_add(){
 
-		$requirements = ['user_id'];
+		$requirements = ['user_id','margin_after'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
-		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
+		$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);//Input::get('journey_time');
 		
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
@@ -138,9 +138,15 @@ class HomeController extends BaseController {
 		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->
 											where('journey_time' , '>' , $t2 )->
 											where('journey_time' , '<' , $t1 )->
-											where('group_id','!=',-1)->first();
+											where(function($query)
+            								{
+                								$query->whereNull('group_id')
+                      							->orWhere('group_id', '!=', -1);
+            								})->first();
+        //print_r($check_existing_journey);
 		if (!is_null($check_existing_journey))
 		{
+
 			$editIntention=False;
 			if (is_null($check_existing_journey->group_id))
 				$editIntention=True;
@@ -158,7 +164,7 @@ class HomeController extends BaseController {
 			return $this->journey_edit(Input::get('journey_id'));
 			}*/
 		}
-		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'journey_time' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
+		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
@@ -913,7 +919,7 @@ class HomeController extends BaseController {
 			return Error::make(1,1);
 
 
-		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
+		$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);//Input::get('journey_time');
 		/*$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)

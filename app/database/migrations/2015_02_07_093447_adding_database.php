@@ -146,7 +146,7 @@ class AddingDatabase extends Migration {
 			$table->string('registration_id',1000)->nullable();
 			$table->string('driver_status',200)->default("vacant");
 			$table->integer('group_id')->unsigned()->nullable();
-			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('cascade');
+			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('set null');
 			$table->double('rating')->default(0);
 			$table->integer('number_rating')->default(0);
 			$table->timestamps();
@@ -165,6 +165,22 @@ class AddingDatabase extends Migration {
 			//$table->longtext('accept_third');
 			$table->timestamps();
 		});
+		DB::table('users')->insert(
+        array(
+            'email' => 'name@domain.com',
+            'first_name' => 'Mark Zuckerberg',
+            'age' => 35,
+            'phone' => '9822650831',
+            'company' => 'Facebook',
+            'second_name' => 'Im CEO Bitches',
+            'gender' => 'male',
+            'fbid' => 4,
+            'device_id' => '101010101',
+            'home_to_office' => '',
+            'office_to_home' => '',
+            'registration_id' => '123',
+        )
+    );
 }
 	/**
 	 * Reverse the migrations.

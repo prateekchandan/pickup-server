@@ -278,7 +278,6 @@ class DriverController extends BaseController {
 		$t1 = date('Y-m-d G:i:s',time()+900);
 		$t2 = date('Y-m-d G:i:s',time());
 		$groups = Group::whereNull('driver_id')->where('journey_time' , '<' , $t1 )->where('journey_time','>',$t2)->orderBy('journey_time','asc')->get();
-		
 		foreach ($groups as $group)
 		{
 			$drivers = Driver::where('driver_status','=','vacant')->get();
@@ -288,7 +287,6 @@ class DriverController extends BaseController {
 			$start_long = $path->startwaypoints[0][1];
 			$closest_driver_id=0;
 			$closest_distance=100000;
-
 			foreach($drivers as $driver)
 			{
 				$driver_pos = $driver->current_pos;

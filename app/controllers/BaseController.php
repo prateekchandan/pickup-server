@@ -161,6 +161,7 @@ class BaseController extends Controller {
 				$uMsg['type'] = $msgcode;
 				$uMsg['data'] = $data;
 				$uMsg['message'] = $message;
+				try {
 				//Notifying all existing users about new guy
 				$collection = PushNotification::app('Pickup')
 	            	->to($user->registration_id)
@@ -170,6 +171,12 @@ class BaseController extends Controller {
 				}
 	            $log_data = print_r($success,true);
 	            	self::log_data($log_data);
+	            }
+	            catch (Exception $e)
+	            {
+	            	self::log_data(json_encode(Error::make(101,101,$e->getMessage())));
+	            }
+	            
 			}
 	}
 
