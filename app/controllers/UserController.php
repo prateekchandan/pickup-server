@@ -212,6 +212,7 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 		$new_coordinate_array = explode(',',Input::get('position'));
+		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
@@ -225,17 +226,19 @@ class UserController extends BaseController {
 			$group = Group::where('group_id','=',intval($check_existing_journey->group_id))->first();
 			$people_so_far = json_decode($group->journey_ids);
 			foreach ($people_so_far as $value) {
+				if ($value==$check_existing_journey->journey_id)
+					continue;
 				$mate_journey = Journey::where('journey_id','=',$value)->first();
 				$mate_user = User::where('id','=',$mate_journey->id)->first();
-				array_push($final_data->mates, array("user_id"=>intval($mate_user->id),
+				array_push($final_data['mates'], array("user_id"=>intval($mate_user->id),
 													"position"=>$mate_user->current_pos));
 			}
 			if (!is_null($group->driver_id))
 			{
-				$driver = Driver::where('$driver_id','=',$group->driver_id)->first();
+				$driver = Driver::where('driver_id','=',$group->driver_id)->first();
 				if (is_null($driver))
 					Error::make(1,19);
-				$final_data->driver=array("driver_id"=>intval($group->driver_id),
+				$final_data['driver']=array("driver_id"=>intval($group->driver_id),
 										  "position"=>$driver->current_pos);
 			}
 		}
