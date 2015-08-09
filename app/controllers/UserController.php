@@ -201,17 +201,28 @@ class UserController extends BaseController {
 		$user->save();
 		return Error::success("Registration ID successfully added");
 	}
-	public function modify_location($user_id=0)
+	public function periodic_route($user_id)
+	{
+		$requirements = ['position','event_ids'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$journey = Journey::where('id','=',$user_id)->orderBy('journey_time','desc')->get[0];
+		if (is_null($journey))
+			return Error::make(1,1);
+		$positions = self::modify_location($user_id,Input::get('position'));
+		$pending_events = self::get_pending_events($journey->journey_id,Input::get('event_ids'));
+		return Error::success('periodic data',array('positions'=>$positions,
+													'pending_events'=>$pending_events));
+	}
+	public function modify_location($user_id=0,$position)
 	{
 		$user = User::where('id','=',$user_id)->first();
 		if(is_null($user)){
 			return Error::make(1,1);
 		}
-		$requirements = ['position'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-			return Error::make(0,100,$check);
-		$new_coordinate_array = explode(',',Input::get('position'));
+		
+		$new_coordinate_array = explode(',',$position);
 		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
@@ -248,7 +259,8 @@ class UserController extends BaseController {
 				));
 			//$user->id = 10;
 			//$this->sendmail($user);
-			return Error::success("User location changed" , array("positions" => $final_data));
+			return $final_data;
+			//return Error::success("User location changed" , array("positions" => $final_data));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}

@@ -55,141 +55,22 @@ class BaseController extends Controller {
 	}
 	fwrite($file,$data);
 	}
-	public function rating_edit($rating_id,$rating_amount)
+	public function get_pending_events($journey_id,$event_ids)
 	{
-		$rating = Rating::where('rating_id','=',$rating_id)->first();
-		if (strcmp($rating->to_type, "driver")==0)
-		{
-			$driver = Driver::where('driver_id','=',$rating->to_id)->first();
-			if (is_null($driver))
-				return Error::make(1,19);
-			$driver_rating = floatval($driver->rating);
-			$number_rating = intval($driver->number_rating);
-			$driver_rating = ($driver_rating*$number_rating-$rating->rating+$rating_amount) / ($number_rating);
-			try {
-			Driver::where('driver_id','=',$driver->driver_id)->update(array(
-				'number_rating' => intval($number_rating),
-				'rating' => $driver_rating,
-				));
-			} 
-			catch (Exception $e) {
-				return Error::make(101,101,$e->getMessage());
+		$events_received = json_decode($event_ids);
+		foreach ($events_received as $event_id) {
+			$event = Event::where('event_id','=',$event_id)->first();
+			if (!is_null($event) && intval($event->journey_id)==$journey_id)
+			{
+				Event::where('event_id','=',$event_id)->delete();
 			}
 		}
-		else if (strcmp($rating->to_type, "user")==0)
-		{
-			$user = User::where('id','=',$rating->to_id)->first();
-			if (is_null($user))
-				return Error::make(1,1);
-			$user_rating = floatval($user->rating);
-			$number_rating = intval($user->number_rating);
-			$user_rating = ($user_rating*$number_rating-$rating->rating+$rating_amount) / ($number_rating);
-			try {
-			User::where('id','=',$user->id)->update(array(
-				'number_rating' => intval($number_rating),
-				'rating' => $user_rating,
-				));
-			} 
-			catch (Exception $e) {
-				return Error::make(101,101,$e->getMessage());
-			}
+		$remaining_events = Event::where('journey_id','=',$journey_id)->get();
+		foreach ($remaining_events as $event) {
+			Event::where('event_id','=',$event->event_id)->delete();
 		}
-		try {
-				Rating::where('rating_id','=',$rating_id)->update(array(
-					'rating' => intval($rating_amount),
-					));
-				return Error::success("Rating saved successfully!" , array());
-			}
-			catch(Exception $e) {
-				return Error::make(101,101,$e->getMessage());
-			}
-	}
-	public function add_rating()
-	{
-		$requirements = ['from_type','to_type','from_id','to_id','rating'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-			return Error::make(0,100,$check);
-		if (strcmp(Input::get('from_type'),Input::get('to_type'))==0 && strcmp(Input::get('from_id'),Input::get('to_id'))==0)
-			return Error::make(1,37);
-		else if (strcmp(Input::get('from_type'),'driver')==0 && strcmp(Input::get('to_type'),'driver')==0)
-			return Error::make(1,39);
-		//Check from type
-		if (strcmp(Input::get('from_type'), 'driver')==0)
-		{
-			$check_driver = Driver::where('driver_id','=',Input::get('from_id'))->first();
-			if (is_null($check_driver))
-				return Error::make(1,19);
-		}
-		else if (strcmp(Input::get('from_type'), 'user')==0)
-		{
-			$check_user = User::where('id','=',Input::get('from_id'))->first();
-			if (is_null($check_user))
-				return Error::make(1,1);
-		}
-		else
-			return Error::make(1,38);
-		$old_rating = Rating::where('from_type','=',Input::get('from_type'))->
-							  where('to_type','=',Input::get('to_type'))->
-							  where('from_id','=',Input::get('from_id'))->
-							  where('to_id','=',Input::get('to_id'))->first();
-		if (!is_null($old_rating))
-			return self::rating_edit($old_rating->rating_id,intval(Input::get('rating')));
-		$rating = new Rating;
-		//$driver->group_id = Input::get('group_id');
-		$rating->from_type=Input::get('from_type');
-		$rating->to_type=Input::get('to_type');
-		$rating->from_id = intval(Input::get('from_id'));
-		$rating->to_id = intval(Input::get('to_id'));
-		$rating->rating = intval(Input::get('rating'));
-		if (strcmp($rating->to_type, "driver")==0)
-		{
-			$driver = Driver::where('driver_id','=',$rating->to_id)->first();
-			if (is_null($driver))
-				return Error::make(1,19);
-			$driver_rating = floatval($driver->rating);
-			$number_rating = intval($driver->number_rating);
-			$driver_rating = ($driver_rating*$number_rating+$rating->rating) / ($number_rating+1);
-			$number_rating = $number_rating+1;
-			try {
-			Driver::where('driver_id','=',$driver->driver_id)->update(array(
-				'number_rating' => intval($number_rating),
-				'rating' => $driver_rating,
-				));
-			} 
-			catch (Exception $e) {
-				return Error::make(101,101,$e->getMessage());
-			}
-		}
-		else if (strcmp($rating->to_type, "user")==0)
-		{
-			$user = User::where('id','=',$rating->to_id)->first();
-			if (is_null($user))
-				return Error::make(1,1);
-			$user_rating = floatval($user->rating);
-			$number_rating = intval($user->number_rating);
-			$user_rating = ($user_rating*$number_rating+$rating->rating) / ($number_rating+1);
-			$number_rating = $number_rating+1;
-			try {
-			User::where('id','=',$user->id)->update(array(
-				'number_rating' => intval($number_rating),
-				'rating' => $user_rating,
-				));
-			} 
-			catch (Exception $e) {
-				return Error::make(101,101,$e->getMessage());
-			}
-		}
-		else
-		{
-			return Error::make(1,35);
-		}
-		try {
-			$rating->save();
-			return Error::success("Rating saved successfully!" , array());
-		} catch (Exception $e) {
-			return Error::make(101,101,$e->getMessage());
-		}
+		return $remaining_events;
+		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
 	}
 	public function push_test($journey_id)
 	{
@@ -214,6 +95,24 @@ class BaseController extends Controller {
 		return Error::make(0,100,$check);
 		self::send_push(array($journey_id),intval(Input::get('msgcode')),$data);
 	}
+	public function add_event($journey_id,$msgcode,$data,$message)
+	{
+		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		$group_id = $journey->group_id;
+		$event = new Event;
+		//$driver->group_id = Input::get('group_id');
+		$event->journey_id=$journey_id;
+		$event->group_id=$group_id;
+		$event->message_code = $msgcode;
+		$event->message = $message;
+		$event->data = json_encode($data);
+		try {
+			$event->save();
+			return $event->id;
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+	}
 	public function send_push($journey_ids,$msgcode,$data)
 	{
 		$message_data = array(
@@ -231,6 +130,8 @@ class BaseController extends Controller {
 				$data['journey_id']=$journey_id1;
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
+				$event_id = self::add_event($journey_id,$msgcode,$data,$message);
+				$data['event_id']=$event_id;
 				$uMsg = array();
 				$uMsg['type'] = $msgcode;
 				$uMsg['data'] = $data;
@@ -244,7 +145,8 @@ class BaseController extends Controller {
     			$success = $push->getAdapter()->getResponse();
 				}
 	            $log_data = print_r($success,true);
-	            	self::log_data($log_data);
+	            self::log_data($log_data);
+	            
 	            }
 	            catch (Exception $e)
 	            {

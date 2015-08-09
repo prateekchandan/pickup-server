@@ -165,6 +165,17 @@ class AddingDatabase extends Migration {
 			//$table->longtext('accept_third');
 			$table->timestamps();
 		});
+		Schema::create('events', function(Blueprint $table)
+		{
+			$table->increments('event_id');
+			$table->integer('group_id');
+			$table->integer('journey_id');
+			$table->longtext('data');
+			$table->integer('message_code');
+			$table->longtext('message');
+			//$table->longtext('accept_third');
+			$table->timestamps();
+		});
 		DB::table('users')->insert(
         array(
             'email' => 'name@domain.com',
