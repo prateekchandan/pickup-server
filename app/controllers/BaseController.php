@@ -130,7 +130,7 @@ class BaseController extends Controller {
 				$data['journey_id']=$journey_id1;
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
-				$event_id = self::add_event($journey_id,$msgcode,$data,$message);
+				$event_id = self::add_event($journey_id1,$msgcode,$data,$message);
 				$data['event_id']=$event_id;
 				$uMsg = array();
 				$uMsg['type'] = $msgcode;
