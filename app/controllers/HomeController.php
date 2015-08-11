@@ -358,7 +358,7 @@ class HomeController extends BaseController {
 			return Error::make(1,1);
 		}
 		$group->path=null;
-		return Error::success("Group Details..",$group);
+		return Error::success("Group Details..",array('group'=>$group);
 	}
 
 	public function generate_group_path($group_id)
