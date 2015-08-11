@@ -12,6 +12,7 @@ class AddingDatabase extends Migration {
 	 */
 	public function up()
 	{
+		Schema::dropIfExists('events');
 		Schema::dropIfExists('ratings');
 		Schema::dropIfExists('drivers');
 		Schema::dropIfExists('groups');
