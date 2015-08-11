@@ -112,6 +112,8 @@ class DriverController extends BaseController {
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
 			self::send_push($people_so_far,14,$push_data);
 		}
+		else
+			return Error::success("Person already in the car!",array('journey_id'=>$journey_id));
 		try {
 			if (sizeof($people_on_ride)==1)
 				$status = "started";
