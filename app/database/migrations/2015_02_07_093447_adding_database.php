@@ -145,10 +145,12 @@ class AddingDatabase extends Migration {
 			$table->string('car_number',200)->nullable();
 			$table->string('registration_id',1000)->nullable();
 			$table->string('driver_status',200)->default("vacant");
+			$table->string('phone_status',200)->default("dead");
 			$table->integer('group_id')->unsigned()->nullable();
 			$table->foreign('group_id')->references('group_id')->on('groups')->onDelete('set null');
 			$table->double('rating')->default(0);
 			$table->integer('number_rating')->default(0);
+			$table->dateTime('last_ping');
 			$table->timestamps();
 			$table->rememberToken();
 

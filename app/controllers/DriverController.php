@@ -45,6 +45,7 @@ class DriverController extends BaseController {
 		$driver->driver_name = Input::get('driver_name');
 		$driver->images = json_encode(array('profile_picture'=>"",'address_proof'=>"",
 											'license'=>""));
+		$driver->last_ping = date('Y-m-d G:i:s', time());
 		try {
 			$driver->save();
 			return Error::success("Driver successfully added" , array("driver_id" => $driver->id));
@@ -144,6 +145,18 @@ class DriverController extends BaseController {
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if(is_null($driver)){
 			return Error::make(1,19);
+		}
+		if (strcmp($driver->phone_status, 'dead')==0)
+		{
+			$driver->phone_status='alive';
+			try {
+				Driver::where('driver_id','=',$driver_id)->update(array(
+					'phone_status' => 'alive',
+					));
+			} 
+			catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+			}
 		}
 		$requirements = ['position'];
 		$check  = self::check_requirements($requirements);
@@ -257,7 +270,12 @@ class DriverController extends BaseController {
 		}
 		try {
 			if (sizeof($corresponding_ids)==0)
+			{
 				$status="completed";
+				Driver::where('driver_id','=',$driver_id)->update(array(
+				'driver_status' => 'vacant',
+				));
+			}
 			Group::where('group_id','=',$driver->group_id)->update(array(
 				'people_on_ride' => json_encode($corresponding_ids),
 				'event_status' => $status,
@@ -276,6 +294,16 @@ class DriverController extends BaseController {
 	}
 	public function allocate_driver()
 	{
+		$alive_drivers = Driver::where('phone_status','=','alive')->get();
+		foreach ($alive_drivers as $alive) {
+			if (time()-strtotime($alive->last_ping)>900)
+			{
+				Driver::where('driver_id','=',$alive->driver_id)->update(array(
+						'phone_status' => 'dead',
+						));
+			}
+		}
+		
 		$drivers_occupied_now=array();
 		$t1 = date('Y-m-d G:i:s',time()+900);
 		$t2 = date('Y-m-d G:i:s',time());
@@ -284,7 +312,7 @@ class DriverController extends BaseController {
 		
 		foreach ($groups as $group)
 		{
-			$drivers = Driver::where('driver_status','=','vacant')->get();
+			$drivers = Driver::where('driver_status','=','vacant')->where('phone_status','=','alive')->get();
 			$path = json_decode($group->path_waypoints);
 
 			$start_lat = $path->startwaypoints[0][0];
