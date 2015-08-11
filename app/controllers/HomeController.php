@@ -355,7 +355,7 @@ class HomeController extends BaseController {
 	{
 		$group = Group::where('group_id','=',$group_id)->first();
 		if(is_null($group)){
-			return Error::make(1,1);
+			return Error::make(1,17);
 		}
 		$group->path=null;
 		return Error::success("Group Details..",array('group'=>$group));

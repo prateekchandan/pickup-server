@@ -59,15 +59,15 @@ class BaseController extends Controller {
 	{
 		$events_received = json_decode($event_ids);
 		foreach ($events_received as $event_id) {
-			$event = Event::where('event_id','=',$event_id)->first();
+			$event = PendingEvent::where('event_id','=',$event_id)->first();
 			if (!is_null($event) && intval($event->journey_id)==$journey_id)
 			{
-				Event::where('event_id','=',$event_id)->delete();
+				PendingEvent::where('event_id','=',$event_id)->delete();
 			}
 		}
 		$remaining_events = Event::where('journey_id','=',$journey_id)->get();
 		foreach ($remaining_events as $event) {
-			Event::where('event_id','=',$event->event_id)->delete();
+			PendingEvent::where('event_id','=',$event->event_id)->delete();
 		}
 		return $remaining_events;
 		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
@@ -99,7 +99,7 @@ class BaseController extends Controller {
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		$group_id = $journey->group_id;
-		$event = new Event;
+		$event = new PendingEvent;
 		//$driver->group_id = Input::get('group_id');
 		$event->journey_id=$journey_id;
 		$event->group_id=$group_id;
