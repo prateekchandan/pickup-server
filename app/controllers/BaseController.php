@@ -65,7 +65,7 @@ class BaseController extends Controller {
 				PendingEvent::where('event_id','=',$event_id)->delete();
 			}
 		}
-		$remaining_events = Event::where('journey_id','=',$journey_id)->get();
+		$remaining_events = PendingEvent::where('journey_id','=',$journey_id)->get();
 		foreach ($remaining_events as $event) {
 			PendingEvent::where('event_id','=',$event->event_id)->delete();
 		}
