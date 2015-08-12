@@ -161,8 +161,18 @@ class DriverController extends BaseController {
 		$driver['message']="ok";
 		return $driver;
 	}
-
-	public function modify_location($driver_id=0)
+	public function driver_periodic_route($driver_id)
+	{
+		$requirements = ['position','event_ids'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$positions = self::modify_location($driver_id,Input::get('position'));
+		$pending_events = self::driver_get_pending_events($driver_id,Input::get('event_ids'));
+		return Error::success('periodic data',array('positions'=>$positions,
+													'pending_events'=>$pending_events));
+	}
+	public function modify_location($driver_id=0,$position)
 	{
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if(is_null($driver)){
@@ -173,6 +183,7 @@ class DriverController extends BaseController {
 			$driver->phone_status='alive';
 			try {
 				Driver::where('driver_id','=',$driver_id)->update(array(
+					'last_ping' =>  date('Y-m-d G:i:s', time()),
 					'phone_status' => 'alive',
 					));
 			} 
@@ -180,11 +191,7 @@ class DriverController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 			}
 		}
-		$requirements = ['position'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-			return Error::make(0,100,$check);
-		$new_coordinate_array = explode(',',Input::get('position'));
+		$new_coordinate_array = explode(',',$position);
 		$old_coordinate_array = explode(',',$driver->current_pos);
 		$distance_increment = self::distance(floatval($new_coordinate_array[0]),
 											floatval($new_coordinate_array[1]),
@@ -223,7 +230,7 @@ class DriverController extends BaseController {
 		
 		try {
 			Driver::where('driver_id','=',$driver_id)->update(array(
-				'current_pos' => Input::get('position'),
+				'current_pos' => $position,
 				));
 			//$user->id = 10;
 			//$this->sendmail($user);
@@ -357,6 +364,8 @@ class DriverController extends BaseController {
 			{
 				$people_so_far=json_decode($group->journey_ids);
 				self::send_push($people_so_far,11,array('driver_id'=>$closest_driver_id));
+				self::driver_send_push(array($closest_driver_id),16,array('group_id'=>$group->group_id));
+				
 				/*
 				foreach ($people_so_far as $journey_id1) {
 				$journey_details = Journey::where('journey_id','=',$journey_id1)->first();

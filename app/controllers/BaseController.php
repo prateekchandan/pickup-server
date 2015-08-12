@@ -47,7 +47,7 @@ class BaseController extends Controller {
 	}
 	public function log_data($data)
 	{
-	$file = fopen("/root/cronlog.txt",'a');
+	$file = fopen("/home/kalpesh/cronlog.txt",'a');
 	fwrite($file,$data);
 	if($data != ""){
         $t = date("Y-m-d G:i:s",time());
@@ -68,6 +68,23 @@ class BaseController extends Controller {
 		$remaining_events = PendingEvent::where('journey_id','=',$journey_id)->get();
 		foreach ($remaining_events as $event) {
 			PendingEvent::where('event_id','=',$event->event_id)->delete();
+		}
+		return $remaining_events;
+		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
+	}
+	public function driver_get_pending_events($driver_id,$event_ids)
+	{
+		$events_received = json_decode($event_ids);
+		foreach ($events_received as $event_id) {
+			$event = DriverEvent::where('event_id','=',$event_id)->first();
+			if (!is_null($event) && intval($event->driver_id)==$driver_id)
+			{
+				DriverEvent::where('event_id','=',$event_id)->delete();
+			}
+		}
+		$remaining_events = DriverEvent::where('driver_id','=',$driver_id)->get();
+		foreach ($remaining_events as $event) {
+			DriverEvent::where('event_id','=',$event->event_id)->delete();
 		}
 		return $remaining_events;
 		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
@@ -112,6 +129,59 @@ class BaseController extends Controller {
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
+	}
+	public function add_driver_event($driver_id,$msgcode,$data,$message)
+	{
+		$event = new DriverEvent;
+		//$driver->group_id = Input::get('group_id');
+		$event->driver_id=$driver_id;
+		$event->message_code = $msgcode;
+		$event->message = $message;
+		$event->data = json_encode($data);
+		try {
+			$event->save();
+			return $event->id;
+		} catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+	}
+	public function driver_send_push($driver_ids,$msgcode,$data)
+	{
+		$message_data = array(
+								16=>"Alloted to a new group!",
+								17=>"Person left the group!",
+								18=>"New user has joined!",
+				);
+		$message = $message_data[$msgcode];
+		$data['time']=time();
+		$data['driver_id']=0;
+		foreach ($driver_ids as $driver_id1) {
+				$data['driver_id']=$driver_id1;
+				$driver = Driver::where('driver_id' , '=',$driver_id1)->first();
+				$event_id = self::add_driver_event($driver_id1,$msgcode,$data,$message);
+				$data['event_id']=$event_id;
+				$uMsg = array();
+				$uMsg['type'] = $msgcode;
+				$uMsg['data'] = $data;
+				$uMsg['message'] = $message;
+				try {
+				//Notifying all existing users about new guy
+				$collection = PushNotification::app('Pickup')
+	            	->to($driver->registration_id)
+	            	->send(json_encode($uMsg));
+	            foreach ($collection->pushManager as $push) {
+    			$success = $push->getAdapter()->getResponse();
+				}
+	            $log_data = print_r($success,true);
+	            self::log_data($log_data);
+	            
+	            }
+	            catch (Exception $e)
+	            {
+	            	self::log_data(json_encode(Error::make(101,101,$e->getMessage())));
+	            }
+	            
+			}
 	}
 	public function send_push($journey_ids,$msgcode,$data)
 	{

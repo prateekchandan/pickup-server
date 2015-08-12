@@ -12,6 +12,7 @@ class AddingDatabase extends Migration {
 	 */
 	public function up()
 	{
+		Schema::dropIfExists('driver_events');
 		Schema::dropIfExists('events');
 		Schema::dropIfExists('ratings');
 		Schema::dropIfExists('drivers');
@@ -173,6 +174,16 @@ class AddingDatabase extends Migration {
 			$table->increments('event_id');
 			$table->integer('group_id');
 			$table->integer('journey_id');
+			$table->longtext('data');
+			$table->integer('message_code');
+			$table->longtext('message');
+			//$table->longtext('accept_third');
+			$table->timestamps();
+		});
+		Schema::create('driver_events', function(Blueprint $table)
+		{
+			$table->increments('event_id');
+			$table->integer('driver_id');
 			$table->longtext('data');
 			$table->integer('message_code');
 			$table->longtext('message');

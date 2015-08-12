@@ -425,6 +425,12 @@ class HomeController extends BaseController {
 			$people_so_far=json_decode($group->journey_ids);
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name,
 								'fbid'=>$new_user->fbid);
+			if (!is_null($group->driver_id))
+			{
+				self::driver_send_push(array(intval($group->driver_id)),18,array('user_id'=>intval($journey->id),
+																			'user_name'=>$new_user->first_name,
+																			'group_id'=>$group->group_id));
+			}
 			self::send_push($people_so_far,10,$push_data);
 			$mates=array();
 			foreach ($people_so_far as $mate_id) {
@@ -831,6 +837,13 @@ class HomeController extends BaseController {
 		}
 		if (sizeof($people_so_far)==0)
 		{
+			if (!is_null($group->driver_id))
+			{
+				Driver::where('driver_id','=',$group->driver_id)->update(array(
+					'driver_status'=>'vacant',
+					'group_id'=>NULL,
+					));
+			}
 			Group::where('group_id','=',$group->group_id)->delete();
 			//Notify Driver
 		}
@@ -840,12 +853,20 @@ class HomeController extends BaseController {
 				'journey_ids' => json_encode($people_so_far),
 				'path_waypoints' => json_encode($path),
 			));
+			if (!is_null($group->driver_id))
+			{
+				self::driver_send_push(array(intval($group->driver_id)),17,array('user_id'=>intval($journey->id),
+																			'user_name'=>$user->first_name,
+																			'group_id'=>$group->group_id));
+			}
+			
 		}
 		Journey::where("journey_id","=",$journey_id)->update(array(
 				'group_id'=>-1,
 			));
 		self::generate_group_path($group->group_id);
 		$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
+
 		self::send_push($people_so_far,13,$push_data);
 		return Error::success("Journey Cancelled successfully!!",array('journey_id'=>intval($journey_id)));
 	}

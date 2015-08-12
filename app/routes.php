@@ -38,7 +38,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('cancel_journey/{id}','HomeController@cancel_journey');
 	Route::post('add_driver', array('as' => 'driver.add', 'uses' => 'DriverController@add'));
 	Route::post('add_group_to_driver/{id}', array('as' => 'driver.add_group', 'uses' => 'DriverController@give_driver_group'));
-	Route::post('driver_modify_location/{id}','DriverController@modify_location');
+	//Route::post('driver_modify_location/{id}','DriverController@modify_location');
 	Route::get('group_enlist/{id}','DriverController@group_enlist');
 	Route::post('end_journey/{id}','DriverController@end_journey');
 	Route::get('allocate_driver','DriverController@allocate_driver');
@@ -53,7 +53,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('add_rating','RatingController@add_rating');
 	Route::post('periodic_route/{id}','UserController@periodic_route');
 	Route::post('driver_register_gcm', 'DriverController@driver_gcm_add');
-	
+	Route::post('driver_periodic_route/{id}','DriverController@driver_periodic_route');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 
