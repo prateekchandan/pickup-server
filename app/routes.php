@@ -52,6 +52,8 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('driver_login','DriverController@driver_login');
 	Route::post('add_rating','RatingController@add_rating');
 	Route::post('periodic_route/{id}','UserController@periodic_route');
+	Route::post('driver_register_gcm', 'DriverController@driver_gcm_add');
+	
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 

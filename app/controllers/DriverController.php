@@ -31,6 +31,28 @@ class DriverController extends BaseController {
 			return $miles;
 		}
 	}
+	public function driver_gcm_add(){
+		$requirements = ['reg_id' , 'driver_id'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+			return Error::make(0,100,$check);
+		$driver = Driver::where('driver_id','=',intval(Input::get('driver_id')))->first();
+		//$user = User::find(Input::get('driver_id'));
+		if(is_null($driver)){
+			return Error::make(1,19);
+		}
+		$driver->registration_id = Input::get('reg_id');
+		try {
+			Driver::where('driver_id','=',intval(Input::get('driver_id')))->update(array(
+				'registration_id' => $driver->registration_id,
+				));
+			return Error::success("Registration ID successfully added");
+		}
+		catch (Exception $e) {
+			return Error::make(101,101,$e->getMessage());
+		}
+		
+	}
 	public function add()
 	{
 		$requirements = ['driver_name','phone','username','password'];
