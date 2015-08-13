@@ -94,6 +94,14 @@ class BaseController extends Controller {
 		$requirements = ['msgcode'];
 		$check  = self::check_requirements($requirements);
 		$data = array();
+		$isdriver = 0;
+		$group_id = Group::first();
+		
+		if(is_null($group_id))
+			$group_id = 1;
+		else
+			$group_id = $group_id->group_id;
+
 		switch(intval(Input::get('msgcode')))
 		{
 			case 10:
@@ -107,10 +115,27 @@ class BaseController extends Controller {
 			case 11:
 			case 12:
 			$data = array('driver_id'=>1);
+			break;
+			case 16:
+				$isdriver = 1;
+				$data = array('group_id'=>$group_id);
+				break;
+			case 17:
+				$isdriver = 1;
+				$data = array('user_id'=>1,'user_name'=>'Meet Udeshi','fbid'=>'11323','group_id'=>$group_id);
+				break;
+			case 18:
+				$isdriver = 1;
+				$data = array('user_id'=>1,'user_name'=>'Meet Udeshi','fbid'=>'11323','group_id'=>$group_id);
+				break;
 		}
 		if($check)
-		return Error::make(0,100,$check);
-		self::send_push(array($journey_id),intval(Input::get('msgcode')),$data);
+			return Error::make(0,100,$check);
+
+		if($isdriver == 0)
+			self::send_push(array($journey_id),intval(Input::get('msgcode')),$data);
+		else
+			self::driver_send_push(array($journey_id),intval(Input::get('msgcode')),$data);
 	}
 	public function add_event($journey_id,$msgcode,$data,$message)
 	{
