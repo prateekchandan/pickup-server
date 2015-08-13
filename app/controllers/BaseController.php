@@ -47,7 +47,7 @@ class BaseController extends Controller {
 	}
 	public function log_data($data)
 	{
-	$file = fopen("/home/kalpesh/cronlog.txt",'a');
+	$file = fopen(storage_path()."/logs/cronlog.txt",'a');
 	fwrite($file,$data);
 	if($data != ""){
         $t = date("Y-m-d G:i:s",time());
