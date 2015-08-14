@@ -1,2 +1,2 @@
 Laravel development server started on http://0.0.0.0:8002
-[Wed Aug 12 23:59:53 2015] Failed to listen on 0.0.0.0:8002 (reason: Address already in use)
+[Sat Aug 15 02:16:49 2015] PHP Parse error:  syntax error, unexpected ',', expecting ']' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 135

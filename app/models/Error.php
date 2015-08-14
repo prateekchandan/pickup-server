@@ -41,6 +41,7 @@ class Error{
 		'37' => 'You cannot rate yourself!',
 		'38' => 'from_type must have value user or driver',
 		'39' => 'driver cannot rate another driver!',
+		'40' => 'driver vacant currently',
 		);
 
 	// Error type

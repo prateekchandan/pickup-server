@@ -112,7 +112,35 @@ class DriverController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
-
+	public function get_detailed_group($driver_id)
+	{
+		$driver = Driver::where('driver_id','=',$driver_id)->first();
+		$final_data = array();
+		if (is_null($driver))
+			return Error::make(1,19);
+		if (is_null($driver->group_id))
+			return Error::make(1,40);
+		else
+		{
+			$group = Group::where('group_id','=',$driver->group_id)->first();
+			$group->path=NULL;
+			$final_data['group_details'] = $group;
+			$final_data['journey_details'] = array();
+			$final_data['user_details'] = array();
+			foreach (json_decode($group->journey_ids) as $journey_id) {
+				$journey = Journey::where('journey_id','=',$journey_id)->first();
+				$journey->path=NULL;
+				$journey->path2=NULL;
+				$journey->path3=NULL;
+				array_push($final_data['journey_details'], $journey);
+				$user = User::where('id','=',$journey->id)->first();
+				$user->home_to_office=NULL;
+				$user->office_to_home=NULL;
+				array_push($final_data['user_details'], $user);
+			}
+			return Error::success('Details of journey',array('final_data'=>$final_data));
+		}
+	}
 	public function picked_up_person($group_id)
 	{
 		$requirements = ['journey_id'];

@@ -54,6 +54,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('periodic_route/{id}','UserController@periodic_route');
 	Route::post('driver_register_gcm', 'DriverController@driver_gcm_add');
 	Route::post('driver_periodic_route/{id}','DriverController@driver_periodic_route');
+	Route::get('get_detailed_group/{id}','DriverController@get_detailed_group');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 
