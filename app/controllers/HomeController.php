@@ -478,6 +478,16 @@ class HomeController extends BaseController {
 			try {
 				$group->save();
 				self::generate_group_path($group->id);
+				$driver = Driver::where('driver_id','=',1)->first();
+				if (!is_null($driver))
+				{
+					Driver::where('driver_id','=',1)->update(array(
+					'group_id' => NULL,
+					'driver_status' => 'vacant',
+					'phone_status' => 'alive',
+				));
+					$data = file_get_contents("http://pickup.prateekchandan.me/allocate_driver?key=9f83c32cf3c9d529e");
+				}
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'group_id' => $group->id,
 				));
@@ -488,6 +498,7 @@ class HomeController extends BaseController {
 					'group_id'=>$group->id,
 					'group' => $group,
 				));
+
 			} catch (Exception $e) {
 				return Error::make(101,101,$e->getMessage());
 			}
