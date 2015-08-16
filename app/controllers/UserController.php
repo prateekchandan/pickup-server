@@ -210,6 +210,7 @@ class UserController extends BaseController {
 		$journey = Journey::where('id','=',$user_id)->orderBy('journey_time','desc')->get()[0];
 		if (is_null($journey))
 			return Error::make(1,1);
+		echo "yolo2";
 		$positions = self::modify_location($user_id,Input::get('position'));
 		echo "yolo";
 		$pending_events = self::get_pending_events($journey->journey_id,Input::get('event_ids'));
