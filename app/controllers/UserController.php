@@ -207,12 +207,11 @@ class UserController extends BaseController {
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
-		$journey = Journey::where('id','=',$user_id)->orderBy('journey_time','desc')->get()[0];
+		$journey = Journey::where('id','=',$user_id)->orderBy('journey_time','desc')->get();
 		if (is_null($journey))
 			return Error::make(1,1);
-		echo "yolo2";
+		$journey = $journey[0];
 		$positions = self::modify_location($user_id,Input::get('position'));
-		echo "yolo";
 		$pending_events = self::get_pending_events($journey->journey_id,Input::get('event_ids'));
 		return Error::success('periodic data',array('positions'=>$positions,
 													'pending_events'=>$pending_events));
