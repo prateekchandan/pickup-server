@@ -157,9 +157,6 @@ class DriverController extends BaseController {
 		if (!in_array($journey_id, $people_on_ride))
 		{
 			array_push($people_on_ride, $journey_id);
-			if (($key = array_search($journey_id, $people_so_far)) !== false) {
-    		array_splice($people_so_far, $key, 1);
-			}
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			$user = User::where('id','=',$journey->id)->first();
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
