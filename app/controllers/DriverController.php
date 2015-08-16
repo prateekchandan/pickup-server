@@ -149,6 +149,8 @@ class DriverController extends BaseController {
 			return Error::make(0,100,$check);
 		$journey_id = intval(Input::get('journey_id'));
 		$group = Group::where('group_id','=',$group_id)->first();
+		if (is_null($group))
+			return Error::make(1,17);
 		$people_so_far = json_decode($group->journey_ids);
 		$people_on_ride = json_decode($group->people_on_ride);
 		$status = $group->event_status;
