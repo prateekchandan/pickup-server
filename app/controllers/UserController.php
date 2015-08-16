@@ -211,6 +211,7 @@ class UserController extends BaseController {
 		if (is_null($journey))
 			return Error::make(1,1);
 		$positions = self::modify_location($user_id,Input::get('position'));
+		echo "yolo";
 		$pending_events = self::get_pending_events($journey->journey_id,Input::get('event_ids'));
 		return Error::success('periodic data',array('positions'=>$positions,
 													'pending_events'=>$pending_events));
