@@ -208,7 +208,7 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 		$journey = Journey::where('id','=',$user_id)->orderBy('journey_time','desc')->get();
-		if (is_null($journey))
+		if (is_null($journey) || sizeof($journey)==0)
 			return Error::make(1,1);
 		$journey = $journey[0];
 		$positions = self::modify_location($user_id,Input::get('position'));
