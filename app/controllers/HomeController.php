@@ -485,7 +485,11 @@ class HomeController extends BaseController {
 					'group_id' => NULL,
 					'driver_status' => 'vacant',
 					'phone_status' => 'alive',
-				));
+					));
+					Group::where('driver_id','=',1)->update(array(
+					'driver_id' => NULL,
+					));
+
 					$data = file_get_contents("http://pickup.prateekchandan.me/allocate_driver?key=9f83c32cf3c9d529e");
 				}
 				Journey::where('journey_id','=',$journey_id)->update(array(
