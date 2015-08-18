@@ -13,6 +13,15 @@
 
 App::before(function($request)
 {
+	$data = json_encode(Input::all());
+	$file = fopen("/root/route_logs.txt",'a');
+	fwrite($file,Request::path()."\n\n");
+	fwrite($file,$data);
+	if($data != ""){
+        $t = date("Y-m-d G:i:s",time());
+        $data ="\nFound matches at at ".$t."\n----------------------------------\n\n";
+	}
+	fwrite($file,$data);
 	
 });
 

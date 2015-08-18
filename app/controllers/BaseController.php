@@ -43,7 +43,6 @@ class BaseController extends Controller {
         $data ="\nFound matches at at ".$t."\n----------------------------------\n\n";
 	}
 	fwrite($file,$data);
-
 	}
 	public function log_data($data)
 	{
