@@ -300,20 +300,21 @@ class DriverController extends BaseController {
 		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
 		return $jsonobject;
 	}
-	public function end_journey($driver_id=0)
+	public function end_journey($group_id=0)
 	{
 		$requirements = ['journey_id'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
 		$journey_id=intval(Input::get('journey_id'));
+		$group = Group::where('group_id','=',$group_id)->first();
+		if(is_null($group) || is_null($group->driver_id)){
+			return Error::make(1,18);
+		}
+		$driver_id = intval($group->driver_id);
 		$driver = Driver::where('driver_id','=',$driver_id)->first();
 		if(is_null($driver)){
 			return Error::make(1,10);
-		}
-		$group = Group::where('group_id','=',$driver->group_id)->first();
-		if(is_null($group)){
-			return Error::make(1,18);
 		}
 		$status=$group->event_status;
 		$corresponding_ids=json_decode($group->people_on_ride);
@@ -332,7 +333,7 @@ class DriverController extends BaseController {
 				'driver_status' => 'vacant',
 				));
 			}
-			Group::where('group_id','=',$driver->group_id)->update(array(
+			Group::where('group_id','=',$group_id)->update(array(
 				'people_on_ride' => json_encode($corresponding_ids),
 				'event_status' => $status,
 				));
