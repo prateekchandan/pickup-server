@@ -832,7 +832,10 @@ class HomeController extends BaseController {
 		$group = Group::where('group_id','=',intval($journey->group_id))->first();
 		if(is_null($group))
 			return Error::make(1,17);
-
+		$completed = json_decode($group->completed);
+		if (in_array($journey_id, $completed)) {
+			return Error::make(1,42);
+		}
 		$people_on_ride = json_decode($group->people_on_ride);
 		if (in_array($journey_id, $people_on_ride)) {
 			return Error::success("You can't cancel the ride now!",array('journey_id'=>intval($journey_id)));

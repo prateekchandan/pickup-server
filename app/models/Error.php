@@ -43,6 +43,7 @@ class Error{
 		'39' => 'driver cannot rate another driver!',
 		'40' => 'driver vacant currently',
 		'41' => 'User has completed his ride!',
+		'42' => 'Journey already completed!',
 		);
 
 	// Error type
