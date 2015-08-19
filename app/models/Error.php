@@ -42,6 +42,7 @@ class Error{
 		'38' => 'from_type must have value user or driver',
 		'39' => 'driver cannot rate another driver!',
 		'40' => 'driver vacant currently',
+		'41' => 'User has completed his ride!',
 		);
 
 	// Error type

@@ -154,6 +154,9 @@ class DriverController extends BaseController {
 		$people_so_far = json_decode($group->journey_ids);
 		$people_on_ride = json_decode($group->people_on_ride);
 		$status = $group->event_status;
+		$completed = json_decode($group->completed);
+		if (in_array($journey_id, $completed))
+			Error::make(1,41);
 		if (!in_array($journey_id, $people_on_ride))
 		{
 			array_push($people_on_ride, $journey_id);
@@ -319,9 +322,11 @@ class DriverController extends BaseController {
 		$status=$group->event_status;
 		$corresponding_ids=json_decode($group->people_on_ride);
 		$people_so_far=json_decode($group->journey_ids);
+		$completed=json_decode($group->completed);
 		if (!in_array($journey_id, $corresponding_ids)) {
 			return Error::make(1,20); 
 		}
+		array_push($completed, $journey_id);
 		if (($key = array_search($journey_id, $corresponding_ids)) !== false) {
 			array_splice($corresponding_ids, $key, 1);
 		}
@@ -336,6 +341,7 @@ class DriverController extends BaseController {
 			Group::where('group_id','=',$group_id)->update(array(
 				'people_on_ride' => json_encode($corresponding_ids),
 				'event_status' => $status,
+				'completed' => json_encode($completed),
 				));
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			$user = User::where('id','=',$journey->id)->first();

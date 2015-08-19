@@ -468,6 +468,7 @@ class HomeController extends BaseController {
 			$group = new Group;
 			$group->journey_ids = json_encode(array(intval($journey_id),));
 			$group->people_on_ride = json_encode(array());
+			$group->completed = json_encode(array());
 			$group->journey_time = $journey->journey_time;
 			$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
 			// 0 is NO
@@ -830,7 +831,7 @@ class HomeController extends BaseController {
 		$user = User::where('id','=',$journey->id)->first();
 		$group = Group::where('group_id','=',intval($journey->group_id))->first();
 		if(is_null($group))
-			return Error::make(1,11);
+			return Error::make(1,17);
 
 		$people_on_ride = json_decode($group->people_on_ride);
 		if (in_array($journey_id, $people_on_ride)) {
