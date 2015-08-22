@@ -3,7 +3,7 @@ class CostCalc {
 	public static function calculate($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
-		$group = Group::where('group_id','=',$group_id)->first();
+		$group = Group::where('group_id','=',$journey->group_id)->first();
 		$event_sequence = json_decode($group->event_sequence);
 		$app_distance = floatval($journey->distance_travelled_app);
 		$address = "https://maps.googleapis.com/maps/api/directions/json?origin=".$journey->pickup_location."&destination=$journey->drop_location&waypoints=";
@@ -27,8 +27,8 @@ class CostCalc {
 		$google_exact=0;
 		foreach($address->routes[0]->legs as $leg)
 			$google_exact+=$leg->distance->value;
-		$distance = $app_distance*$google_shortest/$google_exact;
+		$distance = $app_distance*$google_shortest/($google_exact*1000);
 		$fare = 35+6*$distance;
-		return $distance;
+		return intval($fare);
 	}
 };

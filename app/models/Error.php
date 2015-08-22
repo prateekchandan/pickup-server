@@ -44,6 +44,7 @@ class Error{
 		'40' => 'driver vacant currently',
 		'41' => 'User has completed his ride!',
 		'42' => 'Journey already completed!',
+		'43' => 'Error calculating fare!',
 		);
 
 	// Error type

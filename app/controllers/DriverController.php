@@ -358,15 +358,24 @@ class DriverController extends BaseController {
 				'drop_location' => Input::get('drop_location'),
 				'distance_travelled_app' => floatval(Input::get('app_distance')),
 				));
-			$fare = CostCalc::calculate($journey_id);
-			
+			$fare=0;
+			try
+			{
+				$fare = CostCalc::calculate($journey_id);
+			}
+			catch(Exception $e){
+				Error::make(1,43);
+			}
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'fare'=>$fare,
+				));
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			$user = User::where('id','=',$journey->id)->first();
-			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
+			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name,'fare'=>$fare);
 			self::send_push($people_so_far,15,$push_data);
 			//$user->id = 10;
 			//$this->sendmail($user);
-			return Error::success("Person removed" , array("journey_id removed" => intval(Input::get('journey_id'))));
+			return Error::success("Person completed his journey!" , array("journey_id removed" => intval(Input::get('journey_id')),"fare"=>$fare));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}

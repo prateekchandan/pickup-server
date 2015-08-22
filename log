@@ -1,1 +1,2 @@
 Laravel development server started on http://0.0.0.0:8002
+[Sun Aug 23 03:44:17 2015] PHP Parse error:  syntax error, unexpected ';', expecting ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 363
