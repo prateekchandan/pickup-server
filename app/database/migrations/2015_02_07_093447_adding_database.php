@@ -72,10 +72,14 @@ class AddingDatabase extends Migration {
 			$table->string('end_text',300);
 			$table->double('distance');
 			$table->double('time');
+			$table->longtext('pickup_location');
+			$table->longtext('drop_location');
 			$table->longtext('path');
 			$table->longtext('path2')->nullable();
 			$table->longtext('path3')->nullable();
 			$table->double('distance_travelled')->default(0);
+			$table->double('distance_travelled_app')->default(0);
+			$table->double('fare')->default(0);
 			$table->longtext('best_match')->nullable();
 			$table->timestamps();
 		});
@@ -88,6 +92,7 @@ class AddingDatabase extends Migration {
 			$table->longtext('completed');
 			$table->longtext('path_waypoints');
 			$table->longtext('path')->nullable();
+			$table->longtext('event_sequence');
 			$table->longtext('event_status')->nullable();
 			$table->integer('driver_id')->nullable();
 			$table->dateTime('journey_time');
@@ -191,6 +196,7 @@ class AddingDatabase extends Migration {
 			//$table->longtext('accept_third');
 			$table->timestamps();
 		});
+	
 		DB::table('users')->insert(
         array(
             'email' => 'name@domain.com',

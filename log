@@ -1,10 +1,1 @@
 Laravel development server started on http://0.0.0.0:8002
-[Sat Aug 15 02:16:49 2015] PHP Parse error:  syntax error, unexpected ',', expecting ']' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/DriverController.php on line 135
-[Tue Aug 18 21:33:31 2015] PHP Fatal error:  Cannot use object of type Symfony\Component\HttpFoundation\ParameterBag as array in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:35:01 2015] PHP Fatal error:  Cannot use object of type Symfony\Component\HttpFoundation\ServerBag as array in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:35:12 2015] PHP Fatal error:  Cannot use object of type Symfony\Component\HttpFoundation\ServerBag as array in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:35:49 2015] PHP Fatal error:  Cannot access protected property Symfony\Component\HttpFoundation\ServerBag::$parameters in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:37:34 2015] PHP Fatal error:  Cannot use object of type Symfony\Component\HttpFoundation\ServerBag as array in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:37:57 2015] PHP Fatal error:  Cannot access protected property Symfony\Component\HttpFoundation\ServerBag::$parameters in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:39:52 2015] PHP Fatal error:  Cannot use object of type Symfony\Component\HttpFoundation\ParameterBag as array in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16
-[Tue Aug 18 21:40:04 2015] PHP Fatal error:  Cannot access protected property Symfony\Component\HttpFoundation\ParameterBag::$parameters in /home/kalpesh/Projects/Pickup/pickup_server/app/filters.php on line 16

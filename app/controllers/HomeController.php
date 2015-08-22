@@ -469,6 +469,7 @@ class HomeController extends BaseController {
 			$group->journey_ids = json_encode(array(intval($journey_id),));
 			$group->people_on_ride = json_encode(array());
 			$group->completed = json_encode(array());
+			$group->event_sequence = json_encode(array("journey_ids"=>array(),"points"=>array()));
 			$group->journey_time = $journey->journey_time;
 			$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
 			// 0 is NO

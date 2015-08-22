@@ -143,7 +143,7 @@ class DriverController extends BaseController {
 	}
 	public function picked_up_person($group_id)
 	{
-		$requirements = ['journey_id'];
+		$requirements = ['journey_id','pickup_location'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -153,6 +153,7 @@ class DriverController extends BaseController {
 			return Error::make(1,17);
 		$people_so_far = json_decode($group->journey_ids);
 		$people_on_ride = json_decode($group->people_on_ride);
+		$event_sequence = json_decode($group->event_sequence);
 		$status = $group->event_status;
 		$completed = json_decode($group->completed);
 		if (in_array($journey_id, $completed))
@@ -164,6 +165,8 @@ class DriverController extends BaseController {
 			$user = User::where('id','=',$journey->id)->first();
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
 			self::send_push($people_so_far,14,$push_data);
+			array_push($event_sequence->journey_ids,$journey_id);
+			array_push($event_sequence->points,Input::get('pickup_location'));
 		}
 		else
 			return Error::success("Person already in the car!",array('journey_id'=>$journey_id));
@@ -173,6 +176,10 @@ class DriverController extends BaseController {
 			Group::where('group_id','=',$group_id)->update(array(
 				'people_on_ride' => json_encode($people_on_ride),
 				'event_status' => $status,
+				'event_sequence' => json_encode($event_sequence),
+				));
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'pickup_location'=>Input::get('pickup_location'),
 				));
 			} 
 			catch (Exception $e) {
@@ -305,7 +312,7 @@ class DriverController extends BaseController {
 	}
 	public function end_journey($group_id=0)
 	{
-		$requirements = ['journey_id'];
+		$requirements = ['journey_id','drop_location','app_distance'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
@@ -323,6 +330,7 @@ class DriverController extends BaseController {
 		$corresponding_ids=json_decode($group->people_on_ride);
 		$people_so_far=json_decode($group->journey_ids);
 		$completed=json_decode($group->completed);
+		$event_sequence=json_decode($group->event_sequence);
 		if (!in_array($journey_id, $corresponding_ids)) {
 			return Error::make(1,20); 
 		}
@@ -330,6 +338,8 @@ class DriverController extends BaseController {
 		if (($key = array_search($journey_id, $corresponding_ids)) !== false) {
 			array_splice($corresponding_ids, $key, 1);
 		}
+		array_push($event_sequence->journey_ids, $journey_id);
+		array_push($event_sequence->points,Input::get('drop_location'));
 		try {
 			if (sizeof($corresponding_ids)==0)
 			{
@@ -342,7 +352,14 @@ class DriverController extends BaseController {
 				'people_on_ride' => json_encode($corresponding_ids),
 				'event_status' => $status,
 				'completed' => json_encode($completed),
+				'event_sequence' => json_encode($event_sequence),
 				));
+			Journey::where('journey_id','=',$journey_id)->update(array(
+				'drop_location' => Input::get('drop_location'),
+				'distance_travelled_app' => floatval(Input::get('app_distance')),
+				));
+			$fare = CostCalc::calculate($journey_id);
+			
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			$user = User::where('id','=',$journey->id)->first();
 			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
