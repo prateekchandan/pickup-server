@@ -371,8 +371,10 @@ class DriverController extends BaseController {
 				));
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			$user = User::where('id','=',$journey->id)->first();
-			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name,'fare'=>$fare);
-			self::send_push($people_so_far,15,$push_data);
+			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
+			$push_data2 = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name, 'fare'=>$fare);
+			self::send_push(array($journey_id),15,$push_data2);
+			self::send_push($corresponding_ids,15,$push_data);
 			//$user->id = 10;
 			//$this->sendmail($user);
 			return Error::success("Person completed his journey!" , array("journey_id removed" => intval(Input::get('journey_id')),"fare"=>$fare));
