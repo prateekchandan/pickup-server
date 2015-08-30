@@ -12,6 +12,7 @@ class BaseController extends Controller {
 
 	private $privatekey = "PickupMailCheckingYo!";
 
+
 	/**
 	 * Used to check validity of HTTP request input.
 	 *
@@ -31,6 +32,12 @@ class BaseController extends Controller {
 		return false;
 	}
 
+
+	/**
+	 * Laravel core function. Do not disturb.
+	 *
+	 * 
+	*/
 	protected function setupLayout()
 	{
 		if ( ! is_null($this->layout))
@@ -39,15 +46,33 @@ class BaseController extends Controller {
 		}
 	}
 
+
+	/**
+	 * Helper function to encrypt a given string.
+	 *
+	 * @param $string
+	 *		  (string) - String to be encrypted.
+	 * @return (string) base64 encoded encrypted string.
+	*/
 	public function encrypt($string)
 	{		
 		return base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($this->privatekey), $string, MCRYPT_MODE_CBC, md5(md5($this->privatekey))));
 	}
+
+
+	/**
+	 * Helper function to decrypt a given encrypted string.
+	 *
+	 * @param $encrypted
+	 *		  (string) - String to be decrypted.
+	 * @return (string) Corresponding decrypted string.
+	*/
 	public function decrypt($encrypted)
 	{
 		return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($this->privatekey), base64_decode($encrypted), MCRYPT_MODE_CBC, md5(md5($this->privatekey))), "\0");
 		
 	}
+
 
 	/**
 	 * Helper function to log data into match_logs.txt if a match is found.
@@ -70,6 +95,7 @@ class BaseController extends Controller {
 	fwrite($file,$data);
 	}
 
+
 	/**
 	 * Helper function to log data into cronlog.txt with push notification output
 	 * or with outputs of any route executed via cron.
@@ -91,6 +117,7 @@ class BaseController extends Controller {
 	}
 	fwrite($file,$data);
 	}
+
 
 	/**
 	 * Helper function used to get all the events which have not been
@@ -125,6 +152,24 @@ class BaseController extends Controller {
 		return $remaining_events;
 		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
 	}
+
+
+	/**
+	 * Helper function used to get all the events which have not been
+	 * received by the driver.
+	 *
+	 * Used by DriverController::driver_periodic_route() to implement push notification
+	 * backup mechanism. The function receives all event IDs which have been
+	 * received by the driver and deletes these IDs from the storage table.
+	 * It returns the residue event notifications (which weren't received by the
+	 * driver so far) and deletes the same from the events table.
+	 *
+	 * @param $driver_id
+	 *	  	  (integer) - Driver ID of driver for whom periodic_route() is executed.
+	 * @param $event_ids
+	 *		  (integer[]) - Array with all event IDs received by driver so far.
+	 * @return (Object[]) - Array of all pending events.
+	*/
 	public function driver_get_pending_events($driver_id,$event_ids)
 	{
 		$events_received = json_decode($event_ids);
@@ -205,6 +250,26 @@ class BaseController extends Controller {
 		else
 			self::driver_send_push(array($journey_id),intval(Input::get('msgcode')),$data);
 	}
+
+
+	/**
+	 * Used to add user push notification events the to database to implement 
+	 * the backup mechanism for a given journey ID.
+	 *
+	 * Used by send_push(), this function adds entries to the Event table which
+	 * mantains a list of all push notifications for a given journey ID. Executed
+	 * every time send_push() is run.
+	 *
+	 * @param $journey_id
+	 *	  	  (integer) - Journey ID of person for whom we wish to add event.
+	 * @param $msgcode
+	 *		  (integer) - Used to define type of message. Documented under send_push()
+	 * @param $data
+	 *		  (mixed[]) - Set of parameters to be sent alongwith message
+	 * @param $message
+	 *		  (string) - Message corresponding to the given msgcode.
+	 * @return (integer) Event ID of newly created event.
+	*/
 	public function add_event($journey_id,$msgcode,$data,$message)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
@@ -223,6 +288,26 @@ class BaseController extends Controller {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+
+
+	/**
+	 * Used to add driver push notification events the to database to implement 
+	 * the backup mechanism for a given driver ID.
+	 *
+	 * Used by driver_send_push(), this function adds entries to the DriverEvent table which
+	 * mantains a list of all push notifications for a given driver ID. 
+	 * Executed every time send_push() is run.
+	 *
+	 * @param $driver_id
+	 *	  	  (integer) - Driver ID of driver for whom we wish to add event.
+	 * @param $msgcode
+	 *		  (integer) - Used to define type of message. Documented under driver_send_push()
+	 * @param $data
+	 *		  (mixed[]) - Set of parameters to be sent alongwith message.
+	 * @param $message
+	 *		  (string) - Message corresponding to the given msgcode.
+	 * @return (integer) Event ID of newly created event.
+	*/
 	public function add_driver_event($driver_id,$msgcode,$data,$message)
 	{
 		$event = new DriverEvent;
@@ -238,6 +323,34 @@ class BaseController extends Controller {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+
+
+	/**
+	 * Helper function to send push notifications to the driver app.
+	 *
+	 * This function accepts a set of driver IDs and sends GCM push notifications
+	 * to each of them based on the message code.
+	 *  
+	 * The message codes are used as follows:-
+	 * 16=>"Alloted to a new group!"
+	 * 17=>"Person left the group!"
+	 * 18=>"New user has joined!"
+	 *
+	 * Supplementary data such as the driver_id, timestamp, event_id of backup mechanism 
+	 * database have also been added while sending data irrespective of message code.
+	 *
+	 * Status of push notification has been logged appropriately using log_data()
+	 *
+	 * @param $driver_ids
+	 *		  (integer[]) - Array of driver IDs who will receive push notification.
+	 * @param $msgcode
+	 *		  (integer) - Used to define type of message.
+	 * @param $data
+	 *		  (mixed[]) - Set of parameters to be sent alongwith message.
+	 * @param $message
+	 *		  (string) - Message corresponding to the given msgcode.
+	 * @return void
+	*/
 	public function driver_send_push($driver_ids,$msgcode,$data)
 	{
 		$message_data = array(
@@ -276,6 +389,37 @@ class BaseController extends Controller {
 	            
 			}
 	}
+
+
+	/**
+	 * Helper function to send push notifications to the user app.
+	 *
+	 * This function accepts a set of journey IDs and sends GCM push notifications
+	 * to each of the corresponding users based on the message code.
+	 *  
+	 * The message codes are used as follows:-
+	 * 10=>"A new user has just joined!"
+	 * 11=>"Driver allocated!"
+	 * 12=>"Driver is reaching you.."
+	 * 13=>"A User cancelled his journey!"
+	 * 14=>"Picked up person"
+	 * 15=>"Person just finished ride!"
+	 *
+	 * Supplementary data such as the journey_id, timestamp, event_id of backup mechanism 
+	 * database have also been added while sending data irrespective of message code.
+	 *
+	 * Status of push notification has been logged appropriately using log_data()
+	 *
+	 * @param $journey_ids
+	 *		  (integer[]) - Array of journey IDs who will receive push notification.
+	 * @param $msgcode
+	 *		  (integer) - Used to define type of message.
+	 * @param $data
+	 *		  (mixed[]) - Set of parameters to be sent alongwith message.
+	 * @param $message
+	 *		  (string) - Message corresponding to the given msgcode.
+	 * @return void
+	*/
 	public function send_push($journey_ids,$msgcode,$data)
 	{
 		$message_data = array(
@@ -318,8 +462,4 @@ class BaseController extends Controller {
 	            
 			}
 	}
-
-
-	
-
 }
