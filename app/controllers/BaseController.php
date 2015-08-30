@@ -1,14 +1,28 @@
 <?php
-
+/**
+ * BaseController
+ *
+ * Contains all basic functionality used by all Controllers.
+ * Must be inherited by each and every Controller created.
+ *
+ * @author Kalpesh Krishna <kalpeshk2011@gmail.com>
+ * @copyright 2015 Pickup 
+*/
 class BaseController extends Controller {
 
-	/**
-	 * Setup the layout used by the controller.
-	 *
-	 * @return void
-	 */
 	private $privatekey = "PickupMailCheckingYo!";
-	public function check_requirements($requirements){
+
+	/**
+	 * Used to check validity of HTTP request input.
+	 *
+	 * All routes created must validate input using this function.
+	 * This function will throw the approprate error.
+	 *
+	 * @param $requirements
+	 *		  (string[]) - An array containing strings of all required parameters
+	 * @return (string) name of missing parameter, (boolean) false if none.
+	*/
+	public function check_requirements($requirements) {
 
 		foreach ($requirements as $value) {
 			if(!Input::has($value))
@@ -16,7 +30,7 @@ class BaseController extends Controller {
 		}
 		return false;
 	}
-	
+
 	protected function setupLayout()
 	{
 		if ( ! is_null($this->layout))
@@ -34,6 +48,17 @@ class BaseController extends Controller {
 		return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($this->privatekey), base64_decode($encrypted), MCRYPT_MODE_CBC, md5(md5($this->privatekey))), "\0");
 		
 	}
+
+	/**
+	 * Helper function to log data into match_logs.txt if a match is found.
+	 *
+	 * Should be used in the HomeController::get_best_match() function or an
+	 * equivalent function only. Function adds a timestamp alongwith data.
+	 *
+	 * @param $data
+	 *	  	  (string) - JSON encoded data to be written to log file.
+	 * @return void
+	*/
 	public function log_matches($data)
 	{
 	$file = fopen("/root/match_logs.txt",'a');
@@ -44,6 +69,18 @@ class BaseController extends Controller {
 	}
 	fwrite($file,$data);
 	}
+
+	/**
+	 * Helper function to log data into cronlog.txt with push notification output
+	 * or with outputs of any route executed via cron.
+	 *
+	 * Should be used if we wish to log data found in functions within controllers.
+	 * Function adds a timestamp alongwith data.
+	 *
+	 * @param $data
+	 *	  	  (string) - JSON encoded data to be written to log file.
+	 * @return void
+	*/
 	public function log_data($data)
 	{
 	$file = fopen(storage_path()."/logs/cronlog.txt",'a');
@@ -54,6 +91,23 @@ class BaseController extends Controller {
 	}
 	fwrite($file,$data);
 	}
+
+	/**
+	 * Helper function used to get all the events which have not been
+	 * received by the user.
+	 *
+	 * Used by UserController::periodic_route() to implement push notification
+	 * backup mechanism. The function receives all event IDs which have been
+	 * received by the user and deletes these IDs from the storage table.
+	 * It returns the residue event notifications (which weren't received by the
+	 * user so far) and deletes the same from the events table.
+	 *
+	 * @param $journey_id
+	 *	  	  (integer) - Journey ID of person for whom periodic_route() is executed.
+	 * @param $event_ids
+	 *		  (integer[]) - Array with all event IDs received by user so far.
+	 * @return (Object[]) - Array of all pending events.
+	*/
 	public function get_pending_events($journey_id,$event_ids)
 	{
 		$events_received = json_decode($event_ids);
@@ -88,6 +142,21 @@ class BaseController extends Controller {
 		return $remaining_events;
 		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
 	}
+
+	/**
+	 * A function used to send push notifications to the user of a journey_id.
+	 *
+	 * This function has been created to ease the debugging procedure.
+	 * It will send a push notification to a user using his journey_id.
+	 * Choice of message solely decided by message code sent via HTTP request.
+	 * 
+	 * Used by route :-
+	 * Route::get('push_test/{id}','BaseController@push_test')
+	 *
+	 * @param $journey_id
+	 *	  	  (integer) - Journey ID of user to whom the push notification must be sent.
+	 * @return void
+	*/
 	public function push_test($journey_id)
 	{
 		$requirements = ['msgcode'];
