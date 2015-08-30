@@ -150,7 +150,6 @@ class BaseController extends Controller {
 			PendingEvent::where('event_id','=',$event->event_id)->delete();
 		}
 		return $remaining_events;
-		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
 	}
 
 
@@ -185,7 +184,6 @@ class BaseController extends Controller {
 			DriverEvent::where('event_id','=',$event->event_id)->delete();
 		}
 		return $remaining_events;
-		//return Error::success('Remaining events',array('remaining_events'=>$remaining_events));
 	}
 
 	/**
@@ -275,7 +273,6 @@ class BaseController extends Controller {
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		$group_id = $journey->group_id;
 		$event = new PendingEvent;
-		//$driver->group_id = Input::get('group_id');
 		$event->journey_id=$journey_id;
 		$event->group_id=$group_id;
 		$event->message_code = $msgcode;
@@ -311,7 +308,6 @@ class BaseController extends Controller {
 	public function add_driver_event($driver_id,$msgcode,$data,$message)
 	{
 		$event = new DriverEvent;
-		//$driver->group_id = Input::get('group_id');
 		$event->driver_id=$driver_id;
 		$event->message_code = $msgcode;
 		$event->message = $message;
@@ -371,7 +367,6 @@ class BaseController extends Controller {
 				$uMsg['data'] = $data;
 				$uMsg['message'] = $message;
 				try {
-				//Notifying all existing users about new guy
 				$collection = PushNotification::app('Pickup')
 	            	->to($driver->registration_id)
 	            	->send(json_encode($uMsg));
@@ -444,7 +439,6 @@ class BaseController extends Controller {
 				$uMsg['data'] = $data;
 				$uMsg['message'] = $message;
 				try {
-				//Notifying all existing users about new guy
 				$collection = PushNotification::app('Pickup')
 	            	->to($user->registration_id)
 	            	->send(json_encode($uMsg));
@@ -462,4 +456,5 @@ class BaseController extends Controller {
 	            
 			}
 	}
+	
 }
