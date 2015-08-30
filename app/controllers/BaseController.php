@@ -1,5 +1,11 @@
 <?php
 /**
+ * BaseController.php
+ *
+ * Contains the BaseController class.
+*/
+
+/**
  * BaseController
  *
  * Contains all basic functionality used by all Controllers.
@@ -19,9 +25,8 @@ class BaseController extends Controller {
 	 * All routes created must validate input using this function.
 	 * This function will throw the approprate error.
 	 *
-	 * @param $requirements
-	 *		  (string[]) - An array containing strings of all required parameters
-	 * @return (string) name of missing parameter, (boolean) false if none.
+	 * @param  string[] $requirements An array containing strings of all required parameters
+	 * @return string name of missing parameter, (boolean) false if none.
 	*/
 	public function check_requirements($requirements) {
 
@@ -50,9 +55,8 @@ class BaseController extends Controller {
 	/**
 	 * Helper function to encrypt a given string.
 	 *
-	 * @param $string
-	 *		  (string) - String to be encrypted.
-	 * @return (string) base64 encoded encrypted string.
+	 * @param string $string String to be encrypted.
+	 * @return string base64 encoded encrypted string.
 	*/
 	public function encrypt($string)
 	{		
@@ -63,9 +67,8 @@ class BaseController extends Controller {
 	/**
 	 * Helper function to decrypt a given encrypted string.
 	 *
-	 * @param $encrypted
-	 *		  (string) - String to be decrypted.
-	 * @return (string) Corresponding decrypted string.
+	 * @param string $encrypted String to be decrypted.
+	 * @return string Corresponding decrypted string.
 	*/
 	public function decrypt($encrypted)
 	{
@@ -80,8 +83,7 @@ class BaseController extends Controller {
 	 * Should be used in the HomeController::get_best_match() function or an
 	 * equivalent function only. Function adds a timestamp alongwith data.
 	 *
-	 * @param $data
-	 *	  	  (string) - JSON encoded data to be written to log file.
+	 * @param string $data JSON encoded data to be written to log file.
 	 * @return void
 	*/
 	public function log_matches($data)
@@ -103,8 +105,7 @@ class BaseController extends Controller {
 	 * Should be used if we wish to log data found in functions within controllers.
 	 * Function adds a timestamp alongwith data.
 	 *
-	 * @param $data
-	 *	  	  (string) - JSON encoded data to be written to log file.
+	 * @param string $data JSON encoded data to be written to log file.
 	 * @return void
 	*/
 	public function log_data($data)
@@ -129,11 +130,9 @@ class BaseController extends Controller {
 	 * It returns the residue event notifications (which weren't received by the
 	 * user so far) and deletes the same from the events table.
 	 *
-	 * @param $journey_id
-	 *	  	  (integer) - Journey ID of person for whom periodic_route() is executed.
-	 * @param $event_ids
-	 *		  (integer[]) - Array with all event IDs received by user so far.
-	 * @return (Object[]) - Array of all pending events.
+	 * @param int $journey_id Journey ID of person for whom periodic_route() is executed.
+	 * @param int[] $event_ids Array with all event IDs received by user so far.
+	 * @return Object[] Array of all pending events.
 	*/
 	public function get_pending_events($journey_id,$event_ids)
 	{
@@ -163,11 +162,9 @@ class BaseController extends Controller {
 	 * It returns the residue event notifications (which weren't received by the
 	 * driver so far) and deletes the same from the events table.
 	 *
-	 * @param $driver_id
-	 *	  	  (integer) - Driver ID of driver for whom periodic_route() is executed.
-	 * @param $event_ids
-	 *		  (integer[]) - Array with all event IDs received by driver so far.
-	 * @return (Object[]) - Array of all pending events.
+	 * @param int $driver_id Driver ID of driver for whom periodic_route() is executed.
+	 * @param int[] $event_ids Array with all event IDs received by driver so far.
+	 * @return Object[] Array of all pending events.
 	*/
 	public function driver_get_pending_events($driver_id,$event_ids)
 	{
@@ -196,8 +193,7 @@ class BaseController extends Controller {
 	 * Used by route :-
 	 * Route::get('push_test/{id}','BaseController@push_test')
 	 *
-	 * @param $journey_id
-	 *	  	  (integer) - Journey ID of user to whom the push notification must be sent.
+	 * @param int $journey_id Journey ID of user to whom the push notification must be sent.
 	 * @return void
 	*/
 	public function push_test($journey_id)
@@ -258,15 +254,11 @@ class BaseController extends Controller {
 	 * mantains a list of all push notifications for a given journey ID. Executed
 	 * every time send_push() is run.
 	 *
-	 * @param $journey_id
-	 *	  	  (integer) - Journey ID of person for whom we wish to add event.
-	 * @param $msgcode
-	 *		  (integer) - Used to define type of message. Documented under send_push()
-	 * @param $data
-	 *		  (mixed[]) - Set of parameters to be sent alongwith message
-	 * @param $message
-	 *		  (string) - Message corresponding to the given msgcode.
-	 * @return (integer) Event ID of newly created event.
+	 * @param int $journey_id Journey ID of person for whom we wish to add event.
+	 * @param int $msgcode Used to define type of message. Documented under send_push()
+	 * @param mixed[] $data Set of parameters to be sent alongwith message
+	 * @param string $message Message corresponding to the given msgcode.
+	 * @return int Event ID of newly created event.
 	*/
 	public function add_event($journey_id,$msgcode,$data,$message)
 	{
@@ -295,15 +287,11 @@ class BaseController extends Controller {
 	 * mantains a list of all push notifications for a given driver ID. 
 	 * Executed every time send_push() is run.
 	 *
-	 * @param $driver_id
-	 *	  	  (integer) - Driver ID of driver for whom we wish to add event.
-	 * @param $msgcode
-	 *		  (integer) - Used to define type of message. Documented under driver_send_push()
-	 * @param $data
-	 *		  (mixed[]) - Set of parameters to be sent alongwith message.
-	 * @param $message
-	 *		  (string) - Message corresponding to the given msgcode.
-	 * @return (integer) Event ID of newly created event.
+	 * @param string $driver_id Driver ID of driver for whom we wish to add event.
+	 * @param int $msgcode Used to define type of message. Documented under driver_send_push()
+	 * @param mixed[] $data Set of parameters to be sent alongwith message.
+	 * @param string $message Message corresponding to the given msgcode.
+	 * @return int Event ID of newly created event.
 	*/
 	public function add_driver_event($driver_id,$msgcode,$data,$message)
 	{
@@ -328,8 +316,11 @@ class BaseController extends Controller {
 	 * to each of them based on the message code.
 	 *  
 	 * The message codes are used as follows:-
+	 *
 	 * 16=>"Alloted to a new group!"
+	 *
 	 * 17=>"Person left the group!"
+	 *
 	 * 18=>"New user has joined!"
 	 *
 	 * Supplementary data such as the driver_id, timestamp, event_id of backup mechanism 
@@ -337,14 +328,10 @@ class BaseController extends Controller {
 	 *
 	 * Status of push notification has been logged appropriately using log_data()
 	 *
-	 * @param $driver_ids
-	 *		  (integer[]) - Array of driver IDs who will receive push notification.
-	 * @param $msgcode
-	 *		  (integer) - Used to define type of message.
-	 * @param $data
-	 *		  (mixed[]) - Set of parameters to be sent alongwith message.
-	 * @param $message
-	 *		  (string) - Message corresponding to the given msgcode.
+	 * @param int[] $driver_ids Array of driver IDs who will receive push notification.
+	 * @param int $msgcode Used to define type of message.
+	 * @param mixed[] $data Set of parameters to be sent alongwith message.
+	 * @param string $message Message corresponding to the given msgcode.
 	 * @return void
 	*/
 	public function driver_send_push($driver_ids,$msgcode,$data)
@@ -393,11 +380,17 @@ class BaseController extends Controller {
 	 * to each of the corresponding users based on the message code.
 	 *  
 	 * The message codes are used as follows:-
+	 *
 	 * 10=>"A new user has just joined!"
+	 *
 	 * 11=>"Driver allocated!"
+	 *
 	 * 12=>"Driver is reaching you.."
+	 *
 	 * 13=>"A User cancelled his journey!"
+	 *
 	 * 14=>"Picked up person"
+	 *
 	 * 15=>"Person just finished ride!"
 	 *
 	 * Supplementary data such as the journey_id, timestamp, event_id of backup mechanism 
@@ -405,14 +398,10 @@ class BaseController extends Controller {
 	 *
 	 * Status of push notification has been logged appropriately using log_data()
 	 *
-	 * @param $journey_ids
-	 *		  (integer[]) - Array of journey IDs who will receive push notification.
-	 * @param $msgcode
-	 *		  (integer) - Used to define type of message.
-	 * @param $data
-	 *		  (mixed[]) - Set of parameters to be sent alongwith message.
-	 * @param $message
-	 *		  (string) - Message corresponding to the given msgcode.
+	 * @param int[] $journey_ids Array of journey IDs who will receive push notification.
+	 * @param int $msgcode Used to define type of message.
+	 * @param mixed[] $data Set of parameters to be sent alongwith message.
+	 * @param string $message Message corresponding to the given msgcode.
 	 * @return void
 	*/
 	public function send_push($journey_ids,$msgcode,$data)
