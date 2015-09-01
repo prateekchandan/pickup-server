@@ -301,7 +301,22 @@ class UserController extends BaseController {
 	}
 
 
-	
+	/**
+	 * Function to add GCM ID for users.
+	 *
+	 * This function takes the GCM registration ID and a user_id as input
+	 * and stores this data in the database. registration_id is used to send
+	 * push notifications.
+	 * 
+	 * Used by route :- <br>
+	 * Route::post('register_gcm', array('as' => 'user.gcm', 'uses' => 'UserController@gcm_add'));
+	 * 
+	 * Parameters required by route :- <br>
+	 * <b>reg_id</b> <i>string</i> - GCM ID of user whose existence we wish to check.
+	 * <b>user_id</b> <i>int</i> - User ID of user whose details we wish to add.
+	 *
+	 * @return mixed[]
+	*/
 	public function gcm_add(){
 		$requirements = ['reg_id' , 'user_id'];
 		$check  = self::check_requirements($requirements);
@@ -312,17 +327,24 @@ class UserController extends BaseController {
 		if(is_null($user)){
 			return Error::make(1,1);
 		}
+
 		$user->registration_id = Input::get('reg_id');
 		$user->save();
 		return Error::success("Registration ID successfully added");
 	}
+
+
+
 	public function periodic_route($user_id)
 	{
 		$requirements = ['position','event_ids'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
-		$journey = Journey::where('id','=',$user_id)->orderBy('journey_time','desc')->get();
+		
+		$journey = Journey::where('id','=',$user_id)->
+							orderBy('journey_time','desc')->
+							get();
 		if (is_null($journey) || sizeof($journey)==0)
 			return Error::make(1,1);
 		$journey = $journey[0];
