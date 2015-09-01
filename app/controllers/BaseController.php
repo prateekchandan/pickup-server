@@ -10,6 +10,14 @@
  *
  * Contains all basic functionality used by all Controllers.
  * Must be inherited by each and every Controller created.
+ *	
+ * Any function here can return an error of three forms :-
+ * 
+ * required type :- When all HTTP request parameters aren't sent.
+ *
+ * error code :- Standard error messages with fixed codes. Codes in Error class.
+ * 
+ * other errors :- Other errors not handled thusfar. Need to be moved to type 2.
  *
  * @author Kalpesh Krishna <kalpeshk2011@gmail.com>
  * @copyright 2015 Pickup 
@@ -54,7 +62,8 @@ class BaseController extends Controller {
 
 	/**
 	 * Helper function to encrypt a given string.
-	 *
+	 * 
+	 * @deprecated
 	 * @param string $string String to be encrypted.
 	 * @return string base64 encoded encrypted string.
 	*/
@@ -67,6 +76,7 @@ class BaseController extends Controller {
 	/**
 	 * Helper function to decrypt a given encrypted string.
 	 *
+	 * @deprecated
 	 * @param string $encrypted String to be decrypted.
 	 * @return string Corresponding decrypted string.
 	*/
@@ -191,6 +201,7 @@ class BaseController extends Controller {
 	 * Choice of message solely decided by message code sent via HTTP request.
 	 * 
 	 * Used by route :-
+	 *
 	 * Route::get('push_test/{id}','BaseController@push_test')
 	 *
 	 * @param int $journey_id Journey ID of user to whom the push notification must be sent.

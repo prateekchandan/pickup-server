@@ -1,18 +1,38 @@
 <?php
+/**
+ * UserController.php
+ *
+ * Contains the UserController class.
+*/
 
+
+/**
+ * UserController
+ *
+ * This class encompasses all functionality specific to users.
+ * It inherits from the BaseController class and makes use of the functionality
+ * provided there. Functions not in use have been assigned a deprecated tag.
+ *
+ * Any function here can return an error of three forms :-
+ * 
+ * required type :- When all HTTP request parameters aren't sent.
+ *
+ * error code :- Standard error messages with fixed codes. Codes in Error class.
+ * 
+ * other errors :- Other errors not handled thusfar. Need to be moved to type 2.
+ *
+ * @author Kalpesh Krishna <kalpeshk2011@gmail.com>
+ * @copyright 2015 Pickup 
+*/
 class UserController extends BaseController {
 
-	/*
-	|--------------------------------------------------------------------------
-	| Default Home Controller
-	|--------------------------------------------------------------------------
-	|
-	| You may wish to use controllers instead of, or in addition to, Closure
-	| based routes. That's great! Here is an example controller method to
-	| get you started. To route to this controller, just add the route:
-	|
-	|	Route::get('/', 'HomeController@showWelcome');
-	|
+
+	/**
+	* Helper function to send emails to a given user. Currently not in use.
+	* 
+	* @deprecated
+	* @param mixed[] $user The user object extracted from the database.
+	* @return void
 	*/
 	public function sendmail($user){
 		try {
@@ -22,32 +42,71 @@ class UserController extends BaseController {
 			});
 		} catch (Exception $e) {
 			print_r($e->getMessage());
-		}
-		
+		}	
 	}
+
+
+	/**
+	 * Function helps set home location for a given user via user_id.
+	 *
+	 * This function gets the user_id, home_location, home_text via the HTTP
+	 * request and stores this data in the database. 
+	 * Associated errors (error_code => description) :-
+	 *
+	 * 1 => Occurs when user_id isn't the id of any existing user.
+	 * 
+	 * Used by route :-
+	 *
+	 * Route::post('set_home','UserController@set_home');
+	 *
+	 * Parameters required by route :- <br>
+	 * <b>user_id</b> <i>int</i> ID of user whose home we wish to set.<br>
+	 * <b>home_location</b> <i>string</i> Comma separated location of the form "latitude,longitude".
+	 * Example :- 19,72.<br>
+	 * <b>home_text</b> <i>string</i> The name of the place/locality. 
+	 * @return mixed[] return type of Error::success() on successful execution.
+	*/
 	public function set_home()
 	{
-		$requirements = ['user_id','home_location','home_text'/*,'leaving_home'*/];
+		$requirements = ['user_id','home_location','home_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
+
 		$user = User::where('id' , '=', Input::get('user_id'))->first();
 		if (is_null($user))
 			return Error::make(1,1);
+
 		try {
 			User::where('id','=',$user->id)->update(array(
 				'home_location' => Input::get('home_location'),
 				'home_text' => Input::get('home_text'),
-			));
+				));
 			self::compute_home_office($user->id);
 			return Error::success("Home successfully Added" , array("user_id" => intval($user->id)));
 			
 		}
-		 catch (Exception $e) {
+		catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
-		
 	}
+
+
+	/**
+	 * Function helps set office location for a given user via user_id.
+	 *
+	 * This function gets the user_id, office_location, office_text via the HTTP
+	 * request and stores this data in the database. 
+	 * Associated errors (error_code => description) :-
+	 *
+	 * 1 => Occurs when user_id isn't the id of any existing user.
+	 * 
+	 * Used by route :-
+	 *
+	 * Route::post('set_office','UserController@set_office');
+	 * 
+	 * @return mixed[] return type of Error::success() on successful execution.
+	*/
 	public function set_office()
 	{
 		$requirements = ['user_id','office_location','office_text'/*,'leaving_office'*/];
@@ -70,6 +129,20 @@ class UserController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+
+
+	/**
+	 * Helper function used to compute and store hashed path points.
+	 *
+	 * This function is used by set_home() and set_office(). Those functions 
+	 * check whether both home and office have been set. If this is the case,
+	 * compute_home_office() uses Google's Directions API and Graining.php
+	 * to obtain the hashed path between home and office and vice versa.
+	 * Path distance and time are also stored.
+	 *
+	 * @param int $user_id The ID of the user for whom we wish to compute the paths.
+	 * @return void
+	*/
 	public function compute_home_office($user_id)
 	{
 		$user = User::where('id' , '=', $user_id)->first();
