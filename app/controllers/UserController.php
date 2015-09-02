@@ -198,6 +198,7 @@ class UserController extends BaseController {
 	 * <b>device_id</b> <i>string</i> - Android phone device ID<br>
 	 * <b>mac_addr</b> <i>string</i> - MAC address of NIC used by phone<br>
 	 * <b>company_email</b> <i>string</i> - (optional parameter) Company offical email ID
+	 * <b>platform</b> <i>string</i> - (optional parameter) Platform on which product is run
 	 *
 	 * @return mixed[] This array contains the user_id of the user.
 	*/
@@ -209,9 +210,10 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 
-		// Checking whether user exists using his email/facebook ID.
+		// Checking whether user exists using his phone/email/facebook ID.
 		$user = User::where('fbid' , '=', Input::get('fbid'))->
 					  orWhere('email' , '=' , Input::get('email'))->
+					  orWhere('phone','=', Input::get('phone'))->
 					  first();
 		if (!is_null($user)) {
 			// Case when the user changes his/her device.
@@ -236,6 +238,8 @@ class UserController extends BaseController {
 		$user->current_pos="19.1336,72.9154"; // Updated in the periodic route.
 		if (Input::has('company_email'))
 			$user->company_email = Input::get('company_email');
+		if (Input::has('platform'))
+			$user->platform = Input::get('platform');
 
 		// Saving user object created.
 		try {
@@ -414,6 +418,10 @@ class UserController extends BaseController {
 		return $user;
 	}
 
+
+	/**
+	 * @deprecated 
+	 */
 	public function verify($code="")
 	{
 		$email = self::decrypt($code);
