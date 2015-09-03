@@ -62,7 +62,7 @@ class DriverController extends BaseController {
 		$driver = new Driver;
 		//$driver->group_id = Input::get('group_id');
 		$driver->username=Input::get('username');
-		$driver->password=Input::get('password');
+		$driver->password=Hash::make(Input::get('password'));
 		$driver->phone = Input::get('phone');
 		$driver->driver_name = Input::get('driver_name');
 		$driver->images = json_encode(array('profile_picture'=>"",'address_proof'=>"",
@@ -84,7 +84,7 @@ class DriverController extends BaseController {
 		$driver = Driver::where('username','=',Input::get('username'))->first();
 		if (is_null($driver))
 			return Error::make(1,33);
-		if (strcmp($driver->password, Input::get('password'))==0)
+		if (Hash::check(Input::get('password'),$driver->password))
 			return Error::success('Login successful!',array('driver'=>$driver));
 		else
 			return Error::make(1,34);
