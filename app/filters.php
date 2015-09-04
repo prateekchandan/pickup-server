@@ -14,7 +14,7 @@
 App::before(function($request)
 {
 	$data = json_encode(Input::all());
-	$file = fopen("/root/route_logs.txt",'a');
+	$file = fopen(storage_path()."/logs/route_logs.txt",'a');
 	fwrite($file,Request::path()."\n\n");
 	fwrite($file,$data);
 	if($data != ""){

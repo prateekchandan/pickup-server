@@ -98,7 +98,7 @@ class BaseController extends Controller {
 	*/
 	public function log_matches($data)
 	{
-	$file = fopen("/root/match_logs.txt",'a');
+	$file = fopen(storage_path()."/logs/match_logs.txt",'a');
 	fwrite($file,$data);
 	if($data != ""){
         $t = date("Y-m-d G:i:s",time());
