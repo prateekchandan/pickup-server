@@ -130,7 +130,11 @@ class HomeController extends BaseController {
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
-		$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);//Input::get('journey_time');
+		if(Input::has('alternate_journey_time')){
+			$timestamp=date('Y-m-d H:i:s',strtotime(Input::get('alternate_journey_time'))+intval(Input::get('margin_after'))*60);
+		}
+		else
+			$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);
 		
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
@@ -964,7 +968,11 @@ class HomeController extends BaseController {
 			return Error::make(1,1);
 
 
-		$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);//Input::get('journey_time');
+		if(Input::has('alternate_journey_time')){
+			$timestamp=date('Y-m-d H:i:s',strtotime(Input::get('alternate_journey_time'))+intval(Input::get('margin_after'))*60);
+		}
+		else
+			$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);
 		/*$sec = strtotime($timestamp);
 		$timenow = time();
 		if($timenow > $sec)
