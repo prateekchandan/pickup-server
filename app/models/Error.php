@@ -62,6 +62,7 @@ class Error{
 		else
 			$status = 412;
 
+		$status=200;
 		$response = Response::make($contents, $status,array('statusText'=>$message));
 		return $response;
 	}
