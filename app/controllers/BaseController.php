@@ -213,7 +213,7 @@ class BaseController extends Controller {
 		$check  = self::check_requirements($requirements);
 		$data = array();
 		$isdriver = 0;
-		$group_id = Group::first();
+		$group_id = Group::where('event_status','!=','completed')->where('driver_id','=',$journey_id)->first();
 		
 		if(is_null($group_id))
 			$group_id = 1;

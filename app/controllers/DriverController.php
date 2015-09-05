@@ -397,8 +397,8 @@ class DriverController extends BaseController {
 		
 		$drivers_occupied_now=array();
 		$t1 = date('Y-m-d G:i:s',time()+900);
-		$t2 = date('Y-m-d G:i:s',time());
-		$groups = Group::whereNull('driver_id')->where('journey_time' , '<' , $t1 )->where('event_status','=','confirmed')->orderBy('journey_time','asc')->get();
+		$t2 = date('Y-m-d G:i:s',time()-7200);
+		$groups = Group::whereNull('driver_id')->where('journey_time' , '<' , $t1 )->where('journey_time' , '>' , $t2 )->where('event_status','=','confirmed')->orderBy('journey_time','asc')->get();
 		//$groups = Group::whereNull('driver_id')->orderBy('journey_time','asc')->get();
 		
 		foreach ($groups as $group)
