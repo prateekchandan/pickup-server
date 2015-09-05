@@ -682,7 +682,7 @@ class HomeController extends BaseController {
 		}
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$margin_after*60);
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
-		$pending = Group::where('journey_time' , '>=' , $t1 )->where('start_time' , '<' , $t1 )->get();
+		$pending = Group::where('journey_time' , '>=' , $t1 )->where('start_time' , '<' , $t1 )->where('event_status','=','confirmed')->get();
 
 		$topn_weights = array();
 		$corresponding_ids = array();

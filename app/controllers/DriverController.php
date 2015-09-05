@@ -397,7 +397,7 @@ class DriverController extends BaseController {
 		
 		$drivers_occupied_now=array();
 		// Driver allcated will consider journeys from past 2 hour till next 25 minutes
-		$t1 = date('Y-m-d G:i:s',time()+1500);
+		$t1 = date('Y-m-d G:i:s',time()+1800);
 		$t2 = date('Y-m-d G:i:s',time()-7200);
 		$groups = Group::whereNull('driver_id')->where('journey_time' , '<' , $t1 )->where('journey_time' , '>' , $t2 )->where('event_status','=','confirmed')->orderBy('journey_time','asc')->get();
 		//$groups = Group::whereNull('driver_id')->orderBy('journey_time','asc')->get();
