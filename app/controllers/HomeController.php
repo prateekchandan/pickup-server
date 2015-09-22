@@ -260,6 +260,31 @@ class HomeController extends BaseController {
 		}
 	}
 
+	public function do_a_journey() {
+		$requirements = ['user_id','margin_after','start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
+		$check  = self::check_requirements($requirements);
+		if($check)
+		return Error::make(0,100,$check);
+		$best_match = array(
+        "journey_ids"=> "[4]",
+        "people_on_ride"=> "[]",
+        "path_waypoints"=> "{\"startwaypoints\":[[19.1331977,72.9131769],[19.1331977,72.9131769]],\"endwaypoints\":[[19.0996921,72.9163115],[19.0996921,72.9163115]],\"start_order\":[3,4],\"end_order\":[3,4]}",
+        "path"=> null,
+        "event_status"=> "nothing",
+        "driver_id"=> "2",
+        "journey_time"=> "2015-07-27 23:32:00",
+        "start_time"=> "2015-07-27 23:15:00",
+        "user_ids"=> [
+            "1"
+        ],
+        "match_amount"=> 100,
+        "id"=> 2
+    );
+
+		$data = array("journey_id"=>1,"match_amount"=>69,"estimated_fare"=>200,
+					  "estimated_driver_reach_time"=>10,"best_match"=>$best_match);
+		return Error::success("Journey registered",$data);
+	}
 	public function get_best_match($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();

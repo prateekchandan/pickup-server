@@ -420,6 +420,9 @@ class UserController extends BaseController {
 
 
 	/**
+	 * Used to verify the user's account via email/phone.
+	 *
+	 * @param string $code The verification code. 
 	 * @deprecated 
 	 */
 	public function verify($code="")
@@ -433,6 +436,10 @@ class UserController extends BaseController {
 		return "Thanks , ".$user->first_name." <br> Your account has been successfully verified";
 	}
 
+
+	/**
+	 * 
+	 */
 	public function all_journey($uid)
 	{
 		$user = User::find($uid);
