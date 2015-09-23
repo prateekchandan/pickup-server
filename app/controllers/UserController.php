@@ -338,7 +338,22 @@ class UserController extends BaseController {
 	}
 
 
-
+	/**
+	 * The route called every 30 seconds on the Android app.
+	 *
+	 * This route is used to ACK the push notifications, 
+	 * flush the un-acked pending push notifications and 
+	 * modify the user location when an update is received.
+	 *
+	 * Route::post('periodic_route/{id}','UserController@periodic_route');
+	 *
+	 * Parameters required by route :- <br>
+	 * <b>position</b> <i>string</i> - Comma separated location of the user.
+	 * <b>event_ids</b> <i>int[]</i> - ACK array of IDs of push notifications received.
+	 *
+	 * @param int $user_id User ID of user.
+	 * @return mixed[] User object.
+	 */	
 	public function periodic_route($user_id)
 	{
 		$requirements = ['position','event_ids'];
@@ -346,17 +361,37 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 		
+		// Aim is to get latest journey of the user.
+		// TODO :- Add checks to see journey is active or not.
 		$journey = Journey::where('id','=',$user_id)->
 							orderBy('journey_time','desc')->
 							get();
+		// Can't run periodic route if no journey exists.
 		if (is_null($journey) || sizeof($journey)==0)
 			return Error::make(1,1);
+
 		$journey = $journey[0];
+
+		// Doucmented below. Modifies location in database.
 		$positions = self::modify_location($user_id,Input::get('position'));
+
+		// documented in BaseController.php. Gets pending events of latest journey ID.
 		$pending_events = self::get_pending_events($journey->journey_id,Input::get('event_ids'));
+
 		return Error::success('periodic data',array('positions'=>$positions,
 													'pending_events'=>$pending_events));
 	}
+
+	/**
+	 * Helper function to modify location, used by periodic route.
+	 *
+	 * This route is used to modify the location of the given user.
+	 * TODO :- Work on this route extensively.
+	 *
+	 * @param int $user_id User ID of user.
+	 * @param string $position Comma separated location of user.
+	 * @return mixed[] User object.
+	 */
 	public function modify_location($user_id=0,$position)
 	{
 		$user = User::where('id','=',$user_id)->first();
@@ -364,45 +399,63 @@ class UserController extends BaseController {
 			return Error::make(1,1);
 		}
 		
+		// explode() used due to input format
 		$new_coordinate_array = explode(',',$position);
-		$timestamp=date('Y-m-d H:i:s', time());//Input::get('journey_time');
-		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
-		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
+		// Creating a window of +/- 1 hour to see active journey.
+		// TODO :- Shift this to periodic route. (proposed)
+		$timestamp = date('Y-m-d H:i:s', time());
+		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);
+		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);
+
+		// journey_time in window, journey is not cancelled or completed. 
+		// TODO :- Robustness needed for journey object states.
+		// -1, NULL problem. Switch to status field.
 		$check_existing_journey = Journey::where('id' , '=' , intval($user_id))->
-											where('journey_time' , '>' , $t2 )->
-											where('journey_time' , '<' , $t1 )->
-											where('group_id','!=',-1)->first();
+										   where('journey_time' , '>' , $t2 )->
+										   where('journey_time' , '<' , $t1 )->
+										   where('group_id','!=',-1)->
+										   first();
+
 		$final_data=array("driver"=>NULL,"mates"=>array());
+
+		// Return appropriate location data only when there is an existing journey with people on it.
 		if (!is_null($check_existing_journey) && !is_null($check_existing_journey->group_id))
 		{
 			$group = Group::where('group_id','=',intval($check_existing_journey->group_id))->first();
+			
 			$people_so_far = json_decode($group->journey_ids);
 			foreach ($people_so_far as $value) {
+
+				// Ignore case where passenger is user who's history we want.
 				if ($value==$check_existing_journey->journey_id)
 					continue;
+
+				// Getting location of user.
 				$mate_journey = Journey::where('journey_id','=',$value)->first();
 				$mate_user = User::where('id','=',$mate_journey->id)->first();
 				array_push($final_data['mates'], array("user_id"=>intval($mate_user->id),
 													"position"=>$mate_user->current_pos));
 			}
+
+			// Run if driver has been allocated.
 			if (!is_null($group->driver_id))
 			{
 				$driver = Driver::where('driver_id','=',$group->driver_id)->first();
+				// Safety check. Should never happen.
 				if (is_null($driver))
-					Error::make(1,19);
+					return Error::make(1,19);
 				$final_data['driver']=array("driver_id"=>intval($group->driver_id),
-										  "position"=>$driver->current_pos);
+										    "position"=>$driver->current_pos);
 			}
 		}
 		try {
 			User::where('id','=',$user_id)->update(array(
-				'current_pos' => Input::get('position'),
-				));
-			//$user->id = 10;
-			//$this->sendmail($user);
+
+						'current_pos' => Input::get('position'),
+
+						));
 			return $final_data;
-			//return Error::success("User location changed" , array("positions" => $final_data));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
@@ -423,7 +476,7 @@ class UserController extends BaseController {
 		if(is_null($user)){
 			return Error::make(1,1);
 		}
-		
+
 		$user['error'] = 0;
 		$user['message']="ok";
 		return $user;
