@@ -407,22 +407,33 @@ class UserController extends BaseController {
 			return Error::make(101,101,$e->getMessage());
 		}
 	}
+
+	/**
+	 * Used to get user details.
+	 *
+	 * Route::get('user/{user_id}', array('as' => 'user.add',
+	 * 'uses' => 'UserController@get'));
+	 *
+	 * @param int $user_id User ID of user.
+	 * @return mixed[] User object.
+	 */
 	public function get($user_id=0)
 	{
 		$user = User::find($user_id);
 		if(is_null($user)){
 			return Error::make(1,1);
 		}
+		
 		$user['error'] = 0;
 		$user['message']="ok";
 		return $user;
 	}
 
-
 	/**
 	 * Used to verify the user's account via email/phone.
 	 *
-	 * @param string $code The verification code. 
+	 * @param string $code The verification code.
+	 * @return string Verification message 
 	 * @deprecated 
 	 */
 	public function verify($code="")
@@ -438,66 +449,108 @@ class UserController extends BaseController {
 
 
 	/**
+	 * Return a list of all journeys registered by a given user in descending order.
 	 * 
+	 * Used by route :- <br>
+	 * Route::get('user/{user_id}/all_journey', array('as' => 'user.journey',
+	 * 'uses' => 'UserController@all_journey'));
+	 *
+	 * @param int $user_id User ID of person in consideration.
+	 * @return object[] List of journeys travelled by user.
+	 * @deprecated
 	 */
-	public function all_journey($uid)
+	public function all_journey($user_id)
 	{
-		$user = User::find($uid);
+		$user = User::find($user_id);
 		if(is_null($user)){
 			return Error::make(1,1);
 		}
-		$journey = Journey::where('id','=',$uid)->orderBy('updated_at','desc')->get();
-		return $journey;
+		$journeys = Journey::where('id','=',$user_id)->orderBy('updated_at','desc')->get();
+		return $journeys;
 	}
 
+
+	/**
+	 * Return a detailed history of all journeys cancelled and all journeys completed.
+	 * 
+	 * Does not return current journeys. The status field tells us the whether the journey
+	 * was completed or cancelled.
+	 *
+	 * Used by route :- <br>
+	 * Route::get('get_history/{id}','UserController@get_history');
+	 *
+	 * @param int $user_id User ID of person in consideration.
+	 * @return object[] History of user.
+	 */
 	public function get_history($user_id)
 	{
 		$user = User::where('id' , '=', $user_id)->first();
 		if (is_null($user))
 			return Error::make(1,1);
+
 		$all_journeys = Journey::where('id','=',$user_id)->get();
+
 		$history = array();
+
 		foreach ($all_journeys as $journey) {
 			$group = Group::where('group_id','=',$journey->group_id)->first();
 			if ($journey->group_id==-1)
 			{
-				//$journey_ids = json_decode($group->journey_ids);
-				$data = array("mates"=>array(),"status"=>"cancelled",
-					"start_text"=>$journey->start_text, "end_text"=>$journey->end_text,
-					"distance"=>$journey->distance, "fare"=>0,
-					"start_lat"=>$journey->start_lat,"start_long"=>$journey->start_long,
-					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long,
-					"journey_time"=>$journey->journey_time);
+				// Case where journey was cancelled.
+				$data = array("mates"=>array(),
+							  "status"=>"cancelled",
+							  "start_text"=>$journey->start_text,
+							  "end_text"=>$journey->end_text,
+							  "distance"=>$journey->distance, 
+							  "fare"=>0,
+							  "start_lat"=>$journey->start_lat,
+							  "start_long"=>$journey->start_long,
+							  "end_lat"=>$journey->end_lat,
+							  "end_long"=>$journey->end_long,
+							  "journey_time"=>$journey->journey_time);
+
 				array_push($history,$data);
 			}
 			else if (!is_null($group) && strcmp($group->event_status,"completed")==0)
 			{
+				// Case where journey was completed.
 				$journey_ids = json_decode($group->journey_ids);
 				$mate_data = array();
+				// Going through all passengers in that group.
 				foreach($journey_ids as $mate_id)
 				{
+					// Ignore case where passenger is user who's history we want.
 					if ($mate_id==$journey->journey_id)
 						continue;
 					$mate_pending = Journey::where('journey_id','=',$mate_id)->first();
 					$mate_user = User::where('id','=',$mate_pending->id)->first();
+
+					// Safety check, should never happen.
 					if (is_null($mate_user))
 						return Error::make(1,1);
+
+					// Final mate data.
 					array_push($mate_data, array('user_id'=>intval($mate_user->id),
 												'fbid'=>$mate_user->fbid,
 												'user_name'=>$mate_user->first_name,
 												'age'=>$mate_user->age,
 												'gender'=>$mate_user->gender));
 				}
-				$data = array("mates"=>$mate_data,"status"=>"completed",
-					"start_text"=>$journey->start_text, "end_text"=>$journey->end_text,
-					"distance"=>$journey->distance, "fare"=>1000,
-					"start_lat"=>$journey->start_lat,"start_long"=>$journey->start_long,
-					"end_lat"=>$journey->end_lat,"end_long"=>$journey->end_long,
-					"journey_time"=>$journey->journey_time);
+				$data = array("mates"=>$mate_data,
+							  "status"=>"completed",
+							  "start_text"=>$journey->start_text, 
+							  "end_text"=>$journey->end_text,
+							  "distance"=>$journey->distance, 
+							  "fare"=>1000,
+							  "start_lat"=>$journey->start_lat,
+							  "start_long"=>$journey->start_long,
+							  "end_lat"=>$journey->end_lat,
+							  "end_long"=>$journey->end_long,
+							  "journey_time"=>$journey->journey_time);
+
 				array_push($history,$data);
 			}
 		}
-
 		return Error::success("Here is the ride history!",array("history"=>$history));
 	}
 }
