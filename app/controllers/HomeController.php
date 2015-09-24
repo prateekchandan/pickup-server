@@ -260,7 +260,7 @@ class HomeController extends BaseController {
 		}
 	}
 
-	public function do_a_journey() {
+	public function journey_request() {
 		$requirements = ['user_id','margin_after','start_lat' , 'start_long','end_lat' ,
 						 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 
 						 'preference' , 'start_text' , 'end_text'];
@@ -268,10 +268,27 @@ class HomeController extends BaseController {
 		if($check)
 		return Error::make(0,100,$check);
 		$add_journey = self::journey_add();
-		print_r($add_journey->original);
-		if ($add_journey['error']==0)
+		if ($add_journey->original['error']==0)
 		{
-			
+			$journey_id=$add_journey->original['journey_id'];
+			$best_match = self::get_best_match($journey_id);
+			if ($add_journey->original['error']==0)
+			{
+				$fare=CostCalc::fare_estimate($journey_id);
+				$data=array("journey_id"=>$journey_id,
+							"best_match"=>$best_match->original['best_match'],
+							"match_amount"=>$best_match->original['match_amount'],
+							"estimated_driver_reach_time"=>intval(Input::get('margin_after')),
+							"estimated_fare"=>$fare,
+							);
+				return Error::success("Journey registered",$data);
+			}
+			else
+			{
+				// Delete journey object created to rollback transaction.
+				Journey::where('journey_id','=',$journey_id)->delete();
+				return $best_match;
+			}
 		}
 		else
 			return $add_journey;

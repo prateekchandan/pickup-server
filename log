@@ -1,2 +1,4 @@
 Laravel development server started on http://0.0.0.0:8002
 [Thu Sep 24 23:43:32 2015] PHP Fatal error:  Cannot use object of type Illuminate\Http\Response as array in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/HomeController.php on line 271
+[Fri Sep 25 00:41:47 2015] PHP Fatal error:  Cannot use object of type Illuminate\Http\Response as array in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/HomeController.php on line 271
+[Fri Sep 25 01:02:49 2015] PHP Fatal error:  Call to undefined method CostCalc::estimated_fare() in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/HomeController.php on line 277
