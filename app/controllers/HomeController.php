@@ -274,7 +274,14 @@ class HomeController extends BaseController {
 			$best_match = self::get_best_match($journey_id);
 			if ($best_match->original['error']==0)
 			{
-				$fare=CostCalc::fare_estimate($journey_id);
+				$fare = 0;
+				try {
+					$fare=CostCalc::fare_estimate($journey_id);	
+				}
+				catch(Exception $e) {
+					Journey::where('journey_id','=',$journey_id)->delete();
+					return Error::make(101,101,$e->getMessage());
+				}
 				$data=array("journey_id"=>$journey_id,
 							"best_match"=>$best_match->original['best_match'],
 							"match_amount"=>$best_match->original['match_amount'],
@@ -294,7 +301,7 @@ class HomeController extends BaseController {
 			return $add_journey;
 	}
 
-	
+
 	public function get_best_match($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
