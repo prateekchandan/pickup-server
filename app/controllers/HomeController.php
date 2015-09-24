@@ -272,7 +272,7 @@ class HomeController extends BaseController {
 		{
 			$journey_id=$add_journey->original['journey_id'];
 			$best_match = self::get_best_match($journey_id);
-			if ($add_journey->original['error']==0)
+			if ($best_match->original['error']==0)
 			{
 				$fare=CostCalc::fare_estimate($journey_id);
 				$data=array("journey_id"=>$journey_id,
@@ -292,28 +292,9 @@ class HomeController extends BaseController {
 		}
 		else
 			return $add_journey;
-		/*
-		$best_match = array(
-        "journey_ids"=> "[4]",
-        "people_on_ride"=> "[]",
-        "path_waypoints"=> "{\"startwaypoints\":[[19.1331977,72.9131769],[19.1331977,72.9131769]],\"endwaypoints\":[[19.0996921,72.9163115],[19.0996921,72.9163115]],\"start_order\":[3,4],\"end_order\":[3,4]}",
-        "path"=> null,
-        "event_status"=> "nothing",
-        "driver_id"=> "2",
-        "journey_time"=> "2015-07-27 23:32:00",
-        "start_time"=> "2015-07-27 23:15:00",
-        "user_ids"=> [
-            "1"
-        ],
-        "match_amount"=> 100,
-        "id"=> 2
-    );
-
-		$data = array("journey_id"=>1,"match_amount"=>69,"estimated_fare"=>200,
-					  "estimated_driver_reach_time"=>10,"best_match"=>$best_match);
-		return Error::success("Journey registered",$data);
-		*/
 	}
+
+	
 	public function get_best_match($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
