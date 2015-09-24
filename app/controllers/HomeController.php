@@ -261,10 +261,21 @@ class HomeController extends BaseController {
 	}
 
 	public function do_a_journey() {
-		$requirements = ['user_id','margin_after','start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
+		$requirements = ['user_id','margin_after','start_lat' , 'start_long','end_lat' ,
+						 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 
+						 'preference' , 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
+		$add_journey = self::journey_add();
+		print_r($add_journey->original);
+		if ($add_journey['error']==0)
+		{
+			
+		}
+		else
+			return $add_journey;
+		/*
 		$best_match = array(
         "journey_ids"=> "[4]",
         "people_on_ride"=> "[]",
@@ -284,6 +295,7 @@ class HomeController extends BaseController {
 		$data = array("journey_id"=>1,"match_amount"=>69,"estimated_fare"=>200,
 					  "estimated_driver_reach_time"=>10,"best_match"=>$best_match);
 		return Error::success("Journey registered",$data);
+		*/
 	}
 	public function get_best_match($journey_id)
 	{

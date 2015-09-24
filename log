@@ -1,6 +1,2 @@
 Laravel development server started on http://0.0.0.0:8002
-[Wed Sep 23 00:57:17 2015] PHP Parse error:  syntax error, unexpected ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/HomeController.php on line 285
-[Wed Sep 23 00:57:34 2015] 127.0.0.1:56517 [200]: /favicon.ico
-[Wed Sep 23 01:03:50 2015] 127.0.0.1:56536 [200]: /favicon.ico
-[Wed Sep 23 01:03:56 2015] PHP Parse error:  syntax error, unexpected ')' in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/HomeController.php on line 285
-[Wed Sep 23 01:04:10 2015] 127.0.0.1:56538 Invalid request (Unexpected EOF)
+[Thu Sep 24 23:43:32 2015] PHP Fatal error:  Cannot use object of type Illuminate\Http\Response as array in /home/kalpesh/Projects/Pickup/pickup_server/app/controllers/HomeController.php on line 271
