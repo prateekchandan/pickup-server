@@ -1,0 +1,47 @@
+{
+    "name": "lucadegasperi/oauth2-server-laravel",
+    "description": "A Laravel 4 wrapper for the popular OAuth 2.0 Server package league/oauth2-server",
+    "keywords": [
+        "laravel",
+        "oauth2",
+        "oauth",
+        "server",
+        "api"
+    ],
+    "authors": [
+        {
+            "name": "Luca Degasperi",
+            "email": "packages@lucadegasperi.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "league/oauth2-server": "4.0.*",
+        "illuminate/database": "4.2.*",
+        "illuminate/support": "4.2.*",
+        "illuminate/filesystem": "4.2.*",
+        "illuminate/console": "4.2.*",
+        "illuminate/http": "4.2.*",
+        "nesbot/carbon": "1.*"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "~2.0",
+        "henrikbjorn/phpspec-code-coverage": "~1.0",
+        "phpunit/phpunit": "~4.0",
+        "mockery/mockery": "~0.8",
+        "orchestra/testbench": "2.2.*",
+        "behat/behat": "~2.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "LucaDegasperi\\OAuth2Server\\": "src"
+        },
+        "classmap": [
+            "seeds",
+            "tests/TestCase.php",
+            "tests/integration/DBTestCase.php"
+        ]
+    },
+    "minimum-stability": "dev",
+    "license": "MIT"
+}
