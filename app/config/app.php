@@ -122,7 +122,8 @@ return array(
 		'Illuminate\View\ViewServiceProvider',
 		'Illuminate\Workbench\WorkbenchServiceProvider',
 		'Davibennun\LaravelPushNotification\LaravelPushNotificationServiceProvider',
-
+		'LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider',
+		'LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider',
 	),
 
 	/*
@@ -190,7 +191,7 @@ return array(
 		'Validator'       => 'Illuminate\Support\Facades\Validator',
 		'View'            => 'Illuminate\Support\Facades\View',
 		'PushNotification' => 'Davibennun\LaravelPushNotification\Facades\PushNotification',
-
+		'Authorizer'      => 'LucaDegasperi\OAuth2Server\Facades\AuthorizerFacade',
 	),
 
 );
