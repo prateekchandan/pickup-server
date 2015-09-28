@@ -40,11 +40,16 @@ class Gcm extends BaseAdapter
     private $httpClient;
 
     /**
+     * @var ServiceClient
+     */
+    private $openedClient;
+
+    /**
      * {@inheritdoc}
      */
     public function supports($token)
     {
-        return (bool) preg_match('/^[0-9a-zA-Z\-\_]+$/i', $token);
+        return is_string($token) && $token != '';
     }
 
     /**
@@ -54,7 +59,7 @@ class Gcm extends BaseAdapter
      */
     public function push(PushInterface $push)
     {
-        $client        = $this->getOpenedClient(new ServiceClient());
+        $client        = $this->getOpenedClient();
         $pushedDevices = new DeviceCollection();
         $tokens        = array_chunk($push->getDevices()->getTokens(), 100);
 
@@ -80,22 +85,25 @@ class Gcm extends BaseAdapter
     /**
      * Get opened client.
      *
-     * @param \ZendService\Google\Gcm\Client $client Client
-     *
      * @return \ZendService\Google\Gcm\Client
      */
-    public function getOpenedClient(ServiceClient $client)
+    public function getOpenedClient()
     {
-        $client->setApiKey($this->getParameter('apiKey'));
+        if (!isset($this->openedClient)) {
+            $this->openedClient = new ServiceClient();
+            $this->openedClient->setApiKey($this->getParameter('apiKey'));
 
-        $newClient = new \Zend\Http\Client(null, array(
-            'adapter'       => 'Zend\Http\Client\Adapter\Socket',
-            'sslverifypeer' => false
-        ));
+            $newClient = new \Zend\Http\Client(
+                null, array(
+                    'adapter' => 'Zend\Http\Client\Adapter\Socket',
+                    'sslverifypeer' => false
+                )
+            );
 
-        $client->setHttpClient($newClient);
+            $this->openedClient->setHttpClient($newClient);
+        }
 
-        return $client;
+        return $this->openedClient;
     }
 
     /**
@@ -121,6 +129,20 @@ class Gcm extends BaseAdapter
         $serviceMessage->setDryRun($this->getParameter('dryRun', false));
 
         return $serviceMessage;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefinedParameters()
+    {
+        return array(
+            'collapse_key',
+            'delay_while_idle',
+            'time_to_live',
+            'restricted_package_name',
+            'dry_run'
+        );
     }
 
     /**

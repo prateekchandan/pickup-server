@@ -364,7 +364,7 @@ class DriverController extends BaseController {
 				$fare = CostCalc::calculate($journey_id);
 			}
 			catch(Exception $e){
-				Error::make(1,43);
+				$error = Error::make(101,101,$e->getMessage());
 			}
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'fare'=>$fare,

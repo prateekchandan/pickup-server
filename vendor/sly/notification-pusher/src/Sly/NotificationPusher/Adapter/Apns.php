@@ -35,6 +35,13 @@ use ZendService\Apple\Apns\Client\Feedback as ServiceFeedbackClient;
  */
 class Apns extends BaseAdapter
 {
+
+    /** @var ServiceClient */
+    private $openedClient;
+
+    /** @var ServiceFeedbackClient */
+    private $feedbackClient;
+
     /**
      * {@inheritdoc}
      *
@@ -58,7 +65,7 @@ class Apns extends BaseAdapter
      */
     public function push(PushInterface $push)
     {
-        $client = $this->getOpenedClient(new ServiceClient());
+        $client = $this->getOpenedServiceClient();
 
         $pushedDevices = new DeviceCollection();
 
@@ -76,8 +83,6 @@ class Apns extends BaseAdapter
             }
         }
 
-        $client->close();
-
         return $pushedDevices;
     }
 
@@ -88,10 +93,9 @@ class Apns extends BaseAdapter
      */
     public function getFeedback()
     {
-        $client           = $this->getOpenedClient(new ServiceFeedbackClient());
+        $client           = $this->getOpenedFeedbackClient();
         $responses        = array();
         $serviceResponses = $client->feedback();
-        $client->close();
 
         foreach ($serviceResponses as $response) {
             $responses[$response->getToken()] = new \DateTime(date("c", $response->getTime()));
@@ -119,6 +123,34 @@ class Apns extends BaseAdapter
     }
 
     /**
+     * Get opened ServiceClient
+     *
+     * @return ServiceAbstractClient
+     */
+    private function getOpenedServiceClient()
+    {
+        if (!isset($this->openedClient)) {
+            $this->openedClient = $this->getOpenedClient(new ServiceClient());
+        }
+
+        return $this->openedClient;
+    }
+
+    /**
+     * Get opened ServiceFeedbackClient
+     *
+     * @return ServiceAbstractClient
+     */
+    private function getOpenedFeedbackClient()
+    {
+        if (!isset($this->feedbackClient)) {
+            $this->feedbackClient = $this->getOpenedClient(new ServiceFeedbackClient());
+        }
+
+        return $this->feedbackClient;
+    }
+
+    /**
      * Get service message from origin.
      *
      * @param \Sly\NotificationPusher\Model\DeviceInterface $device Device
@@ -134,6 +166,8 @@ class Apns extends BaseAdapter
         ;
 
         $sound = $message->getOption('sound', 'bingbong.aiff');
+        $contentAvailable = $message->getOption('content-available');
+        $category = $message->getOption('category');
 
         $alert = new ServiceAlert(
             $message->getText(),
@@ -166,6 +200,14 @@ class Apns extends BaseAdapter
             $serviceMessage->setSound($sound);
         }
 
+        if (null !== $contentAvailable) {
+            $serviceMessage->setContentAvailable($contentAvailable);
+        }
+
+        if (null !== $category) {
+            $serviceMessage->setCategory($category);
+        }
+
         return $serviceMessage;
     }
 
@@ -175,6 +217,14 @@ class Apns extends BaseAdapter
     public function supports($token)
     {
         return (ctype_xdigit($token) && 64 == strlen($token));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefinedParameters()
+    {
+        return array();
     }
 
     /**

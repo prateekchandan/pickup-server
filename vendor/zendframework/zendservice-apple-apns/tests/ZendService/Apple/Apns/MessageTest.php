@@ -63,6 +63,18 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('InvalidArgumentException');
         $this->alert->setLaunchImage(array());
     }
+    
+    public function testSetAlertThrowsExceptionOnTitleNonString()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        $this->alert->setTitle(array());
+    }
+    
+    public function testSetAlertThrowsExceptionOnTitleLocKeyNonString()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        $this->alert->setTitleLocKey(array());
+    }
 
     public function testSetBadgeReturnsCorrectNumber()
     {
@@ -115,6 +127,46 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->message->setSound(12345);
     }
 
+    public function testSetContentAvailableThrowsExceptionOnNonInteger()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        $this->message->setContentAvailable("string");
+    }
+
+    public function testGetContentAvailableReturnsCorrectInteger()
+    {
+        $value = 1;
+        $this->message->setContentAvailable($value);
+        $this->assertEquals($value, $this->message->getContentAvailable());
+    }
+
+    public function testSetContentAvailableResultsInCorrectPayload()
+    {
+        $value = 1;
+        $this->message->setContentAvailable($value);
+        $payload = $this->message->getPayload();
+        $this->assertEquals($value, $payload['aps']['content-available']);
+    }
+
+    public function testSetCategoryReturnsString()
+    {
+        $category = 'test';
+        $this->message->setCategory($category);
+        $this->assertEquals($category, $this->message->getCategory());
+    }
+
+    public function testSetCategoryThrowsExceptionOnNonScalar()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        $this->message->setCategory(array());
+    }
+
+    public function testSetCategoryThrowsExceptionOnNonString()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        $this->message->setCategory(12345);
+    }
+
     public function testSetCustomData()
     {
         $data = array('key' => 'val', 'key2' => array(1, 2, 3, 4, 5));
@@ -129,7 +181,10 @@ class MessageTest extends \PHPUnit_Framework_TestCase
             'PLAY',
             'GAME_PLAY_REQUEST_FORMAT',
             array('Foo', 'Baz'),
-            'Default.png'
+            'Default.png',
+            'Alert',
+            'ALERT',
+            array('Foo', 'Baz')
         );
 
         $this->assertEquals('Foo wants to play Bar!', $alert->getBody());
@@ -137,6 +192,9 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('GAME_PLAY_REQUEST_FORMAT', $alert->getLocKey());
         $this->assertEquals(array('Foo', 'Baz'), $alert->getLocArgs());
         $this->assertEquals('Default.png', $alert->getLaunchImage());
+        $this->assertEquals('Alert', $alert->getTitle());
+        $this->assertEquals('ALERT', $alert->getTitleLocKey());
+        $this->assertEquals(array('Foo', 'Baz'), $alert->getTitleLocArgs());
     }
 
     public function testAlertJsonPayload()
@@ -146,7 +204,10 @@ class MessageTest extends \PHPUnit_Framework_TestCase
             'PLAY',
             'GAME_PLAY_REQUEST_FORMAT',
             array('Foo', 'Baz'),
-            'Default.png'
+            'Default.png',
+            'Alert',
+            'ALERT',
+            array('Foo', 'Baz')
         );
         $payload = $alert->getPayload();
 
@@ -155,6 +216,9 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('loc-key', $payload);
         $this->assertArrayHasKey('loc-args', $payload);
         $this->assertArrayHasKey('launch-image', $payload);
+        $this->assertArrayHasKey('title', $payload);
+        $this->assertArrayHasKey('title-loc-key', $payload);
+        $this->assertArrayHasKey('title-loc-args', $payload);
     }
 
     public function testAlertPayloadSendsOnlyBody()
@@ -192,4 +256,14 @@ class MessageTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($this->message->getPayloadJson(), $result);
         }
     }
+
+    public function testCustomDataPayloadDoesNotIncludeEmptyApsData()
+    {
+        $data = array('custom' => 'data');
+        $this->message->setCustom($data);
+
+        $payload = $this->message->getPayload();
+        $this->assertEquals($payload, array('custom' => 'data'));
+    }
+
 }
