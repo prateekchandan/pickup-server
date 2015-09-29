@@ -15,7 +15,7 @@
  * @param mixed[] $b The second path
  * @return boolean The value obtained on comparing $a with $b.
  */
-function cmp($a,$b){
+function cmp($a,$b) {
 	$d1 = 0;
 	$d2 = 0;
 	foreach ($a->legs as $key => $legobj) {
@@ -184,7 +184,8 @@ class HomeController extends BaseController {
 	 * @return mixed[] Final google determined path.
 	 */
 	public function find_path($lat1 = 0, $log1 = 0, $lat2 = 0, $log2 = 0,
-							  $waypoints= array(), $flag=0) {
+							  $waypoints=array(), $flag=0) 
+	{
 		$address = "https://maps.googleapis.com/maps/api/directions/json?origin=$lat1,$log1&destination=$lat2,$log2&waypoints=";
 		// Adding waypoints.
 		foreach ($waypoints as $key => $value) {
@@ -209,17 +210,46 @@ class HomeController extends BaseController {
 		// If invalid input in sent to Google server.
 		if(sizeof($path)==0)
 			return 0;
-		
+
 		return $path;
 	}
 
-	public function journey_add(){
 
+	/**
+	 * Fundamental route to make a journey request and provide details.
+	 *
+	 * This function is implemented under the route :-
+	 * <br>
+	 * Route::post('add_journey', array('as' => 'journey.add',
+	 * 'uses' => 'HomeController@journey_add'));
+	 * 
+	 * Parameters required by route :- <br>
+	 * <b>user_id</b> <i>int</i> - User ID of person registering journey.<br>
+	 * <b>margin_after</b> <i>string</i> - Period user is ready to wait for.<br>
+	 * <b>alternate_journey_time</b> <i>string</i> - (optional parameter)
+	 * Used to send future journey_time for website bypass.<br>
+	 * <b>phone</b> <i>string</i> - Phone Number of the user. <br>
+	 * <b>email</b> <i>string</i> - email ID of user.<br>
+	 * <b>gender</b> <i>string</i> - Male or Female type of user<br>
+	 * <b>company</b> <i>string</i> - Company of user<br>
+	 * <b>device_id</b> <i>string</i> - Android phone device ID<br>
+	 * <b>mac_addr</b> <i>string</i> - MAC address of NIC used by phone<br>
+	 * <b>company_email</b> <i>string</i> - (optional parameter) Company offical email ID
+	 * <b>platform</b> <i>string</i> - (optional parameter) Platform on which product is run
+	 * 
+	 * @return mixed[] Error::success type Response with journey_id and
+	 * journey_time
+	 */
+	public function journey_add() 
+	{
+		// An initial check for user_id and margin_after.
 		$requirements = ['user_id','margin_after'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
-		if(Input::has('alternate_journey_time')){
+
+		// Used to set journey in future for web bypass. Else use time()
+		if(Input::has('alternate_journey_time')) {
 			$timestamp=date('Y-m-d H:i:s',strtotime(Input::get('alternate_journey_time'))+intval(Input::get('margin_after'))*60);
 		}
 		else
@@ -235,8 +265,8 @@ class HomeController extends BaseController {
             								{
                 								$query->whereNull('group_id')
                       							->orWhere('group_id', '!=', -1);
-            								})->first();
-        //print_r($check_existing_journey);
+            								})->
+            								first();
 		if (!is_null($check_existing_journey))
 		{
 			$editIntention=False;
