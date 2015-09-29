@@ -1,4 +1,20 @@
 <?php
+/**
+ * HomeController.php
+ *
+ * Contains the HomeController class.
+*/
+
+/**
+ * Helper function for usort of paths. 
+ *
+ * Used in the find_path() function for sorting paths. 
+ * Utilizes distance as a measure for comparison.
+ *
+ * @param mixed[] $a The first path
+ * @param mixed[] $b The second path
+ * @return boolean The value obtained on comparing $a with $b.
+ */
 function cmp($a,$b){
 	$d1 = 0;
 	$d2 = 0;
@@ -10,43 +26,88 @@ function cmp($a,$b){
 	}
 	return $d1 < $d2;
 }
+
+
+/**
+ * HomeController
+ *
+ * This class encompasses all functionality specific to journeys.
+ * It inherits from the BaseController class and makes use of the functionality
+ * provided there. Functions not in use have been assigned a deprecated tag.
+ *
+ * Any function here can return an error of three forms :-
+ * 
+ * required type :- When all HTTP request parameters aren't sent.
+ *
+ * error code :- Standard error messages with fixed codes. Codes in Error class.
+ * 
+ * other errors :- Other errors not handled thusfar. Need to be moved to type 2.
+ *
+ * @author Kalpesh Krishna <kalpeshk2011@gmail.com>
+ * @copyright 2015 Pickup 
+*/
 class HomeController extends BaseController {
 
-	/*
-	|--------------------------------------------------------------------------
-	| Default Home Controller
-	|--------------------------------------------------------------------------
-	|
-	| You may wish to use controllers instead of, or in addition to, Closure
-	| based routes. That's great! Here is an example controller method to
-	| get you started. To route to this controller, just add the route:
-	|
-	|	Route::get('/', 'HomeController@showWelcome');
-	|
-	*/
 
 	public $debug = 0;
 
 
-
+	/**
+	 * A helper function to find the point to point distance.
+	 *
+	 * This function approximately calculates the point to point distance
+	 * between two points on the surface of the Earth. Care has been taken
+	 * to take into account the curvature of the earth and other spherical
+	 * factors.
+	 *
+	 * Convinient and fast function for quick distance estimates. Should be 
+	 * switched to when time complexity is a constraint. Google calls for 
+	 * exact road distances are expensive.
+	 * 
+	 * @param float $lat1 Latitude of point 1
+	 * @param float $lon1 Longitude of point 1
+	 * @param float $lat2 Latitude of point 2
+	 * @param float $lon2 Longitude of point 2
+	 * @param string $unit Unit for measurement. Default is Kilometre.
+	 * Nautical miles("N") and miles("M") are viable options. Invalid input
+	 * returns output in miles.
+	 * @return float Distance computed. 
+	 */
 	public function distance($lat1, $lon1, $lat2, $lon2, $unit = "K") {
 
 		$theta = $lon1 - $lon2;
-		$dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+		$dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  
+		cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
 		$dist = acos($dist);
 		$dist = rad2deg($dist);
 		$miles = $dist * 60 * 1.1515;
+
 		$unit = strtoupper($unit);
 
-		if ($unit == "K") {
+		if ($unit == "K") { // Kilometres
 			return ($miles * 1.609344);
-		} else if ($unit == "N") {
+		} else if ($unit == "N") { // Nautical miles
 			return ($miles * 0.8684);
-		} else {
+		} else { // Miles
 			return $miles;
 		}
 	}
 
+
+	/**
+	 * A helper function to find the country, state, city and locality of
+	 * a point using Google Geocoding API.
+	 *
+	 * This function utilizes the Gecoding API to determine the address
+	 * elements of the given location. Care has been taken to fill up
+	 * appropriate fields logically when the API fails to provide that data.
+	 * 
+	 * TODO :- Use this function for "NOT IN MUMBAI" error message.
+	 *
+	 * @param float $lat1 Latitude of point
+	 * @param float $lon1 Longitude of point
+	 * @return mixed[] associative array with address information. 
+	 */
 	public function get_address($latitude = 19.12 , $longitude = 72.91)
 	{
 
@@ -56,6 +117,7 @@ class HomeController extends BaseController {
 			return 0;
 		}
 
+		// JSON parsing result
 		$results=$address->results;
 
 		if(sizeof($results) == 0)
@@ -88,39 +150,66 @@ class HomeController extends BaseController {
 		}
 
 
-		if($city == "" && $locality!=""){
+		if($city == "" && $locality!="") {
 			$city = $locality;
 			$locality = $subl;
 		}
 
-		if($subl != ""){
+		if($subl != "") {
 			$locality = $subl;
 		}
 
-		return array('country'=>$country , 'city' => $city , 'state' => $state , 'locality'=>$locality);
+		return array('country'=>$country, 
+					 'city' => $city, 
+					 'state' => $state, 
+					 'locality'=>$locality);
 	}
 
 
-	public function find_path($lat1 = 0 , $log1 = 0 , $lat2 = 0 , $log2 = 0 , $waypoints= array(), $flag=0){
+	/**
+	 * A helper function to find actual road path between two points.
+	 *
+	 * This functions is used for all calls to the Google Directions API.
+	 * This function operates on an additional flag variable which can be
+	 * 0 or 1.  1 returns complete google path. Flag 0 returns google route 
+	 * with paths ordered by distance.
+	 * 
+	 * @param float $lat1 Latitude of point 1
+	 * @param float $lon1 Longitude of point 1
+	 * @param float $lat2 Latitude of point 2
+	 * @param float $lon2 Longitude of point 2
+	 * @param float[2][] $waypoints Array of lat/long points acting as 
+	 * intermediate points in the journey.
+	 * @param int $flag Can be 1 or 0. 
+	 * @return mixed[] Final google determined path.
+	 */
+	public function find_path($lat1 = 0, $log1 = 0, $lat2 = 0, $log2 = 0,
+							  $waypoints= array(), $flag=0) {
 		$address = "https://maps.googleapis.com/maps/api/directions/json?origin=$lat1,$log1&destination=$lat2,$log2&waypoints=";
+		// Adding waypoints.
 		foreach ($waypoints as $key => $value) {
 			$address .= $value[0].','.$value[1].'|';
 		}
 		$address .= "&alternatives=true&sensor=false";
+		
+		// Try contacting Google server.
 		try {
 			$address = json_decode(file_get_contents($address));
 		} catch (Exception $e) {
 			return 0;
 		}
 
+		// Sorting paths by distance using global function cmp.
 		$path  = $address->routes;
 		usort($path,'cmp');
+
 		if ($flag==1)
-		{
 			return $address;
-		}
+
+		// If invalid input in sent to Google server.
 		if(sizeof($path)==0)
-		return 0;
+			return 0;
+		
 		return $path;
 	}
 
