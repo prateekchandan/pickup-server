@@ -340,65 +340,66 @@ class HomeController extends BaseController {
 				strpos($end_location['city'],'Thane') === false) {
     			return Error::make(1,36);
 			}
-			/*foreach ($path1->legs as $leg) {
-				$end_address = $leg->end_address;
-				$start_address = $leg->start_address;
-				if ((strpos($start_address,'Mumbai') == false && strpos($start_address,'Thane') == false)
-					||  (strpos($end_address,'Mumbai') == false && strpos($end_address,'Thane') == false))
-    				return Error::make(1,36);
-			}*/
 		}
 		else
 			return Error::make(1,23);
+
+		// Storing path2 if exists
 		if (array_key_exists(1, $path->routes))
 		$path2 = $path->routes[1];
+
+		// Storing path3 if exists
 		if (array_key_exists(2, $path->routes))
 		$path3 = $path->routes[2];
+
+		// Google path distance
 		$distance  = 0;
 		foreach ($path1->legs as $key => $value) {
 			$distance += $value->distance->value;
 		}
-		$journey_time  = 0;
+		$journey_time = 0;
+
+		// Time estimate by Google
 		$path_time = 0;
 		foreach ($path1->legs as $key => $value) {
 			$path_time += $value->duration->value;
 		}
+
+		// Journey > 100 km
 		if($distance > 100000)
 		return Error::make(1,4);
 
+		// Valid user
 		$user = User::find(Input::get('user_id'));
 		if(is_null($user))
 		return Error::make(1,1);
 
-		/*$sec = strtotime($timestamp);
-		$timenow = time();
-		if($timenow > $sec)
-		return Error::make(1,6);*/
-
+		// Valid margin_after and margin_before
 		if(!(is_numeric(Input::get('margin_after')) && is_numeric(Input::get('margin_before'))))
 		return Error::make(1,7);
-
-		if(Input::get('margin_after') > 60 || Input::get('margin_before') >60 || Input::get('margin_after') < 0 || Input::get('margin_before') < 0)
+		if(Input::get('margin_after') > 60 || Input::get('margin_before') >60 || 
+		   Input::get('margin_after') < 0 || Input::get('margin_before') < 0)
 		return Error::make(1,7);
 
-		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || Input::get('preference') < 1 )
+		// Valid preference
+		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || 
+		   Input::get('preference') < 1)
 		return Error::make(1,8);
 
-		
-
+		// Filling up database entry.
 		$journey = new Journey;
-
 
 		$journey->start_lat = Input::get('start_lat');
 		$journey->start_long = Input::get('start_long');
 		$journey->end_lat = Input::get('end_lat');
 		$journey->end_long = Input::get('end_long');
-		//$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
+		
 		$journey->path = json_encode(Graining::get_hashed_grid_points(json_encode($path1)));
 		if (!is_null($path2))
 		$journey->path2 = json_encode(Graining::get_hashed_grid_points(json_encode($path2)));
 		if (!is_null($path3))
 		$journey->path3 = json_encode(Graining::get_hashed_grid_points(json_encode($path3)));
+		
 		$journey->start_text = Input::get('start_text');
 		$journey->end_text = Input::get('end_text');
 		$journey->id = Input::get('user_id');
@@ -409,11 +410,12 @@ class HomeController extends BaseController {
 		$journey->distance = $distance;
 		$journey->time = $path_time;
 
+		// SQL insert query
 		try {
 			$journey->save();
-			$group_id=0;
-
-			return Error::success("Journey successfully Registered",array('journey_id'=>$journey->id,'journey_time'=>$timestamp));
+			return Error::success("Journey successfully Registered",
+								 array('journey_id'=>$journey->id,
+									   'journey_time'=>$timestamp));
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
