@@ -204,14 +204,14 @@ class HomeController extends BaseController {
 		$path  = $address->routes;
 		usort($path,'cmp');
 
-		if ($flag==1)
-			return $address;
-
 		// If invalid input in sent to Google server.
 		if(sizeof($path)==0)
 			return 0;
 
-		return $path;
+		if ($flag==1)
+			return $address;
+		else
+			return $path;
 	}
 
 
@@ -226,16 +226,18 @@ class HomeController extends BaseController {
 	 * Parameters required by route :- <br>
 	 * <b>user_id</b> <i>int</i> - User ID of person registering journey.<br>
 	 * <b>margin_after</b> <i>string</i> - Period user is ready to wait for.<br>
+	 *
 	 * <b>alternate_journey_time</b> <i>string</i> - (optional parameter)
 	 * Used to send future journey_time for website bypass.<br>
-	 * <b>phone</b> <i>string</i> - Phone Number of the user. <br>
-	 * <b>email</b> <i>string</i> - email ID of user.<br>
-	 * <b>gender</b> <i>string</i> - Male or Female type of user<br>
-	 * <b>company</b> <i>string</i> - Company of user<br>
-	 * <b>device_id</b> <i>string</i> - Android phone device ID<br>
-	 * <b>mac_addr</b> <i>string</i> - MAC address of NIC used by phone<br>
-	 * <b>company_email</b> <i>string</i> - (optional parameter) Company offical email ID
-	 * <b>platform</b> <i>string</i> - (optional parameter) Platform on which product is run
+	 *
+	 * <b>start_lat</b> <i>float</i> - Latitude of start point. <br>
+	 * <b>start_long</b> <i>float</i> - Longitude of start point. <br>
+	 * <b>end_lat</b> <i>float</i> - Latitude of end point. <br>
+	 * <b>end_long</b> <i>float</i> - Longitude of end point. <br>
+	 * <b>margin_before</b> <i>string</i> - deprecated, TODO :- remove. <br>
+	 * <b>preference</b> <i>string</i> - Choice of car. Between 1 and 5.<br>
+	 * <b>start_text</b> <i>string</i> - Name of starting point. <br>
+	 * <b>end_text</b> <i>string</i> - Name of ending point. <br>
 	 * 
 	 * @return mixed[] Error::success type Response with journey_id and
 	 * journey_time
@@ -255,58 +257,96 @@ class HomeController extends BaseController {
 		else
 			$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);
 		
+		// Creating window of +/- one hour.
+		// TODO :- Extend $t2 to infinity for website registrations?
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*1);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*1);;
 
-		$check_existing_journey = Journey::where('id' , '=' , intval(Input::get('user_id')))->
+		// Existing journeys in time window and group_id != -1
+		// group_id = -1 corresponds to cancelled journey requests.
+		// TODO :- migrate request states to strings. -1, NULL, ID isn't robust.
+		$check_existing_journey =  Journey::where('id' , '=' , intval(Input::get('user_id')))->
 											where('journey_time' , '>' , $t2 )->
 											where('journey_time' , '<' , $t1 )->
 											where(function($query)
             								{
-                								$query->whereNull('group_id')
-                      							->orWhere('group_id', '!=', -1);
+                								$query->
+                								whereNull('group_id')->
+                								orWhere('group_id', '!=', -1);
             								})->
             								first();
+
+        // Un-cancelled journey request in time-window exists,
 		if (!is_null($check_existing_journey))
 		{
+			// Check whether user wishes to edit exisiting or create new.
 			$editIntention=False;
 			if (is_null($check_existing_journey->group_id))
 				$editIntention=True;
+
+			// Redirect to edit_journey route.
 			if ($editIntention==True)
 				return $this->journey_edit($check_existing_journey->journey_id);
 			else
 			{
+				// Case where old journey is cancelled.
 				if (intval($check_existing_journey->group_id)!=-1)
 				{
-					self::cancel_journey(intval($check_existing_journey->journey_id));
+					$response = self::cancel_journey(intval($check_existing_journey->journey_id));
+					// In case cancelling journey encountered an error.
+					if ($response->original['error']==1)
+						return $response;
 				}
 			}
-			/*
-			if(Input::has('journey_id') && $isCancelled==FALSE){
-			return $this->journey_edit(Input::get('journey_id'));
-			}*/
 		}
-		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
+
+		$requirements = ['start_lat' , 'start_long', 'end_lat', 
+						 'end_long' , 'user_id' , 'margin_after' ,
+						 'margin_before' , 'preference' , 
+						 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
-		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'), array(), 1);
-		if(is_null($path)){
+
+		// Getting Google Directions API path.
+		$path = $this->find_path(Input::get('start_lat'), 
+								 Input::get('start_long'), 
+								 Input::get('end_lat'), 
+								 Input::get('end_long'), array(), 1);
+		// Path not found.
+		if(is_null($path) || (is_int($path) && $path==0)) {
 			return Error::make(0,3);
 		}
+
 		$path1=NULL;
 		$path2=NULL;
 		$path3=NULL;
+		// TODO :- if condition not needed now.
 		if (array_key_exists(0, $path->routes))
 		{
 			$path1 = $path->routes[0];	
-			foreach ($path1->legs as $leg) {
+			$start_location = self::get_address(Input::get('start_lat'),
+												Input::get('start_long'));
+			$end_location = self::get_address(Input::get('end_lat'),
+											  Input::get('end_long'));
+			
+			if ($start_location==0 || $end_location==0)
+				return Error::make(1,36);
+			if (strpos($start_location['city'],'Mumbai') === false && 
+				strpos($start_location['city'],'Thane') === false) {
+    			return Error::make(1,36);
+			}
+			if (strpos($end_location['city'],'Mumbai') === false && 
+				strpos($end_location['city'],'Thane') === false) {
+    			return Error::make(1,36);
+			}
+			/*foreach ($path1->legs as $leg) {
 				$end_address = $leg->end_address;
 				$start_address = $leg->start_address;
 				if ((strpos($start_address,'Mumbai') == false && strpos($start_address,'Thane') == false)
 					||  (strpos($end_address,'Mumbai') == false && strpos($end_address,'Thane') == false))
     				return Error::make(1,36);
-			}
+			}*/
 		}
 		else
 			return Error::make(1,23);
@@ -1087,7 +1127,7 @@ class HomeController extends BaseController {
 			return Error::make(0,100,$check);
 
 		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'), array(), 1);
-		if(is_null($path)){
+		if(is_null($path) || (is_int($path) && $path==0)) {
 			return Error::make(0,3);
 		}
 		$path1=NULL;
@@ -1096,12 +1136,21 @@ class HomeController extends BaseController {
 		if (array_key_exists(0, $path->routes))
 		{
 			$path1 = $path->routes[0];	
-			foreach ($path1->legs as $leg) {
-				$end_address = $leg->end_address;
-				$start_address = $leg->start_address;
-				if ((strpos($start_address,'Mumbai') == false && strpos($start_address,'Thane') == false)
-					||  (strpos($end_address,'Mumbai') == false && strpos($end_address,'Thane') == false))
-    				return Error::make(1,36);
+			$start_location = self::get_address(Input::get('start_lat'),
+												Input::get('start_long'));
+			$end_location = self::get_address(Input::get('end_lat'),
+											  Input::get('end_long'));
+			if ($start_location==0 || $end_location==0)
+				return Error::make(1,36);
+			print_r($start_location);
+			if (strpos($start_location['city'],'Mumbai') === false && 
+				strpos($start_location['city'],'Thane') === false) {
+    			return Error::make(1,36);
+			}
+			print_r($end_location);
+			if (strpos($end_location['city'],'Mumbai') === false && 
+				strpos($end_location['city'],'Thane') === false) {
+    			return Error::make(1,36);
 			}
 		}
 		else

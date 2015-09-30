@@ -56,6 +56,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('driver_periodic_route/{id}','DriverController@driver_periodic_route');
 	Route::get('get_detailed_group/{id}','DriverController@get_detailed_group');
 	Route::post('journey_request','HomeController@journey_request');
+	Route::get('get_address/{lat}/{long}','HomeController@get_address');
 	//Route::post('arbit_stuff','HomeController@swap');
 });
 
