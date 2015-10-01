@@ -821,16 +821,33 @@ class HomeController extends BaseController {
 		}
 	}
 
+
+	/**
+	 * Helper function to find dot products of unit vectors along
+	 * directions of input.
+	 *
+	 * Standard dot product function which converts vectors to 
+	 * unit vectors and finds their dot product. Returns 1 in 
+	 * the case any one magnitude is 0.
+	 *
+	 * @param float[2] $vector1 The X,Y coordinates of first vector.
+	 * @param float[2] $vector2 The X,Y coordinates of second vector.
+	 * @return float The dot product of the vectors.
+	 */
 	public function find_dot_product_units($vector1,$vector2)
 	{
 		$magnitude1 = sqrt($vector1[0]*$vector1[0]+$vector1[1]*$vector1[1]);
 		$magnitude2 = sqrt($vector2[0]*$vector2[0]+$vector2[1]*$vector2[1]);
 		if ($magnitude1==0 || $magnitude2==0)
 		return 1;
+
+		// Converting to unit vectors.
 		$vector1[0] = $vector1[0]/$magnitude1;
 		$vector1[1] = $vector1[1]/$magnitude1;
 		$vector2[0] = $vector2[0]/$magnitude2;
 		$vector2[1] = $vector2[1]/$magnitude2;
+
+		// Dot product.
 		return ($vector1[0]*$vector2[0]+$vector1[1]*$vector2[1]);
 	}
 
@@ -960,34 +977,50 @@ class HomeController extends BaseController {
 		}
 	}
 
+
+	/**
+	 * Helper function to swap two of the three paths in a Journey
+	 * object of the provided journey_id.
+	 *
+	 * The function swaps database entries. Takes care of NULL paths too. 
+	 *
+	 * @param int $journey_id The Journey ID whose paths we want to swap.
+	 * @param int $path1 The first path number. (1,2 or 3)
+	 * @param int $path2 The second path number. (1,2 or 3)
+	 */
 	public function swap_paths($journey_id,$path1,$path2)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
+		
 		try {
+			// Iterating all possible cases of path inputs.
 			if (($path1==1 && $path2==2) || ($path1==2 && $path2==1))
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'path' => $journey->path2,
-				'path2' => $journey->path,
-			));
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'path' => $journey->path2,
+					'path2' => $journey->path,
+				));
 			else if (($path1==1 && $path2==3) || ($path1==3 && $path2==1))
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'path' => $journey->path3,
-				'path3' => $journey->path,
-			));
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'path' => $journey->path3,
+					'path3' => $journey->path,
+				));
 			else if (($path1==2 && $path2==3) || ($path1==3 && $path2==2))
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'path2' => $journey->path3,
-				'path3' => $journey->path2,
-			));
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'path2' => $journey->path3,
+					'path3' => $journey->path2,
+				));
+
+			// Damage control by converting "" to NULL.
 			$journey = Journey::where('journey_id','=',$journey_id)->first();
 			if ($journey->path2=="")
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'path2' => NULL,
-			));
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'path2' => NULL,
+				));
 			if ($journey->path3=="")
-			Journey::where('journey_id','=',$journey_id)->update(array(
-				'path3' => NULL,
-			));
+				Journey::where('journey_id','=',$journey_id)->update(array(
+					'path3' => NULL,
+				));
+
 		} catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
 		}
@@ -1121,13 +1154,27 @@ class HomeController extends BaseController {
 
 	}
 
+	/**
+	 * Returns the journey object depending on journey ID.
+	 *
+	 * This route returns the journey object requested for. 
+	 * Simple public route, extensively used.
+	 * 
+	 * Implemented in the route :- <br>
+	 * Route::get('get_pending/{id}/' , 'HomeController@get_pending'); <br>
+	 * Here 'id' refers to the journey ID.
+	 *
+	 * @param int $journey_id The ID whose Journey we wish for. 
+	 * @return mixed[] Journey details array.
+	 */
 	public function get_pending($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
-		return Error::make(1,11);
+			return Error::make(1,11);
+		
+		// Unnecesary data turned to NULL.
 		$journey->path=NULL;
-
 		return $journey;
 	}
 
@@ -1362,156 +1409,5 @@ class HomeController extends BaseController {
 	public function journey_delete($journey_id){
 		$journey = Journey::where('journey_id','=',$journey_id)->delete();
 		return Error::success("Journey successfully Deleted");
-	}
-
-
-	public function get_journey($id=0,$userData=0)
-	{
-		$jpair = FinalJourney::find($id);
-		if(is_null($jpair)){
-			return Error::make(1,10);
-		}
-		if($jpair->u1==$jpair->u2){
-			$jpair->u2_distance = 0;
-			$jpair->u2_time = 0;
-			$jpair->u2=0;
-		}
-
-		$returnObj = array();
-		$returnObj['path'] = json_decode($jpair->path);
-		$path = json_decode($jpair->path);
-		$returnObj['users'] = array();
-		$u = array();
-		$u[0] = User::find($jpair->u1);
-		$u[1] = User::find($jpair->u2);
-		$u[2] = User::find($jpair->u3);
-		$u1 = array();
-		$u1[0] = array();
-		$u1[0] = array();
-		$u1[0] = array();
-
-		$tot_distance = 0;
-		foreach ($path->legs as $key => $leg) {
-			$tot_distance += $leg->distance->value;
-		}
-		$tot_cost = CostCalc::calc($tot_distance);
-		if(!is_null($u[0])){
-			$old_journey = Journey::where('journey_id' , '=' , $jpair->j1)->first();
-			$u1[0]['old_distance'] = $old_journey->distance;
-			$u1[0]['old_time'] = $old_journey->time;
-			$u1[0]['new_distance'] = $jpair->u1_distance;
-			$u1[0]['new_time'] = $jpair->u1_time;
-			$u1[0]['old_cost'] = CostCalc::calc($old_journey->distance);
-			$u1[0]['new_cost'] = $jpair->u1_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
-		}
-		if(!is_null($u[1])){
-			$old_journey = Journey::where('journey_id' , '=' , $jpair->j2)->first();
-			$u1[1]['old_distance'] = $old_journey->distance;
-			$u1[1]['old_time'] = $old_journey->time;
-			$u1[1]['new_distance'] = $jpair->u2_distance;
-			$u1[1]['new_time'] = $jpair->u2_time;
-			$u1[1]['old_cost'] = CostCalc::calc($old_journey->distance);
-			$u1[1]['new_cost'] = $jpair->u2_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
-		}
-		if(!is_null($u[2])){
-			$old_journey = Journey::where('journey_id' , '=' , $jpair->j3)->first();
-			$u1[2]['old_distance'] = $old_journey->distance;
-			$u1[2]['old_time'] = $old_journey->time;
-			$u1[2]['new_distance'] = $jpair->u3_distance;
-			$u1[2]['new_time'] = $jpair->u3_time;
-			$u1[2]['old_cost'] = CostCalc::calc($old_journey->distance);
-			$u1[2]['new_cost'] = $jpair->u3_distance*($tot_cost / ($jpair->u1_distance + $jpair->u2_distance + $jpair->u3_distance));
-		}
-
-		foreach ($u as $key => $user) {
-			if(!is_null($user)){
-				if($user->id != $userData)
-				array_push($returnObj['users'], $user);
-
-				if($user->id == $userData){
-					$returnObj = array_merge($returnObj , $u1[$key]);
-				}
-			}
-		}
-
-
-		return $returnObj;
-	}
-	
-	public function modify_location($id=0)
-	{
-		$jpair = FinalJourney::find($id);
-		if(is_null($jpair)){
-			return Error::make(1,10);
-		}
-		$requirements = ['user_id' , 'position'];
-		$check  = self::check_requirements($requirements);
-		if($check)
-		return Error::make(0,100,$check);
-
-		$user = User::find(Input::get('user_id'));
-		if(is_null($user))
-		return Error::make(1,1);
-
-		User::where('id','=',Input::get('user_id'))->update(array(
-			'current_pos' => Input::get('position'),
-		));
-		$users = array();
-		$users[0] = User::find($jpair->u1);
-		$users[1] = User::find($jpair->u2);
-		$users[2] = User::find($jpair->u3);
-
-		$ret = array();
-		foreach ($users as $key => $user) {
-			if(!is_null($user)){
-				$ret[$user->id] = $user->current_pos;
-			}
-		}
-		return $ret;
-	}
-
-	public function event_change($journey_id = 0){
-		$jpair = FinalJourney::find($journey_id);
-		if(is_null($jpair)){
-			return Error::make(1,10);
-		}
-		$requirements = ['user_id' , 'event'];
-		$check  = self::check_requirements($requirements);
-
-		$eventMessage = Input::get('event');
-		if($eventMessage != "accept" && $eventMessage != "reject" && $eventMessage != "end_ride" && $eventMessage != "start_ride")
-		return Error::make(1,12);
-
-		$user = User::find(Input::get('user_id'));
-		if(is_null($user))
-		return Error::make(1,1);
-
-		$users = array();
-		$users[0] = User::find($jpair->u1);
-		$users[1] = User::find($jpair->u2);
-		$users[2] = User::find($jpair->u3);
-
-		foreach ($users as $Cuser) {
-			if(!is_null($Cuser)){
-				if($Cuser->id == $user->id){
-					$events = json_decode($jpair->event_status,true);
-					$events[$eventMessage][$user->id] = 1;
-					FinalJourney::where('id','=',$journey_id)->update(array(
-						'event_status' => json_encode($events),
-					));
-					$ret =  Error::success('Updated status Successfully');
-				}
-				else{
-					$uMsg = array();
-					$uMsg['type'] = 10;
-					$uMsg['user'] = $user->id;
-					$uMsg['event'] = $eventMessage;
-					PushNotification::app('Pickup')
-					->to($Cuser->registration_id)
-					->send(json_encode($uMsg));
-				}
-			}
-		}
-		return $ret;
 	}
 }
