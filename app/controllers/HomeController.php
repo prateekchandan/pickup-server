@@ -557,13 +557,26 @@ class HomeController extends BaseController {
 			$final_data = array("match_amount"=>$best_match_value,"best_match"=>$best_match);
 			return Error::success($msg,$final_data);
 	}
-
+	/**
+	 * A helper function to get the group details of a particular group.
+	 *
+	 * This function returns details of a particular group. Path details
+	 * are set to NULL as they are big and unnecessary.
+	 * 
+	 * Implemented under :-<br>
+	 * Route::get('get_group/{id}' , array('as' => 'group.get',
+	 * 'uses' => 'HomeController@get_group'));
+	 *
+	 * @param int $group_id The ID who's group we wish for. 
+	 * @return mixed[] Group details array.
+	 */
 	public function get_group($group_id=0)
 	{
 		$group = Group::where('group_id','=',$group_id)->first();
 		if(is_null($group)){
 			return Error::make(1,17);
 		}
+		// Don't send unecessary Graining data
 		$group->path=null;
 		return Error::success("Group Details..",array('group'=>$group));
 	}

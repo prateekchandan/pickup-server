@@ -28,7 +28,10 @@ class CostCalc {
 		foreach($address->routes[0]->legs as $leg)
 			$google_exact+=$leg->distance->value;
 		$distance = $app_distance*$google_shortest/($google_exact*1000);
-		$fare = 35+6*$distance;
+		if ($distance<12)
+			$fare=100;
+		else
+			$fare = 100+6*($distance-12);
 		return intval($fare);
 	}
 
@@ -42,7 +45,10 @@ class CostCalc {
 		$google_shortest=0;
 		foreach($address->routes[0]->legs as $leg)
 			$google_shortest+=$leg->distance->value;
-		$fare = 35+6*($google_shortest/1000);
-		return $fare;
+		if ($google_shortest<12000)
+			$fare=100;
+		else
+			$fare = 100+6*(($google_shortest-12000)/1000);
+		return intval($fare);
 	}
 };

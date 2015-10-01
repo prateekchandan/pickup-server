@@ -318,7 +318,7 @@ class DriverController extends BaseController {
 			return Error::make(0,100,$check);
 		$journey_id=intval(Input::get('journey_id'));
 		$group = Group::where('group_id','=',$group_id)->first();
-		if(is_null($group) || is_null($group->driver_id)){
+		if(is_null($group) || is_null($group->driver_id)) {
 			return Error::make(1,18);
 		}
 		$driver_id = intval($group->driver_id);
@@ -365,6 +365,11 @@ class DriverController extends BaseController {
 			}
 			catch(Exception $e){
 				$error = Error::make(101,101,$e->getMessage());
+				self::log_data(json_encode($error));
+				if (floatval(Input::get('app_distance'))<12000)
+					$fare=101;
+				else
+					$fare=100+6*(floatval(Input::get('app_distance'))-12000);
 			}
 			Journey::where('journey_id','=',$journey_id)->update(array(
 				'fare'=>$fare,
