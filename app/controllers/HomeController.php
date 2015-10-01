@@ -394,6 +394,7 @@ class HomeController extends BaseController {
 		$journey->end_lat = Input::get('end_lat');
 		$journey->end_long = Input::get('end_long');
 		
+		// Store path after appropriate Graining
 		$journey->path = json_encode(Graining::get_hashed_grid_points(json_encode($path1)));
 		if (!is_null($path2))
 		$journey->path2 = json_encode(Graining::get_hashed_grid_points(json_encode($path2)));
@@ -421,28 +422,62 @@ class HomeController extends BaseController {
 		}
 	}
 
+
+	/**
+	 * Route combining functionality of journey_add() and 
+	 * get_best_match()
+	 *
+	 * This function is implemented under the route :-
+	 * <br>
+	 * Route::post('journey_request','HomeController@journey_request');
+	 * 
+	 * Parameters required by route :- <br>
+	 * <b>user_id</b> <i>int</i> - User ID of person registering journey.<br>
+	 * <b>margin_after</b> <i>string</i> - Period user is ready to wait for.<br>
+	 * <b>start_lat</b> <i>float</i> - Latitude of start point. <br>
+	 * <b>start_long</b> <i>float</i> - Longitude of start point. <br>
+	 * <b>end_lat</b> <i>float</i> - Latitude of end point. <br>
+	 * <b>end_long</b> <i>float</i> - Longitude of end point. <br>
+	 * <b>margin_before</b> <i>string</i> - deprecated, TODO :- remove. <br>
+	 * <b>preference</b> <i>string</i> - Choice of car. Between 1 and 5.<br>
+	 * <b>start_text</b> <i>string</i> - Name of starting point. <br>
+	 * <b>end_text</b> <i>string</i> - Name of ending point. <br>
+	 * 
+	 * @return mixed[] Error::success type Response with journey_id and
+	 * journey_time
+	 */
 	public function journey_request() {
-		$requirements = ['user_id','margin_after','start_lat' , 'start_long','end_lat' ,
-						 'end_long' , 'user_id' , 'margin_after' , 'margin_before' , 
-						 'preference' , 'start_text' , 'end_text'];
+
+		// TODO :- $requirements not required here.
+		$requirements = ['user_id', 'margin_after', 'start_lat', 'start_long',
+						 'end_lat', 'end_long', 'user_id', 'margin_after',
+						 'margin_before', 'preference', 'start_text', 'end_text'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 		return Error::make(0,100,$check);
+
+		// Running journey_add()
 		$add_journey = self::journey_add();
+
 		if ($add_journey->original['error']==0)
 		{
+			// Error free journey_add()
 			$journey_id=$add_journey->original['journey_id'];
 			$best_match = self::get_best_match($journey_id);
 			if ($best_match->original['error']==0)
 			{
+				// Error free get_best_match()
 				$fare = 0;
 				try {
 					$fare=CostCalc::fare_estimate($journey_id);	
 				}
 				catch(Exception $e) {
+					// Delete journey object created to rollback transaction.
 					Journey::where('journey_id','=',$journey_id)->delete();
 					return Error::make(101,101,$e->getMessage());
 				}
+				// Sending estimated data
+				// TODO :- estimate driver_reach_time properly
 				$data=array("journey_id"=>$journey_id,
 							"best_match"=>$best_match->original['best_match'],
 							"match_amount"=>$best_match->original['match_amount'],
@@ -463,6 +498,19 @@ class HomeController extends BaseController {
 	}
 
 
+	/**
+	 * Obtains most suitable group for a given journey ID.
+	 *
+	 * Matches all existing groups not in ride with the provided 
+	 * journey id. The best match is chosen and stored in the Journey 
+	 * database for future usage.
+	 *
+	 * Implemented in the following route :- <br>
+	 * Route::get('get_best_match/{id}','HomeController@get_best_match');
+	 *
+	 * @param int $journey_id The Journey ID whose best match we want.
+	 * @return mixed[] Data about the best match
+	 */
 	public function get_best_match($journey_id)
 	{
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
@@ -475,15 +523,21 @@ class HomeController extends BaseController {
 		$best_match_value=0;
 		$path_number=1;
 		$ideal_match_found=False;
-		//Match with groups first
-		//Match with individual people in a group. Use all paths
+		// Match with groups with two or more people.
+		// for loop needed to scan all 3 paths of $journey_id
 		for ($i=1;$i<=3;$i++)
 		{
 			$match_array = self::find_mates($journey_id,$i,1,False)['mates'];
+			
+			// Storing logs of matching algorithm
 			self::log_matches("Matching route ".$i." of journey_id ".$journey_id." with groups...\n");
 			$log_data=print_r($match_array,true);
 			self::log_matches($log_data);
+
+			// Top match
 			$match = $match_array[0];
+			
+			// Top match exists and is better than current best match.
 			if (!is_null($match) && $match->match_amount>$best_match_value)
 			{
 				$best_match=$match;
@@ -491,22 +545,38 @@ class HomeController extends BaseController {
 				$path_number=$i;
 			}
 		}
+
 		if (!is_null($best_match))
 		{
 			$ideal_match_found=True;
+			// Swap path 1 value with path i to help add_to_group() 
 			self::swap_paths($journey_id,1,$path_number);
 		}
+
+		// Idea is to fill up groups with two or more people first.
+		// If no such group is found, try groups with one person.
+		// Stronger matching with all 3 paths of that one person considered
+		// as well.
+		// Only executed if no match found till now.
 		if ($ideal_match_found==False)
 		{
 			for ($i=1;$i<=3;$i++)
 			{
+				// For all three paths of person requesting for journey.
 				for ($j=1;$j<=3;$j++)
 				{
+					// For all three paths of lonely person in group.
 					$match_array = self::find_mates($journey_id,$i,$j,True)['mates'];
+					
+					// Storing logs of matching algorithm 
 					self::log_matches("Matching route ".$i." of journey_id ".$journey_id." with lonely group journey ".$j."...\n");
 					$log_data=print_r($match_array,true);
 					self::log_matches($log_data);
+					
+					// Top match
 					$match = $match_array[0];
+					
+					// Top match exists and is better than current best match. 
 					if (!is_null($match) && $match->match_amount>$best_match_value)
 					{
 						$best_match=$match;
@@ -518,11 +588,13 @@ class HomeController extends BaseController {
 			if (!is_null($best_match))
 			{
 				$ideal_match_found=True;
+				// Swap path 1 value with path i to help add_to_group() 
 				self::swap_paths($journey_id,1,$path_number);
 			}
 		}
 		if (!is_null($best_match))
 		{
+			// Match found. :)
 			$id = $best_match->group_id;
 			$best_match->id=intval($id);
 			try {
@@ -538,6 +610,7 @@ class HomeController extends BaseController {
 		}
 		else
 		{
+			// No match found. :(
 			try {
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'best_match' => NULL,
@@ -547,6 +620,8 @@ class HomeController extends BaseController {
 				return Error::make(101,101,$e->getMessage());
 			}
 		}
+
+		// Finalizing data to send.
 		$msg="Mates found!";
 		if (is_null($best_match))
 		{
@@ -554,9 +629,11 @@ class HomeController extends BaseController {
 			$msg="No Mates found!";
 		}
 
-			$final_data = array("match_amount"=>$best_match_value,"best_match"=>$best_match);
-			return Error::success($msg,$final_data);
+		$final_data = array("match_amount"=>$best_match_value,"best_match"=>$best_match);
+		return Error::success($msg,$final_data);
 	}
+
+
 	/**
 	 * A helper function to get the group details of a particular group.
 	 *
