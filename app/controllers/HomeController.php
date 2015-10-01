@@ -851,128 +851,159 @@ class HomeController extends BaseController {
 		return ($vector1[0]*$vector2[0]+$vector1[1]*$vector2[1]);
 	}
 
+
+	/**
+	 * Helper function to sort the start and end points of a group.
+	 *
+	 * This function is used to get the new path_waypoints array in a
+	 * group object. It fits the new start and end point into the existing
+	 * order using a vector dot product approach. It is one of the most
+	 * important functions in this product.
+	 * TODO :- Move startwaypoints and endwaypoints into single array 
+	 *
+	 * @param int $journey_id The Journey ID of the person joining the
+	 * group.
+	 * @param int $group_id The group to which the person is being added.
+	 * Kept as 0 if a new group is being formed.
+	 * @return mixed[] The new value for path_waypoints
+	 */
 	public function getwaypoints($journey_id,$group_id=0)
 	{
 		$journey=Journey::where('journey_id','=',$journey_id)->first();
+		// Case where a new group is being created.
 		if ($group_id==0)
 		{
-			$final_path=array(	'startwaypoints'=>array(array(floatval($journey->start_lat),floatval($journey->start_long))),
-				'endwaypoints'=> array(array(floatval($journey->end_lat),floatval($journey->end_long))) ,
+			$final_path=array(
+
+				'startwaypoints'=>array(array(
+					floatval($journey->start_lat),
+					floatval($journey->start_long))),
+
+				'endwaypoints'=> array(array(
+					floatval($journey->end_lat),
+					floatval($journey->end_long))),
+
 				'start_order'=>array($journey_id),
+
 				'end_order'=>array($journey_id),
 			);
 			return $final_path;
 		}
+
 		else
 		{
-			$final_path=json_decode(Group::where('group_id','=',$group_id)->first()->path_waypoints);
-			//Order startwaypoints using direction vector
-			$direction_vector = array($final_path->endwaypoints[0][0]-$final_path->startwaypoints[0][0],
-			$final_path->endwaypoints[0][1]-$final_path->startwaypoints[0][1]);
+			// Case when person is added to existing group
 
+			// Original path_waypoints
+			$final_path=json_decode(Group::where('group_id','=',$group_id)->
+									first()->path_waypoints);
 
-			$current_coordinates_start=array(floatval($journey->start_lat),floatval($journey->start_long));
-			$current_coordinates_end=array(floatval($journey->end_lat),floatval($journey->end_long));
+			// Order startwaypoints using direction vector.
+			// Direction vector is the approx. general direction of travel.
+			// It is vector from first start point to first end point.
+			$direction_vector = array(
+				$final_path->endwaypoints[0][0]-$final_path->startwaypoints[0][0],
+				$final_path->endwaypoints[0][1]-$final_path->startwaypoints[0][1]
+				);
 
+			// New set of coordinates to be added
+			$current_coordinates_start=array(
+				floatval($journey->start_lat),
+				floatval($journey->start_long)
+				);
+			$current_coordinates_end=array(
+				floatval($journey->end_lat),
+				floatval($journey->end_long)
+				);
+
+			// Choosing which position for the new point is most suited.
 			$suitable_start_position=0;
 			$largest_dot_product=-10000000;
 
 			for ($i=0;$i<sizeof($final_path->startwaypoints)+1;$i++)
 			{
+				// Testing suitability of position $i
 				$startwaypoints=$final_path->startwaypoints;
 				array_splice($startwaypoints, $i, 0, array($current_coordinates_start));
+				
+				// Idea is to find sum of dot products of consecutive vectors
+				// with general direction vector. Maximizing this sum is the aim.
 				$graph_vectors = array();
 				for ($j=0;$j<sizeof($startwaypoints)-1;$j++)
 				{
-					array_push($graph_vectors,array($startwaypoints[$j+1][0]-$startwaypoints[$j][0],
-					$startwaypoints[$j+1][1]-$startwaypoints[$j][1]));
+					array_push($graph_vectors,array(
+						$startwaypoints[$j+1][0]-$startwaypoints[$j][0],
+						$startwaypoints[$j+1][1]-$startwaypoints[$j][1]
+						)
+					);
 				}
+
+				// Summing dot products
 				$dot_product=0;
-				//print_r($startwaypoints);
-				//print_r($graph_vectors);
-				//print_r($direction_vector);
 				for ($j=0;$j<sizeof($graph_vectors);$j++)
-				$dot_product=$dot_product+self::find_dot_product_units($direction_vector,$graph_vectors[$j]);
-				//echo "The dot product is ".$dot_product;
+					$dot_product+=self::find_dot_product_units (
+							$direction_vector,
+							$graph_vectors[$j]
+						);
+				
 				if ($dot_product>$largest_dot_product)
 				{
 					$suitable_start_position=$i;
 					$largest_dot_product=$dot_product;
 				}
 			}
-			array_splice($final_path->start_order,$suitable_start_position,0,$journey_id);
-			array_splice($final_path->startwaypoints,$suitable_start_position,0,array($current_coordinates_start));
 
+			// Adding new point in chosen location.
+			array_splice($final_path->start_order,$suitable_start_position,
+						 0,$journey_id);
+			array_splice($final_path->startwaypoints,$suitable_start_position,
+						 0,array($current_coordinates_start));
 
+			// Same procedure for end points.
 
-
-
-
+			// Choosing which position for the new point is most suited.
 			$suitable_end_position=0;
 			$largest_dot_product=-10000000;
 
 			for ($i=0;$i<sizeof($final_path->endwaypoints)+1;$i++)
 			{
+				// Testing suitability of position $i
 				$endwaypoints=$final_path->endwaypoints;
 				array_splice($endwaypoints, $i, 0, array($current_coordinates_end));
+				
+				// Idea is to find sum of dot products of consecutive vectors
+				// with general direction vector. Maximizing this sum is the aim.
 				$graph_vectors = array();
 				for ($j=0;$j<sizeof($endwaypoints)-1;$j++)
 				{
-					array_push($graph_vectors,array($endwaypoints[$j+1][0]-$endwaypoints[$j][0],
-					$endwaypoints[$j+1][1]-$endwaypoints[$j][1]));
+					array_push($graph_vectors,array(
+						$endwaypoints[$j+1][0]-$endwaypoints[$j][0],
+						$endwaypoints[$j+1][1]-$endwaypoints[$j][1]
+						)
+					);
 				}
+				
+				// Summing dot products
 				$dot_product=0;
-				//print_r($startwaypoints);
-				//print_r($graph_vectors);
-				//print_r($direction_vector);
 				for ($j=0;$j<sizeof($graph_vectors);$j++)
-				$dot_product=$dot_product+self::find_dot_product_units($direction_vector,$graph_vectors[$j]);
-				//echo "The dot product is ".$dot_product;
+					$dot_product=$dot_product+self::find_dot_product_units (
+							$direction_vector,
+							$graph_vectors[$j]
+						);
+				
 				if ($dot_product>$largest_dot_product)
 				{
 					$suitable_end_position=$i;
 					$largest_dot_product=$dot_product;
 				}
 			}
-			array_splice($final_path->end_order,$suitable_end_position,0,$journey_id);
-			array_splice($final_path->endwaypoints,$suitable_end_position,0,array($current_coordinates_end));
 
-			//array_push($final_path->start_order,$journey_id);
-			//array_push($final_path->startwaypoints,array(floatval($journey->start_lat),floatval($journey->start_long)));
-			/*
-			$suitable_end_position=0;
-			$shortest_distance=10000000;
+			// Adding new point in chosen location.
+			array_splice($final_path->end_order,$suitable_end_position,
+						 0,$journey_id);
+			array_splice($final_path->endwaypoints,$suitable_end_position,
+						 0,array($current_coordinates_end));
 
-			for ($i=0;$i<sizeof($final_path->endwaypoints)+1;$i++)
-			{
-				$waypoints=array();
-				for ($j=1;$j<sizeof($final_path->startwaypoints);$j++)
-				{
-					array_push($waypoints,$final_path->startwaypoints[$j]);
-				}
-				array_push($waypoints,$current_coordinates_start);
-				$endwaypoints=$final_path->endwaypoints;
-				array_splice($endwaypoints, $i, 0, array($current_coordinates_end));
-				for ($j=0;$j<sizeof($final_path->endwaypoints)-1;$j++)
-				{
-					array_push($waypoints,$endwaypoints[$j]);
-				}
-				$test=self::find_path($final_path->startwaypoints[0][0],$final_path->startwaypoints[0][1],
-				end($endwaypoints)[0],end($endwaypoints)[1],$waypoints,1)->routes[0]->legs;
-				$distance=0;
-				for ($k=0;$k<sizeof($test);$k++)
-				{
-					$distance=$distance+$test[$k]->distance->value;
-				}
-				if ($distance<$shortest_distance)
-				{
-					$suitable_end_position=$i;
-					$shortest_distance=$distance;
-				}
-			}
-			array_splice($final_path->end_order,$suitable_end_position,0,$journey_id);
-			array_splice($final_path->endwaypoints,$suitable_end_position,0,array($current_coordinates_end));
-			*/
 			return $final_path;
 		}
 	}
@@ -1036,6 +1067,7 @@ class HomeController extends BaseController {
 	 * It performs matches using time windows, and a graining algorithm.
 	 * It can be used to find matches for groups with just one person, or 
 	 * groups having 2 or more people. $check_individual decides that.
+	 * TODO :- reduce function size
 	 *
 	 * @param int $journey_id The ID of the Journey whose mates we want.
 	 * @param int $request_path_number Path of requestee we wish to find mates for.
