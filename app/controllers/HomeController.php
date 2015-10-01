@@ -1348,24 +1348,26 @@ class HomeController extends BaseController {
 		if($distance > 100000)
 			return Error::make(1,4);
 
-		// Valid user check
+		// Valid user
 		$user = User::find(Input::get('user_id'));
 		if(is_null($user))
 			return Error::make(1,1);
 
-
-		if(Input::has('alternate_journey_time')){
+		// Used to set journey in future for web bypass. Else use time()
+		if(Input::has('alternate_journey_time')) {
 			$timestamp=date('Y-m-d H:i:s',strtotime(Input::get('alternate_journey_time'))+intval(Input::get('margin_after'))*60);
 		}
 		else
 			$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);
 
+		// Valid margin_after and margin_before
 		if(!(is_numeric(Input::get('margin_after')) && is_numeric(Input::get('margin_before'))))
 			return Error::make(1,7);
-
-		if(Input::get('margin_after') > 60 || Input::get('margin_before') >60 || Input::get('margin_after') < 0 || Input::get('margin_before') < 0)
+		if(Input::get('margin_after') > 60 || Input::get('margin_before') >60 || 
+		   Input::get('margin_after') < 0 || Input::get('margin_before') < 0)
 			return Error::make(1,7);
 
+		// Valid preference
 		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || Input::get('preference') < 1 )
 			return Error::make(1,8);
 

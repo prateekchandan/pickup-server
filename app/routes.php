@@ -31,7 +31,6 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::get('push_test/{id}','BaseController@push_test');
 	Route::get('get_picture/{id}','DriverController@get_picture');
 	Route::post('driver_login','DriverController@driver_login');
-	Route::post('add_rating','RatingController@add_rating');
 	Route::get('get_address/{lat}/{long}','HomeController@get_address');
 	Route::get('get_detailed_group/{id}','DriverController@get_detailed_group');
 	
@@ -55,6 +54,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('periodic_route/{id}','UserController@periodic_route');
 	Route::get('get_history/{id}','UserController@get_history');
 	Route::get('cancel_journey/{id}','HomeController@cancel_journey');
+	Route::post('add_rating','RatingController@add_rating');
 	
 	
 });
@@ -69,6 +69,8 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('picked_up_person/{id}','DriverController@picked_up_person');
 	Route::post('add_group_to_driver/{id}',
 		array('as' => 'driver.add_group', 'uses' => 'DriverController@give_driver_group'));
+	Route::post('add_rating','RatingController@add_rating');
+	
 	
 });
 
