@@ -644,7 +644,7 @@ class HomeController extends BaseController {
 	 * Route::get('get_group/{id}' , array('as' => 'group.get',
 	 * 'uses' => 'HomeController@get_group'));
 	 *
-	 * @param int $group_id The ID who's group we wish for. 
+	 * @param int $group_id The ID whose group we wish for. 
 	 * @return mixed[] Group details array.
 	 */
 	public function get_group($group_id=0)
@@ -658,11 +658,28 @@ class HomeController extends BaseController {
 		return Error::success("Group Details..",array('group'=>$group));
 	}
 
+
+	/**
+	 * A helper function to generate the new path for people 
+	 * travelling together.
+	 *
+	 * This function does not decide the order of waypoints. That is 
+	 * taken care by getwaypoints(). This function uses the data returned
+	 * by getwaypoints() and executes a Google Directions call to get
+	 * the path data.
+	 *
+	 * @param int $group_id The ID whose path we want.
+	 */
 	public function generate_group_path($group_id)
 	{
-		if(is_null(Group::where('group_id','=',$group_id)->first()))
+		$group = Group::where('group_id','=',$group_id)->first();
+		if (is_null($group))
 			return;
-		$final_path=json_decode(Group::where('group_id','=',$group_id)->first()->path_waypoints);
+
+		// Order of waypoints.
+		$final_path=json_decode($group->path_waypoints);
+		
+		// All waypoints except the start and the end.
 		$waypoints=array();
 		for ($j=1;$j<sizeof($final_path->startwaypoints);$j++)
 		{
@@ -672,9 +689,18 @@ class HomeController extends BaseController {
 		{
 			array_push($waypoints,$final_path->endwaypoints[$j]);
 		}
-		$path=self::find_path($final_path->startwaypoints[0][0],$final_path->startwaypoints[0][1],
-		end($final_path->endwaypoints)[0],end($final_path->endwaypoints)[1],$waypoints,1)->routes[0];
+
+		// Call to helper function to contact Google Directions API.
+		$path=self::find_path($final_path->startwaypoints[0][0],
+							  $final_path->startwaypoints[0][1],
+							  end($final_path->endwaypoints)[0],
+							  end($final_path->endwaypoints)[1],
+							  $waypoints,1)->routes[0];
+		
+		// Hashing path obtained.
 		$hashed_path = json_encode(Graining::get_hashed_grid_points(json_encode($path)));
+		
+		// Database entry.
 		Group::where('group_id','=',$group_id)->update(array(
 			'path' => $hashed_path,
 		));
