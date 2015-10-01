@@ -1406,6 +1406,16 @@ class HomeController extends BaseController {
 		}
 	}
 
+	/**
+	 * Helper route to delete journey objects.
+	 *
+	 * Implemented by :- <br>
+	 * Route::any('delete_journey/{id}', 
+	 * 	array('as' => 'journey.delete', 'uses' => 'HomeController@journey_delete'));
+	 *
+	 * @param int $journey_id The ID whose Journey we wish for. 
+	 * @return mixed[] Journey details array.
+	 */
 	public function journey_delete($journey_id){
 		$journey = Journey::where('journey_id','=',$journey_id)->delete();
 		return Error::success("Journey successfully Deleted");
