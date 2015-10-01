@@ -1368,18 +1368,20 @@ class HomeController extends BaseController {
 			return Error::make(1,7);
 
 		// Valid preference
-		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || Input::get('preference') < 1 )
+		if(!is_numeric(Input::get('preference')) || Input::get('preference') > 5 || 
+					   Input::get('preference') < 1 )
 			return Error::make(1,8);
 
 		$t1 = date('Y-m-d G:i:s', strtotime($timestamp)+3600*3);;
 		$t2 = date('Y-m-d G:i:s', strtotime($timestamp)-3600*3);;
 
+		// Journey edit only allowed in time bracket +/- 3 hours
 		$journey = Journey::where('id' , '=' , Input::get('user_id'))->where('journey_id' , '!=' , $journey_id)->where('journey_time' , '>' , $t2 )->where('journey_time' , '<' , $t1 )->first();
 		if($this->debug > 0)
 			if(!is_null($journey))
 				return Error::make(1,9);
-		//$json_path=self::find_path($journey->start_lat,$journey->start_long,$journey->end_lat,$journey->end_long,array(),1);
-		//echo $timestamp;
+
+		// Store path after appropriate Graining
 		$final_path2 = NULL;
 		if (!is_null($path2))
 			$final_path2 = json_encode(Graining::get_hashed_grid_points(json_encode($path2)));
@@ -1408,7 +1410,8 @@ class HomeController extends BaseController {
 				'time' => $path_time,
 			));
 
-			return Error::success("Journey Edited successfully",array('journey_id'=>intval($journey_id),'journey_time'=>$timestamp));
+			return Error::success("Journey Edited successfully",
+				array('journey_id'=>intval($journey_id),'journey_time'=>$timestamp));
 		} 
 		catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
