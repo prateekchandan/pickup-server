@@ -33,6 +33,7 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('driver_login','DriverController@driver_login');
 	Route::post('add_rating','RatingController@add_rating');
 	Route::get('get_address/{lat}/{long}','HomeController@get_address');
+	Route::get('get_detailed_group/{id}','DriverController@get_detailed_group');
 	
 });
 
@@ -63,7 +64,6 @@ Route::group(array('before'=>'API' ,'after'=>'afterAPI') ,function (){
 	Route::post('driver_register_gcm', 'DriverController@driver_gcm_add');
 	Route::post('driver_periodic_route/{id}','DriverController@driver_periodic_route');
 	Route::post('upload_picture/{id}','DriverController@upload_picture');
-	Route::get('get_detailed_group/{id}','DriverController@get_detailed_group');
 	Route::get('group_enlist/{id}','DriverController@group_enlist');
 	Route::post('end_journey/{id}','DriverController@end_journey');
 	Route::post('picked_up_person/{id}','DriverController@picked_up_person');

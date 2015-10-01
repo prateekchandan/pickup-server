@@ -346,11 +346,11 @@ class HomeController extends BaseController {
 
 		// Storing path2 if exists
 		if (array_key_exists(1, $path->routes))
-		$path2 = $path->routes[1];
+			$path2 = $path->routes[1];
 
 		// Storing path3 if exists
 		if (array_key_exists(2, $path->routes))
-		$path3 = $path->routes[2];
+			$path3 = $path->routes[2];
 
 		// Google path distance
 		$distance  = 0;
@@ -367,7 +367,7 @@ class HomeController extends BaseController {
 
 		// Journey > 100 km
 		if($distance > 100000)
-		return Error::make(1,4);
+			return Error::make(1,4);
 
 		// Valid user
 		$user = User::find(Input::get('user_id'));
@@ -1248,56 +1248,59 @@ class HomeController extends BaseController {
 		return Error::success("Journey Cancelled successfully!!",array('journey_id'=>intval($journey_id)));
 	}
 
+	/**
+	 * Fundamental route to edit a journey request.
+	 *
+	 * This function is implemented under the route if edit request
+	 * is within +/- 1 hour of journey_time, Journey object is created 
+	 * and group is still not allotted. :-
+	 * <br>
+	 * Route::post('add_journey', array('as' => 'journey.add',
+	 * 'uses' => 'HomeController@journey_add'));
+	 * 
+	 * Parameters required by route :- <br>
+	 * <b>user_id</b> <i>int</i> - User ID of person registering journey.<br>
+	 * <b>margin_after</b> <i>string</i> - Period user is ready to wait for.<br>
+	 * <b>alternate_journey_time</b> <i>string</i> - (optional parameter)
+	 * Used to send future journey_time for website bypass.<br>
+	 * <b>start_lat</b> <i>float</i> - Latitude of start point. <br>
+	 * <b>start_long</b> <i>float</i> - Longitude of start point. <br>
+	 * <b>end_lat</b> <i>float</i> - Latitude of end point. <br>
+	 * <b>end_long</b> <i>float</i> - Longitude of end point. <br>
+	 * <b>margin_before</b> <i>string</i> - deprecated, TODO :- remove. <br>
+	 * <b>preference</b> <i>string</i> - Choice of car. Between 1 and 5.<br>
+	 * <b>start_text</b> <i>string</i> - Name of starting point. <br>
+	 * <b>end_text</b> <i>string</i> - Name of ending point. <br>
+	 * 
+	 * @return mixed[] Error::success type Response with journey_id and
+	 * journey_time
+	 */
 	public function journey_edit($journey_id) {
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
-		return Error::make(1,11);
-		try {
-			/*
-			$group = Group::where('group_id','=',intval($journey->group_id))->first();
-			$people_so_far = json_decode($group->journey_ids);
-			$path = json_decode($group->path_waypoints);
-			if(($key = array_search($journey_id, $people_so_far)) !== false) {
-				array_splice($people_so_far, $key, 1);
-			}
-			if(($key = array_search($journey_id, $path->start_order)) !== false) {
-				array_splice($path->start_order, $key, 1);
-				array_splice($path->startwaypoints, $key, 1);
-			}
-			if(($key = array_search($journey_id, $path->end_order)) !== false) {
-				array_splice($path->end_order, $key, 1);
-				array_splice($path->endwaypoints, $key, 1);
-			}
-			if (sizeof($people_so_far)==0)
-			{
-				Group::where('group_id','=',$group->group_id)->delete();
-			}
-			else
-			{
-				Group::where('group_id','=',$group->group_id)->update(array(
-				'journey_ids' => json_encode($people_so_far),
-				'path_waypoints' => json_encode($path),
-				));
-			}
-			self::generate_group_path($group->group_id);
-			*/
-		}
-		catch(Exception $e) {
-			return Error::make(1,22);
-		}
-		$requirements = ['start_lat' , 'start_long','end_lat' , 'end_long' , 'user_id', 'margin_after' , 'margin_before' , 'preference' , 'start_text' , 'end_text'];
+			return Error::make(1,11);
+		
+		$requirements = ['start_lat', 'start_long', 'end_lat', 'end_long', 
+						 'user_id', 'margin_after' , 'margin_before', 'preference', 
+						 'start_text' , 'end_text'];
 		$check  = self::check_requirements($requirements);
-
 		if($check)
 			return Error::make(0,100,$check);
 
-		$path = $this->find_path(Input::get('start_lat') , Input::get('start_long') , Input::get('end_lat') , Input::get('end_long'), array(), 1);
+		// Getting Google Directions API path.
+		$path = $this->find_path(Input::get('start_lat'), 
+								 Input::get('start_long'), 
+								 Input::get('end_lat'), 
+								 Input::get('end_long'), array(), 1);
+		// Path not found.
 		if(is_null($path) || (is_int($path) && $path==0)) {
 			return Error::make(0,3);
 		}
+		
 		$path1=NULL;
 		$path2=NULL;
 		$path3=NULL;
+		// TODO :- if condition not needed now.
 		if (array_key_exists(0, $path->routes))
 		{
 			$path1 = $path->routes[0];	
@@ -1321,23 +1324,31 @@ class HomeController extends BaseController {
 		else
 			return Error::make(1,23);
 
+		// Storing path2 if exists
 		if (array_key_exists(1, $path->routes))
 			$path2 = $path->routes[1];
+		// Storing path3 if exists
 		if (array_key_exists(2, $path->routes))
 			$path3 = $path->routes[2];
 
+		// Google path distance
 		$distance  = 0;
 		foreach ($path->routes[0]->legs as $key => $value) {
 			$distance += $value->distance->value;
 		}
-		$journey_time  = 0;
+		$journey_time = 0;
+
+		// Time estimate by Google
 		$path_time=0;
 		foreach ($path->routes[0]->legs as $key => $value) {
 			$path_time += $value->duration->value;
 		}
+
+		// Journey > 100 km
 		if($distance > 100000)
 			return Error::make(1,4);
 
+		// Valid user check
 		$user = User::find(Input::get('user_id'));
 		if(is_null($user))
 			return Error::make(1,1);
@@ -1348,10 +1359,6 @@ class HomeController extends BaseController {
 		}
 		else
 			$timestamp=date('Y-m-d H:i:s', time()+intval(Input::get('margin_after'))*60);
-		/*$sec = strtotime($timestamp);
-		$timenow = time();
-		if($timenow > $sec)
-			return Error::make(1,6);*/
 
 		if(!(is_numeric(Input::get('margin_after')) && is_numeric(Input::get('margin_before'))))
 			return Error::make(1,7);
