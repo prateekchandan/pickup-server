@@ -1299,6 +1299,7 @@ class HomeController extends BaseController {
 		return $jsonobject;
 	}
 
+
 	/**
 	 * Returns the journey object depending on journey ID.
 	 *
@@ -1437,6 +1438,7 @@ class HomeController extends BaseController {
 			)
 		);
 	}
+
 
 	/**
 	 * Fundamental route to edit a journey request.
@@ -1608,6 +1610,7 @@ class HomeController extends BaseController {
 		}
 	}
 
+
 	/**
 	 * Helper route to delete journey objects.
 	 *
@@ -1622,4 +1625,5 @@ class HomeController extends BaseController {
 		$journey = Journey::where('journey_id','=',$journey_id)->delete();
 		return Error::success("Journey successfully Deleted");
 	}
+	
 }
