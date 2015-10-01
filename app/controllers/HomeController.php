@@ -1120,36 +1120,46 @@ class HomeController extends BaseController {
 				else if ($test_path_number==3)
 				$pending[$i]->path = $individual_journey->path3;
 			}
+
 			$test_path=$pending[$i]->path;
+			// That path doesn't exist for given person
 			if (is_null($test_path) || is_null($request_path))
-			continue;
+				continue;
+
+			// Check number of matches
 			$matchArray = Graining::countMatches(json_decode($request_path),json_decode($test_path));
 			$matches = $matchArray[0];
 			$same_direction = $matchArray[1];
+			// Points in first path
 			$count1 = 0;
 			foreach (json_decode($request_path) as $key=>$value) {
 				$count1++;
 			}
+			// Points in second path
 			$count2 = 0;
 			foreach (json_decode($test_path) as $key=>$value) {
 				$count2++;
 			}
+			// Old formula mentioned below :-
 			//$weighted = (5*$matches - 2.5*($count1-$matches) - 2.5*($count2-$matches))/(5*$count1);
 			$weighted = (($matches/$count1)+($matches/$count2))/2;
-			//echo "for the current config, matches are ".$matches." and totals are ".$count1." ".$count2;
-			//echo $weighted . " " . $matches . " " . $count1 . " " . $count2 . $pending[$i]->end_text . "\n";
-			//$distance=self::distance($journey->start_lat,$journey->start_long,$pending[$i]->start_lat,$pending[$i]->start_long);
+			
+			// Filters
+			// Checking direction of travel
 			if ($same_direction==0)
-			continue; //Opposite directions
+				continue; //Opposite directions
+			// Checking availability in the car
 			if (sizeof($people_so_far)>=$max_people)
-			continue;
-			/*if ($distance>$distance_threshold)
-			continue;*/
+				continue;
+			
+			// New group good enough to join the top n
 			if ($weighted>=$topn_weights[$n-1])
 			{
 				$topn_weights[$n-1]=$weighted;
 				$corresponding_ids[$n-1]=$pending[$i]->group_id;
 			}
+
+			// Inserting value into arrays in numerical order
 			for ($j=$n-2;$j>=0;$j--)
 			{
 				if ($topn_weights[$j+1]>$topn_weights[$j])
@@ -1157,26 +1167,35 @@ class HomeController extends BaseController {
 					$temp=$topn_weights[$j];
 					$topn_weights[$j]=$topn_weights[$j+1];
 					$topn_weights[$j+1]=$temp;
+
 					$temp2=$corresponding_ids[$j];
 					$corresponding_ids[$j]=$corresponding_ids[$j+1];
 					$corresponding_ids[$j+1]=$temp2;
 				}
 			}
 		}
+
+		// Sending just the IDs isn't enough
+		// Sending complete group object, user ids,
+		// and match amount in a percentage format.
 		$final_data=array();
 		for ($i=0;$i<sizeof($corresponding_ids);$i++)
 		{
 			$temp_id=intval($corresponding_ids[$i]);
+			// Less than n matches found
 			if ($temp_id==0)
 			{
 				$final_data[$i]=NULL;
 				continue;
 			}
+
 			$temp_group = Group::where('group_id','=',$temp_id)->first();
+			// Should never be executed. Safety check. TODO :- remove this
 			if(is_null($temp_group)){
 				return Error::make(1,10);
 			}
 
+			// Getting user ids of all people in that group
 			$people_so_far=json_decode($temp_group->journey_ids);
 			$user_ids=array();
 			foreach ($people_so_far as $journey_id1) {
@@ -1184,11 +1203,15 @@ class HomeController extends BaseController {
 				$user = User::where('id' , '=',intval($journey_details->id))->first();
 				array_push($user_ids, $user->id);
 			}
+
+			// path has unnecessary data
 			$temp_group->path=NULL;
 			$temp_group->user_ids=$user_ids;
 			$final_data[$i]=$temp_group;
 			$final_data[$i]->match_amount=$topn_weights[$i]*100;
 		}
+
+		// Sent as Error::success object. TODO :- remove this format.
 		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
 		return $jsonobject;
 
