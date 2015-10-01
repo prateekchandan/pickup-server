@@ -1026,32 +1026,72 @@ class HomeController extends BaseController {
 		}
 	}
 
-	public function find_mates($journey_id=0,$request_path_number=1,$test_path_number=1,$check_individual=False,$margin_after=30)
+
+	/**
+	 * Helper function to find the most suitable matches for a given
+	 * set of conditions.
+	 *
+	 * This function is the key to success. Handle with care.
+	 * This function is used to get suitable mates for a given journey id.
+	 * It performs matches using time windows, and a graining algorithm.
+	 * It can be used to find matches for groups with just one person, or 
+	 * groups having 2 or more people. $check_individual decides that.
+	 *
+	 * @param int $journey_id The ID of the Journey whose mates we want.
+	 * @param int $request_path_number Path of requestee we wish to find mates for.
+	 * Can be 1,2 or 3 depending on which path stored in Journey we want to check.
+	 * @param int $test_path_number Paths of individual already in group we wish to 
+	 * match against. Can be 1,2 or 3.
+	 * @param boolean $check_individual True if we want to match against groups
+	 * having a single person.
+	 * @param int $margin_after The time upto which matches are permitted.
+	 * @return mixed[] Journey details array.
+	 */
+	public function find_mates($journey_id=0,$request_path_number=1,$test_path_number=1,
+							   $check_individual=False,$margin_after=30)
 	{
+		// Check validity of $journey_id
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
+
+		// Making time window to take mates from. Only confirmed and not completed groups taken.
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$margin_after*60);
 		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
-		$pending = Group::where('journey_time' , '>=' , $t1 )->where('start_time' , '<' , $t1 )->where('event_status','=','confirmed')->get();
+		
+		$pending = Group::where('journey_time' , '>=' , $t1 )->
+						  where('start_time' , '<' , $t1 )->
+						  where('event_status','=','confirmed')->
+						  get();
 
+		// Match amount for top n people
 		$topn_weights = array();
+		// Top 5 matched group ids
 		$corresponding_ids = array();
+		// Maximum distance allowed between start points
 		$distance_threshold=2;
+		// Maximum people in a ride
 		$max_people=5;
+		// We compute top n matches
 		$n=5;
+
+		// 0.5 is the minimum permissible match amount
 		for ($i=0;$i<$n;$i++)
 		{
 			$topn_weights[$i]=0.5;
 			$corresponding_ids[$i]=0;
 		}
-		//Matching Pending Journeys
+
+		// Deciding the requestee path variable
 		$request_path=$journey->path;
 		if ($request_path_number==2)
 		$request_path=$journey->path2;
 		else if ($request_path_number==3)
 		$request_path=$journey->path3;
+		
+		// Array is used to choose which groups have 1 person and which
+		// have more, depending on the choice of $check_individual
 		$temp_pending=array();
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
@@ -1063,13 +1103,13 @@ class HomeController extends BaseController {
 			array_push($temp_pending, $pending[$i]);
 		}
 		$pending=$temp_pending;
+
+		// Go over each of the groups obtained
 		for ($i=0;$i<sizeof($pending);$i++)
 		{
-
-			//$matches=0;
-			//$weighted=0;
-			//echo $journey->start_text . $journey->end_text . " " .$pending[$i]->start_text . $pending[$i]->end_text  . "\n";
 			$people_so_far = json_decode($pending[$i]->journey_ids);
+
+			// Choose path to be worked on if group has one person
 			if ($check_individual==True)
 			{
 				$individual_journey = Journey::where('group_id','=',$pending[$i]->group_id)->first();
