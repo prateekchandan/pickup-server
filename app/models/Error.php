@@ -45,6 +45,7 @@ class Error{
 		'41' => 'User has completed his ride!',
 		'42' => 'Journey already completed!',
 		'43' => 'Error calculating fare!',
+		'44' => 'You can\'t cancel the ride now!',
 		);
 
 	// Error type

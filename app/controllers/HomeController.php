@@ -294,6 +294,7 @@ class HomeController extends BaseController {
 				{
 					$response = self::cancel_journey(intval($check_existing_journey->journey_id));
 					// In case cancelling journey encountered an error.
+					// Possible when he is in the car and app restarts.
 					if ($response->original['error']==1)
 						return $response;
 				}
@@ -706,23 +707,42 @@ class HomeController extends BaseController {
 		));
 	}
 
+
+	/**
+	 * Route to add a given user into a particular group.
+	 *
+	 * This function acts as a route. It is used to confirm Journey objects
+	 * by adding them to a suitable group as computed by get_best_match()
+	 * For best results, use this route after get_best_match() only.
+	 * New groups are also created via this function.
+	 * 
+	 * Implemented in the route :- <br>
+	 * Route::get('confirm/{id}','HomeController@add_to_group');
+	 *
+	 * @param int $journey_id The ID whose Journey we wish for. 
+	 * @return mixed[] Response object with group id of newly created group.
+	 */
 	public function add_to_group($journey_id)
 	{
+		// Check validity of journey ID.
 		$journey_id=intval($journey_id);
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey)){
 			return Error::make(1,10);
 		}
-		if (!is_null($journey->group_id)){
+
+		// In the case user is already registered into a group,
+		// Send person running route people in current group.
+		if (!is_null($journey->group_id)) {
 			$send_group=Group::where('group_id','=',$journey->group_id)->first();
-			if(!is_null($send_group)){
+			// TODO :- if not needed here.
+			if(!is_null($send_group)) {
 				$mates=array();
 				foreach (json_decode($send_group->journey_ids) as $mate_id) {
 					if ($mate_id==$journey_id)
 						continue;
 					$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
 					array_push($mates, intval($mate_journey->id));
-					# code...
 				}
 				$send_group->users_list = $mates;
 				$send_group->path = NULL;
@@ -734,90 +754,122 @@ class HomeController extends BaseController {
 			}
 		}
 
+		// User details of person
 		$new_user = User::where('id','=',$journey->id)->first();
 
 		$best_match = json_decode($journey->best_match);
-		//Convert best_match data to good format
+		// Case where a best match exists
 		if (!is_null($best_match))
 		{
-			//echo "Best match percent is " . $best_match_value ;
-
 			$group = Group::where('group_id','=',$best_match->id)->first();
+			// TODO :- if condition not needed
 			if (is_null($group))
 				return Error::make(1,17);
-			$people_so_far=json_decode($group->journey_ids);
-			$push_data = array('user_id'=>intval($journey->id),'user_name'=>$new_user->first_name,
-								'fbid'=>$new_user->fbid);
-			if (!is_null($group->driver_id))
-			{
-				self::driver_send_push(array(intval($group->driver_id)),18,array('user_id'=>intval($journey->id),
-																			'user_name'=>$new_user->first_name,
-																			'group_id'=>$group->group_id));
-			}
-			self::send_push($people_so_far,10,$push_data);
-			$mates=array();
-			foreach ($people_so_far as $mate_id) {
-				$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
-				array_push($mates, intval($mate_journey->id));
-				# code...
-			}
-			//Notifying new user about all existing users
 
+			// Updating journey_ids field in Group.
 			array_push($people_so_far,$journey_id);
+			$new_path_waypoints = self::getwaypoints($journey_id,$group->group_id);
+
+			// Updating required fields.
 			try {
 				Group::where('group_id','=',$group->group_id)->update(array(
 					'journey_ids' => json_encode($people_so_far),
-					'path_waypoints' => json_encode(self::getwaypoints($journey_id,$group->group_id)),
+					'path_waypoints' => json_encode($new_path_waypoints),
 				));
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'group_id' => $group->group_id,
 				));
 				self::generate_group_path($group->group_id);
-				$send_group = Group::where('group_id','=',$group->group_id)->first();
-				$send_group->users_list = $mates;
-				$send_group->path = NULL;
-				return Error::success("Group successfully confirmed!",array(
-					'group_id'=>intval($group->group_id),
-					'group' => $send_group,
-				));
 			} catch (Exception $e) {
 				return Error::make(101,101,$e->getMessage());
 			}
+
+			// Sending push notifications to people travelling in
+			// that group.
+			$people_so_far=json_decode($group->journey_ids);
+			$push_data = array(
+				'user_id'=>intval($journey->id),
+				'user_name'=>$new_user->first_name,
+				'fbid'=>$new_user->fbid
+				);
+			self::send_push($people_so_far,10,$push_data);
+			// Driver push notification
+			if (!is_null($group->driver_id))
+			{
+				self::driver_send_push(array(intval($group->driver_id)),18,array(
+						'user_id'=>intval($journey->id),
+						'user_name'=>$new_user->first_name,
+						'group_id'=>$group->group_id
+						)
+					);
+			}
+
+			// Building data set to send to user confirming journey.
+			$send_group = Group::where('group_id','=',$group->group_id)->first();
+			// List of user IDs of all mates.
+			$mates=array();
+			foreach ($people_so_far as $mate_id) {
+				$mate_journey = Journey::where('journey_id','=',$mate_id)->first();
+				array_push($mates, intval($mate_journey->id));
+			}
+			$send_group->users_list = $mates;
+			$send_group->path = NULL;
+
+			return Error::success("Group successfully confirmed!",array(
+				'group_id'=>intval($group->group_id),
+				'group' => $send_group,
+			));
+
 		}
 
-		//Conditions for suitable group
-		//0 is false, 1 is true
+		// Let's create a new group!
 		else {
 			$group = new Group;
+			// Arrays to see state of journey.
+			// TODO :- Think of a better representation?
 			$group->journey_ids = json_encode(array(intval($journey_id),));
 			$group->people_on_ride = json_encode(array());
 			$group->completed = json_encode(array());
-			$group->event_sequence = json_encode(array("journey_ids"=>array(),"points"=>array()));
+
+			// Sequence of events occuring along with point where
+			// it occurred.
+			$group->event_sequence = json_encode(array(
+				"journey_ids"=>array(),
+				"points"=>array()
+				)
+			);
+
+			// Time window to accept journeys should be between
+			// start time and journey time. Coded in find_mates()
 			$group->journey_time = $journey->journey_time;
-			$group->start_time = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$journey->margin_after*60);
-			// 0 is NO
-			// 1 is YES
-			// -1 is no status
+			$group->start_time = date('Y-m-d G:i:s',
+				strtotime($journey->journey_time)-$journey->margin_after*60);
+			
 			$group->path_waypoints = json_encode(self::getwaypoints(intval($journey_id)));
+			
+			// Can be started, completed, or confirmed.
+			// TODO :- Code a cancelled event status in cancel_journey as well.
 			$group->event_status = "confirmed";
+			
+			// Making database changes.
 			try {
 				$group->save();
 				self::generate_group_path($group->id);
-				
 				Journey::where('journey_id','=',$journey_id)->update(array(
 					'group_id' => $group->id,
 				));
-				$group->users_list = array();
-				$group->path_waypoints = json_decode($group->path_waypoints);
-				$group->path = NULL;
-				return Error::success("Group successfully confirmed!",array(
-					'group_id'=>$group->id,
-					'group' => $group,
-				));
-
 			} catch (Exception $e) {
 				return Error::make(101,101,$e->getMessage());
 			}
+
+			// Sending group data to the user.
+			$group->users_list = array();
+			$group->path_waypoints = json_decode($group->path_waypoints);
+			$group->path = NULL;
+			return Error::success("Group successfully confirmed!",array(
+				'group_id'=>$group->id,
+				'group' => $group,
+			));
 		}
 	}
 
@@ -1088,9 +1140,8 @@ class HomeController extends BaseController {
 			return Error::make(1,10);
 		}
 
-		// Making time window to take mates from. Only confirmed and not completed groups taken.
+		// Checking for mates at time margin_after before journey_time
 		$t1 = date('Y-m-d G:i:s',strtotime($journey->journey_time)-$margin_after*60);
-		$t2 = date('Y-m-d G:i:s',strtotime($journey->journey_time)+$margin_after*60);
 		
 		$pending = Group::where('journey_time' , '>=' , $t1 )->
 						  where('start_time' , '<' , $t1 )->
@@ -1246,7 +1297,6 @@ class HomeController extends BaseController {
 		// Sent as Error::success object. TODO :- remove this format.
 		$jsonobject = array("error" => 0, "message" => "ok" , "mates"=>$final_data);
 		return $jsonobject;
-
 	}
 
 	/**
@@ -1273,29 +1323,56 @@ class HomeController extends BaseController {
 		return $journey;
 	}
 
+
+	/**
+	 * Route to cancel journey when user hasn't yet gone in the car.
+	 *
+	 * This function acts as a route. It is used to pop journey objects
+	 * from the group objects and send push notifications for the same.
+	 * Also called by journey_add in extreme cases.
+	 * TODO :- Move to POST request?
+	 * 
+	 * Implemented in the route :- <br>
+	 * Route::get('cancel_journey/{id}','HomeController@cancel_journey');
+	 *
+	 * @param int $journey_id The ID whose Journey we wish for. 
+	 * @return mixed[] Response object with appropriate message.
+	 */
 	public function cancel_journey($journey_id)
 	{
-		//User can't cancel journeys after ride is done.
-
+		// Getting journey object.
 		$journey = Journey::where('journey_id','=',$journey_id)->first();
 		if(is_null($journey))
 			return Error::make(1,11);
 
 		$user = User::where('id','=',$journey->id)->first();
+		// Valid user checked for while adding journey.
+
 		$group = Group::where('group_id','=',intval($journey->group_id))->first();
+		// Safety check. Should never execute.
 		if(is_null($group))
 			return Error::make(1,17);
+
+		// List of people who have completed the journey.
+		// Not allowed to cancel journey if you have completed
+		// the journey.
 		$completed = json_decode($group->completed);
 		if (in_array($journey_id, $completed)) {
 			return Error::make(1,42);
 		}
+
+		// List of people who are in the journey.
+		// Not allowed to cancel journey if you are in
+		// the journey.
 		$people_on_ride = json_decode($group->people_on_ride);
 		if (in_array($journey_id, $people_on_ride)) {
-			return Error::success("You can't cancel the ride now!",array('journey_id'=>intval($journey_id)));
+			return Error::make(1,44);
 		}
 
 		$people_so_far = json_decode($group->journey_ids);
 		$path = json_decode($group->path_waypoints);
+
+		// Popping journey ID elements from required arrays.
 		if(($key = array_search($journey_id, $people_so_far)) !== false) {
 			array_splice($people_so_far, $key, 1);
 		}
@@ -1307,18 +1384,24 @@ class HomeController extends BaseController {
 			array_splice($path->end_order, $key, 1);
 			array_splice($path->endwaypoints, $key, 1);
 		}
+
+		// Case where group doesn't have any person.
 		if (sizeof($people_so_far)==0)
 		{
 			if (!is_null($group->driver_id))
 			{
+				// Deallocate driver, if any.
 				Driver::where('driver_id','=',$group->driver_id)->update(array(
 					'driver_status'=>'vacant',
 					'group_id'=>NULL,
-					));
+					)
+				);
+				//TODO :- Notify Driver
 			}
-			Group::where('group_id','=',$group->group_id)->delete();
-			//Notify Driver
+			// Delete group object.
+			Group::where('group_id','=',$group->group_id)->delete();		
 		}
+
 		else
 		{
 			Group::where('group_id','=',$group->group_id)->update(array(
@@ -1327,20 +1410,32 @@ class HomeController extends BaseController {
 			));
 			if (!is_null($group->driver_id))
 			{
-				self::driver_send_push(array(intval($group->driver_id)),17,array('user_id'=>intval($journey->id),
-																			'user_name'=>$user->first_name,
-																			'group_id'=>$group->group_id));
+				// Notifying driver about cancelling of a user.
+				self::driver_send_push(array(intval($group->driver_id)),17,array(
+					'user_id'=>intval($journey->id),
+					'user_name'=>$user->first_name,
+					'group_id'=>$group->group_id
+					)
+				);
 			}
-			
 		}
+		// Set group id to cancelled value.
 		Journey::where("journey_id","=",$journey_id)->update(array(
 				'group_id'=>-1,
 			));
-		self::generate_group_path($group->group_id);
-		$push_data = array('user_id'=>intval($journey->id),'user_name'=>$user->first_name);
 
+		// Generate the new path
+		self::generate_group_path($group->group_id);
+		$push_data = array(
+			'user_id'=>intval($journey->id),
+			'user_name'=>$user->first_name
+			);
+		// Send push notification to all people still travelling
 		self::send_push($people_so_far,13,$push_data);
-		return Error::success("Journey Cancelled successfully!!",array('journey_id'=>intval($journey_id)));
+		return Error::success("Journey Cancelled successfully!!",array(
+			'journey_id'=>intval($journey_id)
+			)
+		);
 	}
 
 	/**
