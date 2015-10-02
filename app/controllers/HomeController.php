@@ -767,6 +767,7 @@ class HomeController extends BaseController {
 				return Error::make(1,17);
 
 			// Updating journey_ids field in Group.
+			$people_so_far=json_decode($group->journey_ids);
 			array_push($people_so_far,$journey_id);
 			$new_path_waypoints = self::getwaypoints($journey_id,$group->group_id);
 
@@ -786,7 +787,6 @@ class HomeController extends BaseController {
 
 			// Sending push notifications to people travelling in
 			// that group.
-			$people_so_far=json_decode($group->journey_ids);
 			$push_data = array(
 				'user_id'=>intval($journey->id),
 				'user_name'=>$new_user->first_name,
