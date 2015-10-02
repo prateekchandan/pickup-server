@@ -468,9 +468,13 @@ class HomeController extends BaseController {
 			if ($best_match->original['error']==0)
 			{
 				// Error free get_best_match()
-				$fare = 0;
+				
+				$fare = 0; 
+				$distance = 0;
 				try {
-					$fare=CostCalc::fare_estimate($journey_id);	
+					$estimates = CostCalc::fare_estimate($journey_id);
+					$fare = $estimates["fare"];	
+					$distance = $estimates["distance"];
 				}
 				catch(Exception $e) {
 					// Delete journey object created to rollback transaction.
@@ -486,6 +490,7 @@ class HomeController extends BaseController {
 							"match_amount"=>$best_match->original['match_amount'],
 							"estimated_driver_reach_time"=>intval(Input::get('margin_after')),
 							"estimated_fare"=>$fare,
+							"distance"=>$distance,
 							);
 				return Error::success("Journey registered",$data);
 			}

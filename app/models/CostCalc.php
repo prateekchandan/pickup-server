@@ -49,6 +49,6 @@ class CostCalc {
 			$fare=100;
 		else
 			$fare = 100+6*(($google_shortest-12000)/1000);
-		return intval($fare);
+		return array("distance"=>$google_shortest, "fare"=>intval($fare));
 	}
 };
