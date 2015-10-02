@@ -479,6 +479,8 @@ class HomeController extends BaseController {
 				}
 				// Sending estimated data
 				// TODO :- estimate driver_reach_time properly
+				// Use -1 if no drivers found
+				// Error::success("Journey registered, No drivers available",$data)
 				$data=array("journey_id"=>$journey_id,
 							"best_match"=>$best_match->original['best_match'],
 							"match_amount"=>$best_match->original['match_amount'],
