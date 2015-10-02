@@ -1509,12 +1509,10 @@ class HomeController extends BaseController {
 											  Input::get('end_long'));
 			if ($start_location==0 || $end_location==0)
 				return Error::make(1,36);
-			print_r($start_location);
 			if (strpos($start_location['city'],'Mumbai') === false && 
 				strpos($start_location['city'],'Thane') === false) {
     			return Error::make(1,36);
 			}
-			print_r($end_location);
 			if (strpos($end_location['city'],'Mumbai') === false && 
 				strpos($end_location['city'],'Thane') === false) {
     			return Error::make(1,36);
