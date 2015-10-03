@@ -211,26 +211,29 @@ class UserController extends BaseController {
 			return Error::make(0,100,$check);
 
 		// Checking whether user exists using his phone/email/facebook ID.
+		$userExists = False;
 		$user = User::where('fbid' , '=', Input::get('fbid'))->
 					  orWhere('email' , '=' , Input::get('email'))->
 					  orWhere('phone','=', Input::get('phone'))->
 					  first();
 		if (!is_null($user)) {
 			// Case when the user changes his/her device.
-			$user->device_id = Input::get('device_id');
-			$user->save();
-			return Error::success("User Already Present" , array("user_id" => $user->id));
+			$userExists = True;
 		}
 
 		// Adding new user if old user is not found.
-		$user = new User;
-		$user->fbid = Input::get('fbid');
+		if ($userExists)
+			$user = new User;
+		if (Input::get('fbid')!="")
+			$user->fbid = Input::get('fbid');
 		$user->age = Input::get('age');
-		$user->phone = Input::get('phone');
+		if (Input::get('phone')!="")
+			$user->phone = Input::get('phone');
 		$user->company = Input::get('company');
 		$user->first_name = Input::get('name');
 		$user->second_name = "";
-		$user->email =  Input::get('email');
+		if (Input::get('email')!="")
+			$user->email =  Input::get('email');
 		$user->gender = Input::get('gender');
 		$user->device_id = Input::get('device_id');
 		$user->registration_id = ""; //Comes under gcm_add()
@@ -244,7 +247,10 @@ class UserController extends BaseController {
 		// Saving user object created.
 		try {
 			$user->save();
-			return Error::success("User successfully Added" , array("user_id" => $user->id));
+			if ($userExists)
+				return Error::success("User Already Present" , array("user_id" => $user->id));
+			else
+				return Error::success("User successfully Added" , array("user_id" => $user->id));
 		} 
 		catch (Exception $e) {
 			return Error::make(101,101,$e->getMessage());
@@ -253,16 +259,18 @@ class UserController extends BaseController {
 
 
 	/**
-	 * Function to test user's existence on database solely based on Facebook ID.
+	 * Function to test user's existence on database solely based on Facebook access
+	 * token.
 	 *
-	 * The HTTP request contains the facebook ID. The function is run every time
-	 * the app is reinstalled. It returns the user data if he had registered earlier.
+	 * The HTTP request contains the facebook access token. The function is run every 
+	 * time the app is reinstalled. It returns the user data if he had registered earlier.
 	 * 
 	 * Used by route :- <br>
 	 * Route::get('user_exists','UserController@check_existence');
 	 * 
 	 * Parameters required by route :- <br>
-	 * <b>fbid</b> <i>string</i> - Facebook ID of user whose existence we wish to check.
+	 * <b>access_token</b> <i>string</i> - Facebook access token of user whose existence 
+	 * we wish to check.
 	 *
 	 * @return mixed[] Returns user data if user is present. Else returns NULL in that
 	 * field.
