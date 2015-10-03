@@ -264,7 +264,8 @@ class UserController extends BaseController {
 		// Adding new user if old user is not found.
 		if (!$editUser)
 			$user = new User;
-		$user->fbid = $fbid;
+		if ($fbid!=0)
+			$user->fbid = $fbid;
 		$user->age = Input::get('age');
 		$user->phone = Input::get('phone');
 		$user->company = Input::get('company');
