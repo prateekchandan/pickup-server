@@ -45,6 +45,25 @@ class UserController extends BaseController {
 		}	
 	}
 
+	public function get_fbid($access_token) {
+		// Sending request to graph API
+		$fb_url = "https://graph.facebook.com/me?access_token=".$access_token;
+		$opts = array(
+		  'http' => array('ignore_errors' => true)
+		);
+		$context = stream_context_create($opts);
+		$fb_data = json_decode(file_get_contents($fb_url, false, $context));
+		
+		// In case error encountered in Graph API
+		if (isset($fb_data->error)) {
+    		return 0;
+		}
+
+		// Getting fbid in the case of no error
+		$fbid = $fb_data->id;
+		return $fbid;
+	}
+
 
 	/**
 	 * Function helps set home location for a given user via user_id.
@@ -210,6 +229,12 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 
+		// Getting Facebook ID using access token.
+		$fbid = self::get_fbid(Input::get('access_token'));
+		// Check whether non empty access token is valid.
+		if (Input::get('access_token')!="" && $fbid==0)
+			return Error::make(1,45);
+
 		// Checking whether user exists using his email/facebook ID.
 		// This indicates a login via 
 		$editUser = False;
@@ -284,21 +309,11 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 
-		// Sending request to graph API
-		$fb_url = "https://graph.facebook.com/me?access_token=".Input::get('access_token');
-		$opts = array(
-		  'http' => array('ignore_errors' => true)
-		);
-		$context = stream_context_create($opts);
-		$fb_data = json_decode(file_get_contents($fb_url, false, $context));
-		
-		// In case error encountered in Graph API
-		if (isset($fb_data->error)) {
-    		return Error::make(1,45);
-		}
+		// Getting Facebook ID using access token.
+		$fbid = self::get_fbid(Input::get('access_token'));
+		if ($fbid==0)
+			return Error::make(1,45);
 
-		// Getting fbid in the case of no error
-		$fbid = $fb_data->id;
 		$user = User::where('fbid' , '=', $fbid)->first();
 
 		$final_data = array("user_present"=>0,"user_data"=>$user);
