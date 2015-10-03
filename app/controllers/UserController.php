@@ -210,30 +210,32 @@ class UserController extends BaseController {
 		if($check)
 			return Error::make(0,100,$check);
 
-		// Checking whether user exists using his phone/email/facebook ID.
-		$userExists = False;
+		// Checking whether user exists using his email/facebook ID.
+		// This indicates a login via 
+		$editUser = False;
 		$user = User::where('fbid' , '=', Input::get('fbid'))->
 					  orWhere('email' , '=' , Input::get('email'))->
-					  orWhere('phone','=', Input::get('phone'))->
 					  first();
 		if (!is_null($user)) {
-			// Case when the user changes his/her device.
-			$userExists = True;
+			// User exists and has logged in with Facebook.
+			$editUser = True;
 		}
 
+		// Case where user has registered via only Phone
+		$user = User::where('phone','=',Input::get('phone'))->first();
+		if (!is_null($user) && $user->fbid=="")
+			$editUser = True;
+
 		// Adding new user if old user is not found.
-		if ($userExists)
+		if (!$editUser)
 			$user = new User;
-		if (Input::get('fbid')!="")
-			$user->fbid = Input::get('fbid');
+		$user->fbid = Input::get('fbid');
 		$user->age = Input::get('age');
-		if (Input::get('phone')!="")
-			$user->phone = Input::get('phone');
+		$user->phone = Input::get('phone');
 		$user->company = Input::get('company');
 		$user->first_name = Input::get('name');
 		$user->second_name = "";
-		if (Input::get('email')!="")
-			$user->email =  Input::get('email');
+		$user->email =  Input::get('email');
 		$user->gender = Input::get('gender');
 		$user->device_id = Input::get('device_id');
 		$user->registration_id = ""; //Comes under gcm_add()
@@ -247,7 +249,7 @@ class UserController extends BaseController {
 		// Saving user object created.
 		try {
 			$user->save();
-			if ($userExists)
+			if ($editUser)
 				return Error::success("User Already Present" , array("user_id" => $user->id));
 			else
 				return Error::success("User successfully Added" , array("user_id" => $user->id));
