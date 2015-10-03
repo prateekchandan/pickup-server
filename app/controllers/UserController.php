@@ -289,6 +289,7 @@ class UserController extends BaseController {
 
 		// Getting fbid in the case of no error
 		$fbid = $fb_data->id;
+		echo $fbid;
 		$user = User::where('fbid' , '=', Input::get('fbid'))->first();
 
 		$final_data = array("user_present"=>0,"user_data"=>$user);
