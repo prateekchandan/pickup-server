@@ -269,11 +269,26 @@ class UserController extends BaseController {
 	*/
 	public function check_existence()
 	{
-		$requirements = ['fbid'];
+		$requirements = ['access_token'];
 		$check  = self::check_requirements($requirements);
 		if($check)
 			return Error::make(0,100,$check);
 
+		// Sending request to graph API
+		$fb_url = "https://graph.facebook.com/me?access_token=".Input::get('access_token');
+		$opts = array(
+		  'http' => array('ignore_errors' => true)
+		);
+		$context = stream_context_create($opts);
+		$fb_data = json_decode(file_get_contents($fb_url, false, $context));
+		
+		// In case error encountered in Graph API
+		if (isset($fb_data->error)) {
+    		return Error::make(1,45);
+		}
+
+		// Getting fbid in the case of no error
+		$fbid = $fb_data->id;
 		$user = User::where('fbid' , '=', Input::get('fbid'))->first();
 
 		$final_data = array("user_present"=>0,"user_data"=>$user);

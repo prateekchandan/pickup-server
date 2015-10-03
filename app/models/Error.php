@@ -46,6 +46,7 @@ class Error{
 		'42' => 'Journey already completed!',
 		'43' => 'Error calculating fare!',
 		'44' => 'You can\'t cancel the ride now!',
+		'45' => 'Invalid access token!',
 		);
 
 	// Error type
