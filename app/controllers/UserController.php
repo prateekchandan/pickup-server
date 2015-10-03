@@ -45,6 +45,16 @@ class UserController extends BaseController {
 		}	
 	}
 
+
+	/**
+	* Helper function to get facebook ID via access token.
+	*
+	* Checks validity of access token as well. Returns 0 in 
+	* the case of an invalid access token.
+	* 
+	* @param string $access_token A Facebook access token.
+	* @return string Facebook ID.
+	*/
 	public function get_fbid($access_token) {
 		// Sending request to graph API
 		$fb_url = "https://graph.facebook.com/me?access_token=".$access_token;
@@ -223,7 +233,7 @@ class UserController extends BaseController {
 	*/
 	public function add()
 	{
-		$requirements = ['fbid' ,'age','phone','company','name' , 
+		$requirements = ['access_token' ,'age','phone','company','name' , 
 						'email' , 'gender' , 'device_id','mac_addr'];
 		$check  = self::check_requirements($requirements);
 		if($check)
@@ -232,13 +242,13 @@ class UserController extends BaseController {
 		// Getting Facebook ID using access token.
 		$fbid = self::get_fbid(Input::get('access_token'));
 		// Check whether non empty access token is valid.
-		if (Input::get('access_token')!="" && $fbid==0)
+		if (Input::get('access_token')!="0" && $fbid==0)
 			return Error::make(1,45);
 
 		// Checking whether user exists using his email/facebook ID.
 		// This indicates a login via 
 		$editUser = False;
-		$user = User::where('fbid' , '=', Input::get('fbid'))->
+		$user = User::where('fbid' , '=', $fbid)->
 					  orWhere('email' , '=' , Input::get('email'))->
 					  first();
 		if (!is_null($user)) {
@@ -254,7 +264,7 @@ class UserController extends BaseController {
 		// Adding new user if old user is not found.
 		if (!$editUser)
 			$user = new User;
-		$user->fbid = Input::get('fbid');
+		$user->fbid = $fbid;
 		$user->age = Input::get('age');
 		$user->phone = Input::get('phone');
 		$user->company = Input::get('company');
