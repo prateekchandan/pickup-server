@@ -219,7 +219,7 @@ class UserController extends BaseController {
 	 * Parameters required by route :- <br>
 	 * <b>name</b> <i>string</i> - Name of user to be added.<br>
 	 * <b>age</b> <i>string</i> - age of user to be added.<br>
-	 * <b>fbid</b> <i>string</i> - Facebook ID of user.<br>
+	 * <b>access_token</b> <i>string</i> - Facebook access token of user.<br>
 	 * <b>phone</b> <i>string</i> - Phone Number of the user. <br>
 	 * <b>email</b> <i>string</i> - email ID of user.<br>
 	 * <b>gender</b> <i>string</i> - Male or Female type of user<br>
@@ -264,7 +264,7 @@ class UserController extends BaseController {
 		// Adding new user if old user is not found.
 		if (!$editUser)
 			$user = new User;
-		if ($fbid!=0)
+		if ($fbid!=0) // Needed to prevent erasing FB id for debugging
 			$user->fbid = $fbid;
 		$user->age = Input::get('age');
 		$user->phone = Input::get('phone');

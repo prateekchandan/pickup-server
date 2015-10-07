@@ -1162,7 +1162,7 @@ class HomeController extends BaseController {
 		// Maximum distance allowed between start points
 		$distance_threshold=2;
 		// Maximum people in a ride
-		$max_people=5;
+		$max_people=3;
 		// We compute top n matches
 		$n=5;
 
